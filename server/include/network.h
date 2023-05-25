@@ -19,7 +19,7 @@ public:
   using tcp = net::ip::tcp;
 
 private:
-  tcp::aceptor acceptor;
+  tcp::acceptor acceptor;
   tcp::socket socket;
 
 public:
@@ -27,6 +27,8 @@ public:
     : acceptor(ioc, endpoint), socket(ioc) { }
 
   ~websocket_server() { acceptor.close(); }
+
+  void start() { accept(); }
 
 private:
   void accept() {

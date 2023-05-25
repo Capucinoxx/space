@@ -1,7 +1,20 @@
 #include <iostream>
 
+#include "network.h"
+
+namespace net = boost::asio;
+
+enum { PORT = 8080 };
+
 int main() {
-  std::cout << "hello world" << std::endl;
+  using tcp = websocket_server::tcp;
+
+  net::io_context ioc;
+
+  websocket_server server(ioc, tcp::endpoint(tcp::v4(), 8080));
+
+  server.start();
+  ioc.run();
 
   return 0;
 }
