@@ -12,9 +12,19 @@ private:
   bool is_step;
 
 public:
-  tile_map() {}
+  tile_map() : value{ 0 }, is_step{ false } { }
 
-  player::movement_type step(short id);
+  player::movement_type step(short id) {
+    if (is_step)
+      return stmt::DEATH;
+
+    if (value == id)
+      return stmt::COMPLETE;
+
+    is_step = true;
+    value = id;
+    return stmt::STEP;
+  }
 
   bool is_trail() const noexcept { return is_step; }
   void clear() noexcept { is_step = false; }
