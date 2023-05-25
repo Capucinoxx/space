@@ -1,21 +1,27 @@
-FROM gcc:latest
+CC = g++
+CFLAGS = -std=c++20 -Iinclude
 
-RUN apt-get update && \
-    apt-get install -y \
-    build-essential \
-    cmake
+SRC_DIR = src
+INCLUDE_DIR = include
+BUILD_DIR = build
+BIN_DIR = bin
 
-WORKDIR /tmp/boost
-RUN wget --max-redirect 4 -q https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.tar.gz && \
-    tar xf boost_1_79_0.tar.gz && \
-    cd boost_1_79_0 && \
-    ./bootstrap.sh && \
-    ./b2 install
+SRC_FILES = $(wildcard $(SRC_DIR)/*.cpp)
+OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
-WORKDIR /app
+EXECUTABLE = $(BIN_DIR)/server
 
-COPY . .
-COPY Makefile .
-RUN make
+all: $(EXECUTABLE)
 
-CMD ["/app/bin/server"]
+$(EXECUTABLE): $(OBJ_FILES)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $^ -o $@
+
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
+
+.PHONY: all clean
