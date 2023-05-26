@@ -1,6 +1,8 @@
 #ifndef SPACE_PLAYER_H
 #define SPACE_PLAYER_H
 
+#include "tile_map.h"
+
 #include <vector>
 
 template<std::size_t ROWS, std::size_t COLS>
@@ -16,7 +18,7 @@ private:
   std::vector<movement_type> trail = new std::vector<movement_type>(ROWS * COLS);
 
 public:
-  virtual movement_type update() = 0;
+  virtual tile_map::stmt update() = 0;
   virtual ~player();
 
   short id() const noexcept { return identifier; }

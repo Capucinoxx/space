@@ -15,7 +15,15 @@ private:
 
 public:
   map();
-  bool update() { return false; }
+  bool update() {
+    for (const player& p : players) {
+      tile_map::stmt res = p.update(fields);
+      if (res == tile_map::stmt::DEATH)
+        kill(p);
+      else if(res == tile_map::stmt::COMPLETE)
+        complete_area(p);
+    }
+  }
 
   bool spawn(player *p);
   bool kill(player *p);
