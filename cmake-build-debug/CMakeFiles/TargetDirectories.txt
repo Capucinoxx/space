@@ -1,3 +1,0 @@
-/home/capucinoxx/Documents/space/cmake-build-debug/CMakeFiles/space.dir
-/home/capucinoxx/Documents/space/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/capucinoxx/Documents/space/cmake-build-debug/CMakeFiles/rebuild_cache.dir
