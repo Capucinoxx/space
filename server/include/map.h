@@ -70,6 +70,10 @@ public:
     return false;
   }
 
+  std::string serialize() const {
+    return std::string();
+  }
+
 private:
   void generate_spawns() {
     int n_spawns = MAX_PLAYERS * 2;
@@ -95,6 +99,39 @@ private:
         std::shuffle(spawns.begin(), spawns.end(), rng);
       }
   }
+
+  class serializer {
+  public:
+    std::string operator()( const std::vector<player<ROWS, COLS> *>& players,
+                            const std::array<std::array<uint8_t, COLS>, ROWS>& grid) const {
+      string::stringstream ss;
+
+      // serialize dimensions
+      append(ss, static_cast<int32_t>(ROWS));
+      append(ss, static_cast<int32_t>(COLS));
+
+      // Serialize map data
+      ss.write(reinterpret_cast<const char *>(grid.data()), ROWS * COLS * sizeof(uint8_t));
+
+      // Serialize number of players
+      append(ss, static_cast<uint8_t>(players.size()));
+
+      // serialize player data
+      for (const auto& p : players) {
+        append(ss, p->id());
+        append(ss, static_cast<uint8_t>(p->name().size()));
+        ss.write(p->name().c_str(), p->name().size());
+      }
+
+      return ss.str();
+    }
+
+  private:
+    template<typename T>
+    void append(std::stringstream& ss, const T& value) const {
+      ss.write(reinterpret_cast<const char *>(&value), sizeof(value));
+    }
+  };
 };
 
 #endif //SPACE_MAP_H
