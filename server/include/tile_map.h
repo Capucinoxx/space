@@ -14,7 +14,7 @@ private:
 public:
   tile_map() : value{ 0 }, is_step{ false } { }
 
-  player::movement_type step(short id) {
+  stmt step(short id) {
     if (is_step)
       return stmt::DEATH;
 

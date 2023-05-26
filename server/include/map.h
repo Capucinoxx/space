@@ -24,7 +24,7 @@ private:
 
 public:
   map() { generate_spawns(); }
-  bool update() {
+  void update() {
     for (const player<ROWS, COLS>& p : players) {
       tile_map::stmt res = p.update(fields);
       if (res == tile_map::stmt::DEATH)
@@ -34,8 +34,8 @@ public:
     }
   }
 
-  bool spawn(player *p) {
-    auto [x_pos,m y_pos] = spawns[current_spawn++];
+  void spawn(player<ROWS, COLS> *p) {
+    auto [x_pos, y_pos] = spawns[current_spawn++];
     current_spawn %= spawns.size();
 
     for (int i = x_pos - 1; i != x_pos + 2; ++i)
@@ -45,10 +45,30 @@ public:
     p->set_position(std::make_pair(x_pos, y_pos));
   }
 
-  bool kill(player *p);
-  bool complete_area(player *p);
+  void kill(player<ROWS, COLS> *p) {
+    player_position pos = p->position();
 
-  bool is_in_bounds(player::position_type pos);
+    for (auto it = p->trail_begin(); it != p->trail_end(); ++it) {
+      const auto& trail_point = *it;
+
+      if (trail_point == pos)
+        continue;
+
+      auto [x, y] = pos;
+
+      if (fields[x][y].is_step()) {
+        fields[x][y].reset();
+      }
+    }
+  }
+
+  bool complete_area(player<ROWS, COLS> *p) {
+    return false;
+  }
+
+  bool is_in_bounds(player_position pos) {
+    return false;
+  }
 
 private:
   void generate_spawns() {

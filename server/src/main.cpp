@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "network.h"
+#include "map.h"
 
 namespace net = boost::asio;
 
