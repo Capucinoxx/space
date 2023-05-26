@@ -12,12 +12,15 @@
 template<std::size_t ROWS, std::size_t COLS>
 class map {
 public:
+  using player_position = typename player<ROWS, COLS>::position_type;
+
   static const int MAX_PLAYERS = 40;
 
 private:
   tile_map fields[ROWS][COLS];
   std::vector<player<ROWS, COLS> *> players;
-  std::vector<typename player<ROWS, COLS>::position_type> spawns;
+  std::vector<player_position> spawns;
+  std::size_t current_spawn = 0;
 
 public:
   map() { generate_spawns(); }
@@ -31,7 +34,17 @@ public:
     }
   }
 
-  bool spawn(player *p);
+  bool spawn(player *p) {
+    auto [x_pos,m y_pos] = spawns[current_spawn++];
+    current_spawn %= spawns.size();
+
+    for (int i = x_pos - 1; i != x_pos + 2; ++i)
+      for (int j = x_pos - 1; j != y_pos + 2; ++j)
+        fields[i][j].set(p->id());
+
+    p->set_position(std::make_pair(x_pos, y_pos));
+  }
+
   bool kill(player *p);
   bool complete_area(player *p);
 

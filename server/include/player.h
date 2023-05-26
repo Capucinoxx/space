@@ -24,6 +24,10 @@ public:
   short id() const noexcept { return identifier; }
   std::string name() const noexcept { return username; }
 
+  void set_position(position_type pos) {
+    location = pos;
+  }
+
 protected:
   virtual movement_type move() = 0;
 };

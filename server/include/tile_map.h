@@ -26,6 +26,10 @@ public:
     return stmt::STEP;
   }
 
+  void set(short id) {
+    value = id;
+  }
+
   bool is_trail() const noexcept { return is_step; }
   void clear() noexcept { is_step = false; }
   void reset() noexcept {
