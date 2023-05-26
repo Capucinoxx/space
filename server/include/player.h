@@ -8,6 +8,8 @@
 template<std::size_t ROWS, std::size_t COLS>
 class player {
 public:
+  enum { maximum_name_size = 15 };
+
   enum movement_type { UP, DOWN, LEFT, RIGHT };
   using position_type = std::pair<int, int>;
   using trail_iterator = typename std::vector<movement_type>::iterator;
