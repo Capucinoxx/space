@@ -95,7 +95,7 @@ private:
         int x = static_cast<int>(j * spacing_x + spacing_x / 2 + offset_x);
         int y = static_cast<int>(i * spacing_y + spacing_y / 2 + offset_y);
 
-        spawns.push_back(x, y);
+        spawns.push_back({x, y});
         std::shuffle(spawns.begin(), spawns.end(), rng);
       }
   }
@@ -104,7 +104,7 @@ private:
   public:
     std::string operator()( const std::vector<player<ROWS, COLS> *>& players,
                             const std::array<std::array<uint8_t, COLS>, ROWS>& grid) const {
-      string::stringstream ss;
+      std::stringstream ss;
 
       // serialize dimensions
       append(ss, static_cast<int32_t>(ROWS));
