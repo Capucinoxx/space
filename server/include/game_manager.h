@@ -10,7 +10,7 @@
 #include "tile_map.h"
 
 template<std::size_t ROWS, std::size_t COLS>
-class map {
+class game_manager {
 public:
   using player_position = typename player<ROWS, COLS>::position_type;
 
@@ -23,7 +23,7 @@ private:
   std::size_t current_spawn = 0;
 
 public:
-  map() { generate_spawns(); }
+  game_manager() { generate_spawns(); }
   void update() {
     for (const player<ROWS, COLS>& p : players) {
       tile_map::stmt res = p.update(fields);
