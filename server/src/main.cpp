@@ -1,21 +1,30 @@
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include "network.h"
 #include "map.h"
 
-namespace net = boost::asio;
-
 enum { PORT = 8080 };
+enum { ROWS = 400, COLS = 300 };
 
 int main() {
-  using tcp = websocket_server::tcp;
+  map<ROWS, COLS> m;
 
-  net::io_context ioc;
+  http_server server(PORT);
 
-  websocket_server server(ioc, tcp::endpoint(tcp::v4(), 8080));
+  server.add_ws_route("/game", [](http_server::shared_ws_type ws) {});
 
-  server.start();
-  ioc.run();
+  std::thread t([&]() {
+    while(true) {
+      server.broadcast_websocket_message(m.serialize());
+      std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
+    }
+  });
+
+  server.run();
+
+  t.join();
 
   return 0;
 }
