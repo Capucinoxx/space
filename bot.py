@@ -13,9 +13,9 @@ def deserialize_player(data):
     data = data[4:]
 
     trail = []
-    for _ in range(n_trail):
-        trail.append(struct.unpack('II', data[:8]))
-        data = data[8:]
+    # for _ in range(n_trail):
+    #     trail.append(struct.unpack('II', data[:8]))
+    data = data[:0]
 
     return {'uuid': uuid, 'x':  pos_x, 'y': pos_y, 'trail': trail}
 
@@ -26,6 +26,7 @@ def deserialize_game_manager(data):
     players = []
     while len(data) > 0:
         players.append(deserialize_player(data))
+        data = []
 
     return {'rows': rows, 'cols': cols, 'players': players}
 
