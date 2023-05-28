@@ -2,29 +2,31 @@
 #include <thread>
 #include <chrono>
 
-#include "network.h"
 #include "game_manager.h"
+#include "network.h"
 
 enum { PORT = 8080 };
 enum { ROWS = 400, COLS = 300 };
 
 int main() {
-  game_manager<ROWS, COLS> game;
+  using Server = HttpServer<ROWS, COLS>;
 
-  http_server server(PORT);
 
-  server.add_ws_route("/game", [](http_server::shared_ws_type ws) {});
+  Server server(PORT);
 
-  std::thread t([&]() {
-    while(true) {
-      server.broadcast_websocket_message(game.serialize());
-      std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
-    }
-  });
+  std::function<void(const std::vector<uint8_t>&)> broadcastFunc = [&server](const std::vector<uint8_t>& message) {
+    server.broadcast_message(message);
+  };
 
-  server.run();
+  GameManager<ROWS, COLS> game(150, broadcastFunc);
 
-  t.join();
+  server.add_ws_route("/game", [&](Server::http_request req, Server::ws_session ws) {
+
+   });
+
+   game.start();
+
+   server.run();
 
   return 0;
 }
