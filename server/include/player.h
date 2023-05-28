@@ -22,10 +22,18 @@ private:
   std::string uuid;
   direction next_direction;
   position current_pos;
-  std::vector<position> trail = new std::vector<position>(ROWS * COLS / 2);
+  std::vector<position> trail;
 
 
 public:
+  Player() {
+    // temporaire
+    uuid = "1111-1111-1111-1111";
+    next_direction = DOWN;
+    current_pos = { 2, 4 };
+    trail.reserve(ROWS * COLS / 2);
+  }
+
   std::string id() const noexcept { return uuid; }
   position pos() const noexcept   { return current_pos; }
 

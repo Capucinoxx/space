@@ -1,6 +1,8 @@
 #ifndef SPACE_NETWORK_H
 #define SPACE_NETWORK_H
 
+#include "game_manager.h"
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/dispatch.hpp>
@@ -42,8 +44,17 @@ public:
   }
 
   void write(const std::vector<uint8_t>& data) {
-    ws.async_write(asio::buffer(data), beast::bind_front_handler(&Session<ROWS, COLS>::on_write, this->shared_from_this()));
+    if (ws.is_open()) {
+      ws.binary(true);
+      ws.async_write(net::buffer(data),
+                     beast::bind_front_handler(&Session::on_write, this->shared_from_this()));
+    }
   }
+
+  bool is_open() const noexcept {
+    return ws.is_open();
+  }
+
 
 private:
   void on_run() {
@@ -97,9 +108,11 @@ private:
   net::io_context& ioc;
   tcp::acceptor acceptor;
   std::unordered_set<std::shared_ptr<Session<ROWS, COLS>>> sessions;
+  std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
 
 public:
-  Listener(net::io_context& ioc, tcp::endpoint endpoint) : ioc(ioc), acceptor(ioc) {
+  Listener(net::io_context& ioc, tcp::endpoint endpoint, std::shared_ptr<GameManager<ROWS, COLS>> manager)
+    : ioc(ioc), acceptor(ioc), game_manager(std::move(manager)) {
     beast::error_code ec;
 
     acceptor.open(endpoint.protocol(), ec);
@@ -120,8 +133,22 @@ public:
   }
 
   void broadcast(const std::vector<uint8_t>& data) {
-    for (const auto& session : sessions)
-      session->write(data);
+    std::cout << "braocast  for " << sessions.size() << std::endl;
+    std::unordered_set<std::shared_ptr<Session<ROWS, COLS>>> closedSessions;
+
+    for (const auto& session : sessions) {
+      if (session->is_open()) {
+        session->write(data);
+      }
+      else {
+        closedSessions.insert(session);
+      }
+    }
+
+    // Supprimer les sessions fermées
+    for (const auto& session : closedSessions) {
+      sessions.erase(session);
+    }
   }
 
 private:
@@ -137,7 +164,11 @@ private:
     if (!ec) {
       auto session = std::make_shared<Session<ROWS, COLS>>(std::move(socket));
       sessions.insert(session);
+      game_manager->register_player(std::make_shared<Player<ROWS, COLS>>());
+
       session->run();
+    } else {
+      std::cout << ec << std::endl;
     }
 
     do_accept();
@@ -154,13 +185,14 @@ private:
   tcp::endpoint endpoint;
   int threads;
   std::shared_ptr<Listener<ROWS, COLS>> listener;
+  std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
 
 public:
-  Server(const std::string& address, unsigned short port, int threads)
-    : threads{ threads }, ioc{ threads }, endpoint{ net::ip::make_address(address), port } {}
+  Server(const std::string& address, unsigned short port, int threads, std::shared_ptr<GameManager<ROWS, COLS>> manager)
+    : threads{ threads }, ioc{ threads }, endpoint{ net::ip::make_address(address), port }, game_manager(std::move(manager)) {}
 
   void listen() {
-    listener = std::make_shared<Listener<ROWS, COLS>>(ioc, endpoint);
+    listener = std::make_shared<Listener<ROWS, COLS>>(ioc, endpoint, game_manager);
     listener->run();
 
     std::vector<std::thread> v;
