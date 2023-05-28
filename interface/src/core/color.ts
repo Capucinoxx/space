@@ -13,9 +13,10 @@ class HSL {
     return new HSL(this.hue, this.saturation, this.lightness);
   }
 
-  public adjust_luminosity(delta: number): void {
+  public adjust_luminosity(delta: number): HSL {
     let hsl = this.copy();
-    hsl.lightness = Math.max(0, Math.min(1, hsl.lightness + delta));
+    hsl.lightness = Math.max(0, Math.min(1, delta));
+    return hsl;
   }
 
   public to_rgba(alpha: number): string {
