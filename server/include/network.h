@@ -2,17 +2,17 @@
 #define SPACE_NETWORK_H
 
 #include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio.hpp>
+#include <boost/asio/dispatch.hpp>
+#include <boost/asio/strand.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <string>
+#include <thread>
+#include <vector>
 #include <unordered_set>
-#include <atomic>
 
 namespace asio = boost::asio;
 namespace beast = boost::beast;
@@ -21,219 +21,160 @@ namespace websocket = beast::websocket;
 namespace net = boost::asio;
 
 template<uint32_t ROWS, uint32_t COLS>
-class HttpServer {
+class Session : public std::enable_shared_from_this<Session<ROWS, COLS>> {
 public:
   using tcp = net::ip::tcp;
   using stream_socket = websocket::stream<tcp::socket>;
 
-  using http_request = http::request<http::string_body>&;
-  using ws_session = std::shared_ptr<stream_socket>;
+private:
+  stream_socket ws;
+  beast::flat_buffer write_buffer;
+  beast::flat_buffer read_buffer;
 
-  using http_handler = std::function<void(http::request<http::string_body>&, http::response<http::string_body>&)>;
-  using ws_handler = std::function<void(http::request<http::string_body>&, std::shared_ptr<stream_socket>)>;
+public:
+  explicit Session(tcp::socket&& socket) : ws(std::move(socket)) {}
+
+  void run() {
+    net::dispatch(ws.get_executor(),
+                  beast::bind_front_handler(
+                      &Session<ROWS, COLS>::on_run,
+                      this->shared_from_this()));
+  }
+
+  void write(const std::vector<uint8_t>& data) {
+    ws.async_write(asio::buffer(data), beast::bind_front_handler(&Session<ROWS, COLS>::on_write, this->shared_from_this()));
+  }
+
+private:
+  void on_run() {
+    ws.set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
+
+    ws.set_option(websocket::stream_base::decorator([](websocket::response_type& res) {
+      res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " ws-server");
+    }));
+
+    ws.async_accept(beast::bind_front_handler(&Session::on_accept, this->shared_from_this()));
+  }
+
+  void on_accept(beast::error_code ec) {
+    if (!ec)
+      do_read();
+  }
+
+  void do_read() {
+    ws.async_read(read_buffer, beast::bind_front_handler(&Session::on_read, this->shared_from_this()));
+  }
+
+  void on_read(beast::error_code ec, std::size_t bytes_transferred) {
+    boost::ignore_unused(bytes_transferred);
+
+    if (ec == websocket::error::closed)
+      return;
+
+    if (!ec) {
+      auto text = read_buffer.data().data();
+      std::cout << "READ: " << static_cast<char *>(text) << std::endl;
+      read_buffer.consume(read_buffer.size());
+    }
+
+    do_read();
+  }
+
+  void on_write(beast::error_code ec, std::size_t bytes_transferred) {
+    boost::ignore_unused(bytes_transferred);
+
+    if (ec)
+      return;
+  }
+};
+
+template<uint32_t ROWS, uint32_t COLS>
+class Listener : public std::enable_shared_from_this<Listener<ROWS, COLS>> {
+public:
+  using tcp = net::ip::tcp;
+
+private:
+  net::io_context& ioc;
+  tcp::acceptor acceptor;
+  std::unordered_set<std::shared_ptr<Session<ROWS, COLS>>> sessions;
+
+public:
+  Listener(net::io_context& ioc, tcp::endpoint endpoint) : ioc(ioc), acceptor(ioc) {
+    beast::error_code ec;
+
+    acceptor.open(endpoint.protocol(), ec);
+    if (ec) return;
+
+    acceptor.set_option(net::socket_base::reuse_address(true), ec);
+    if (ec) return;
+
+    acceptor.bind(endpoint, ec);
+    if (ec) return;
+
+    acceptor.listen(net::socket_base::max_listen_connections, ec);
+    if (ec) return;
+  }
+
+  void run() {
+    do_accept();
+  }
+
+  void broadcast(const std::vector<uint8_t>& data) {
+    for (const auto& session : sessions)
+      session->write(data);
+  }
+
+private:
+  void do_accept() {
+    acceptor.async_accept(
+        net::make_strand(ioc),
+        beast::bind_front_handler(
+            &Listener::on_accept,
+            this->shared_from_this()));
+  }
+
+  void on_accept(beast::error_code ec, tcp::socket socket) {
+    if (!ec) {
+      auto session = std::make_shared<Session<ROWS, COLS>>(std::move(socket));
+      sessions.insert(session);
+      session->run();
+    }
+
+    do_accept();
+  }
+};
+
+template<uint32_t ROWS, uint32_t COLS>
+class Server {
+public:
+  using tcp = net::ip::tcp;
 
 private:
   net::io_context ioc;
-  tcp::acceptor acceptor;
-  std::atomic<bool> running { true };
-  std::map<std::string, http_handler> endpoints;
-  std::map<std::string, ws_handler> ws_routes;
-  std::unordered_set<ws_session> sessions;
+  tcp::endpoint endpoint;
+  int threads;
+  std::shared_ptr<Listener<ROWS, COLS>> listener;
 
 public:
-  HttpServer(short unsigned int port) : acceptor(ioc, { tcp::v4(), port }) {}
+  Server(const std::string& address, unsigned short port, int threads)
+    : threads{ threads }, ioc{ threads }, endpoint{ net::ip::make_address(address), port } {}
 
-  void run() {
-    while (running) {
-      tcp::socket socket(ioc);
-      acceptor.accept(socket);
+  void listen() {
+    listener = std::make_shared<Listener<ROWS, COLS>>(ioc, endpoint);
+    listener->run();
 
-      auto req = read_http_req(socket);
+    std::vector<std::thread> v;
+    v.reserve(threads - 1);
 
-      if (websocket::is_upgrade(req)) {
-        std::shared_ptr<stream_socket> ws = std::make_shared<stream_socket>(std::move(socket));
-        ws->accept(req);
+    for (auto i = threads - 1; i > 0; --i)
+      v.emplace_back([&]{ ioc.run(); });
 
-        handle_websocket(req, ws);
-      } else {
-        http::response<http::string_body> response;
-        handle_http_req(req, response);
-
-        write_http_response(socket, response);
-      }
-    }
+    ioc.run();
   }
 
-  void broadcast_message(const std::vector<uint8_t>& message) {
-    std::vector<ws_session> disconnected;
-
-    for (auto it = sessions.begin(); it != sessions.end(); ++it) {
-      boost::system::error_code ec;
-      (*it)->write(net::buffer(message), ec);
-
-      if (ec)
-        disconnected.push_back(*it);
-    }
-
-    for (const auto& session : disconnected)
-      sessions.erase(session);
+  void broadcast(const std::vector<uint8_t>& data) {
+    listener->broadcast(data);
   }
-
-
-
-
-
-//
-//        std::cout << "!!!!!!!!!!1" << std::endl;
-//        session->write(asio::buffer(message));
-//      }
-//
-//      else
-//        sessions.erase(session);
-//  }
-
-  void add_endpoint(const std::string& path, http_handler handler) { endpoints[path] = handler; }
-  void add_ws_route(const std::string& path, ws_handler handler)   { ws_routes[path] = handler; }
-
-private:
-  http::request<http::string_body> read_http_req(tcp::socket& socket) {
-    beast::flat_buffer  buffer;
-    http::request<http::string_body> req;
-    http::read(socket, buffer, req);
-    return req;
-  }
-
-  void write_http_response(tcp::socket& socket, const http::response<http::string_body>& resp) {
-    http::write(socket, resp);
-  }
-
-  void handle_http_req(http::request<http::string_body>& req, http::response<http::string_body>& resp) {
-    auto it = endpoints.find(req.target().to_string());
-    if (it != endpoints.end())
-      it->second(req, resp);
-    else {
-      resp.result(http::status::not_found);
-      resp.set(http::field::content_type, "text/plain");
-      resp.body() = "404 Not Found";
-    }
-  }
-
-  void handle_websocket(http::request<http::string_body>& req, std::shared_ptr<websocket::stream<tcp::socket>> ws) {
-    add_ws_connection(ws);
-
-    std::cout << "Handle" << std::endl;
-
-    auto it = ws_routes.find(req.target().to_string());
-    if (it != ws_routes.end())
-      it->second(req, ws);
-    else {
-      ws->close(websocket::close_code::normal);
-    }
-  }
-
-  void add_ws_connection(ws_session ws) { sessions.insert(ws); }
-  void remove_ws_connection(ws_session ws) { sessions.erase(ws); }
 };
-
-//class http_server {
-//public:
-//  using tcp = net::ip::tcp;
-//  using http_handler = std::function<void(http::request<http::string_body>&, http::response<http::string_body>&)>;
-//
-//  using shared_ws_type = std::shared_ptr<websocket::stream<tcp::socket>>;
-//  using ws_handler = std::function<void(shared_ws_type)>;
-//
-//private:
-//  net::io_context ioc;
-//  tcp::acceptor acceptor;
-//  std::map<std::string, http_handler> endpoints;
-//  std::map<std::string, ws_handler> ws_routes;
-//  std::unordered_set<std::shared_ptr<websocket::stream<tcp::socket>>> ws_connections;
-//
-//public:
-//  http_server(short unsigned int port) : acceptor(ioc, { tcp::v4(), port }) {}
-//
-//  void run() {
-//    while(true) {
-//      tcp::socket socket(ioc);
-//      acceptor.accept(socket);
-//
-//      auto req = read_http_req(socket);
-//
-//      if (websocket::is_upgrade(req)) {
-//        std::shared_ptr<websocket::stream<tcp::socket>> ws = std::make_shared<websocket::stream<tcp::socket>>(std::move(socket));
-//        ws->accept(req);
-//
-//        handle_websocket(ws, req.base().target().to_string());
-//      } else {
-//        http::response<http::string_body> response;
-//        handle_http_req(req, response);
-//
-//        write_http_response(socket, response);
-//      }
-//    }
-//  }
-//
-//  void add_endpoint(const std::string& path, http_handler handler) {
-//    endpoints[path] = handler;
-//  }
-//
-//  void add_ws_route(const std::string& path, ws_handler handler) {
-//    ws_routes[path] = handler;
-//  }
-//
-//  void broadcast_websocket_message(const std::string& msg) {
-//    for (auto& ws : ws_connections)
-//      send_websocket_message(ws, msg);
-//  }
-//
-//private:
-//  http::request<http::string_body> read_http_req(tcp::socket& socket) {
-//    beast::flat_buffer  buffer;
-//    http::request<http::string_body> req;
-//    http::read(socket, buffer, req);
-//    return req;
-//  }
-//
-//  void write_http_response(tcp::socket& socket, const http::response<http::string_body>& resp) {
-//    http::write(socket, resp);
-//  }
-//
-//  void handle_http_req(http::request<http::string_body>& req, http::response<http::string_body>& resp) {
-//    auto it = endpoints.find(req.target().to_string());
-//    if (it != endpoints.end())
-//      it->second(req, resp);
-//    else {
-//      resp.result(http::status::not_found);
-//      resp.set(http::field::content_type, "text/plain");
-//      resp.body() = "404 Not Found";
-//    }
-//  }
-//
-//  void handle_websocket(std::shared_ptr<websocket::stream<tcp::socket>> ws, const std::string& path) {
-//    add_ws_connection(ws);
-//
-//    auto it = ws_routes.find(path);
-//    if (it != ws_routes.end())
-//      it->second(ws);
-//    else
-//      ws->async_close(websocket::close_code::normal, [&, ws](boost::system::error_code ec) {
-//        remove_ws_connection(ws);
-//      });
-//  }
-//
-//  void send_websocket_message(std::shared_ptr<websocket::stream<tcp::socket>> ws, const std::string& message) {
-//    boost::system::error_code ec;
-//    ws->write(net::buffer(message), ec);
-//  }
-//
-//  void add_ws_connection(std::shared_ptr<websocket::stream<tcp::socket>> ws) {
-//    ws_connections.insert(ws);
-//  }
-//
-//  void remove_ws_connection(std::shared_ptr<websocket::stream<tcp::socket>> ws) {
-//    ws_connections.erase(ws);
-//  }
-//};
 
 #endif //SPACE_NETWORK_H

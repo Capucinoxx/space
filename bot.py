@@ -21,11 +21,8 @@ def deserialize_player(data):
 
 
 def deserialize_game_manager(data):
-    # print(f"data: {data[]}")
     rows, cols = struct.unpack('II', data[:8])
-    #
     data = data[8:]
-    #
     players = []
     while len(data) > 0:
         players.append(deserialize_player(data))
@@ -38,8 +35,14 @@ def receive_response(ws):
 
     print(deserialize_game_manager(data))
 
+def send_request(ws):
+    request = "some_data"
+    ws.send(request)
+    print(f"Send {request}")
 
-ws = websocket.create_connection("ws://localhost:8080/game")
+
+ws = websocket.create_connection("ws://localhost:8080")
 
 while True:
+    send_request(ws)
     receive_response(ws)

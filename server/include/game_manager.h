@@ -16,11 +16,12 @@
 #include "player.h"
 #include "tile_map.h"
 #include "utils.h"
+#include "old_network.h"
 
 template<uint32_t ROWS, uint32_t COLS>
 class GameManager {
 public:
-  using broadcast_fn = std::function<void(std::vector<uint8_t>&)>;
+  using broadcast_fn = std::function<void(const std::vector<uint8_t>&)>;
 
 private:
   std::array<std::array<TileMap, COLS>, ROWS> grid;
@@ -28,22 +29,26 @@ private:
   std::vector<std::pair<uint32_t, uint32_t>> spawns;
   std::atomic<int> current_spawn { 1 };
 
-  std::thread th;
+  std::unique_ptr<std::thread> th;
   std::atomic<bool> running { true };
   uint32_t tick;
   broadcast_fn broadcast;
 
 public:
-  GameManager(uint32_t tick, broadcast_fn broadcast) : tick{ tick }, broadcast(broadcast) {
-    generate_spawns();
-  }
+  GameManager(uint32_t tick, broadcast_fn fn) : tick{ tick }, broadcast(fn) { generate_spawns(); }
+
+  ~GameManager() = default;
+  GameManager(const GameManager&) = delete;
+  GameManager& operator=(const GameManager&) = delete;
+
+//  void set_broadcast_fn(broadcast_fn fn) { broadcast = fn; }
 
   void register_player(std::shared_ptr<Player<ROWS, COLS>> p) {
-    players[p->id()] = p;
+    players.push_back(std::move(p));
   }
 
   void start() {
-    th = std::thread([this]() {
+    th = std::make_unique<std::thread>(std::thread([this]() {
       while (running) {
         update_map();
 
@@ -51,13 +56,13 @@ public:
 
         std::this_thread::sleep_for(std::chrono::milliseconds(tick));
       }
-    });
+    }));
   }
 
   void stop() {
     running.store(false);
-    if (th.joinable())
-      th.join();
+    if (th->joinable())
+      th->join();
   }
 
 private:
@@ -110,8 +115,6 @@ private:
 
     return data;
   }
-
-
 };
 
 //

@@ -1,32 +1,28 @@
 #include <iostream>
-#include <thread>
-#include <chrono>
+#include <vector>
 
-#include "game_manager.h"
 #include "network.h"
+#include "game_manager.h"
 
+
+enum { ROWS = 300, COLS = 400 };
 enum { PORT = 8080 };
-enum { ROWS = 400, COLS = 300 };
+enum { TICK = 500 };
+
 
 int main() {
-  using Server = HttpServer<ROWS, COLS>;
+  Server<ROWS, COLS> server("0.0.0.0", PORT, 10);
+
+  GameManager<ROWS, COLS> game(TICK, [&](const std::vector<uint8_t>& data) {
+    server.broadcast(data);
+  });
+
+  game.start();
 
 
-  Server server(PORT);
+  server.listen();
 
-  std::function<void(const std::vector<uint8_t>&)> broadcastFunc = [&server](const std::vector<uint8_t>& message) {
-    server.broadcast_message(message);
-  };
 
-  GameManager<ROWS, COLS> game(150, broadcastFunc);
-
-  server.add_ws_route("/game", [&](Server::http_request req, Server::ws_session ws) {
-
-   });
-
-   game.start();
-
-   server.run();
 
   return 0;
 }
