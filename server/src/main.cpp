@@ -1,30 +1,39 @@
 #include <iostream>
+#include <vector>
 #include <thread>
+#include <atomic>
+#include <memory>
 #include <chrono>
 
 #include "network.h"
-#include "map.h"
+#include "game_manager.h"
 
+
+enum { ROWS = 300, COLS = 400 };
 enum { PORT = 8080 };
-enum { ROWS = 400, COLS = 300 };
+enum { TICK = 500 };
+
 
 int main() {
-  map<ROWS, COLS> m;
+  auto game = std::make_shared<GameManager<ROWS, COLS>>();
+  Server<ROWS, COLS> server("0.0.0.0", PORT, 10, game);
 
-  http_server server(PORT);
 
-  server.add_ws_route("/game", [](http_server::shared_ws_type ws) {});
+  std::atomic<bool> running{ true };
+  auto th = std::thread([&]() {
+    while(running) {
+      game->update();
+      auto data = game->serialize();
+      server.broadcast(data);
 
-  std::thread t([&]() {
-    while(true) {
-      server.broadcast_websocket_message(m.serialize());
-      std::this_thread::sleep_for((std::chrono::milliseconds(1000)));
+      std::this_thread::sleep_for(std::chrono::milliseconds(TICK));
     }
   });
 
-  server.run();
+  server.listen();
 
-  t.join();
+  th.join();
+
 
   return 0;
 }

@@ -3,16 +3,16 @@
 
 #include "player.h"
 
-class tile_map {
+class TileMap {
 public:
   enum stmt { IDLE, DEATH, STEP, COMPLETE };
 
 private:
-  short value;
+  uint8_t value;
   bool is_step;
 
 public:
-  tile_map() : value{ 0 }, is_step{ false } { }
+  TileMap() : value{ 0 }, is_step{ false } { }
 
   stmt step(short id) {
     if (is_step)

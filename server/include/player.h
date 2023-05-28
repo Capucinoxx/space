@@ -2,58 +2,79 @@
 #define SPACE_PLAYER_H
 
 #include "tile_map.h"
+#include "utils.h"
 
 #include <vector>
 
-template<std::size_t ROWS, std::size_t COLS>
-class player {
+template<uint32_t ROWS, uint32_t COLS>
+class Player {
 public:
-  enum { maximum_name_size = 15 };
+  enum direction { UP, DOWN, LEFT, RIGHT };
+  using movement_type = TileMap::stmt;
 
-  enum movement_type { UP, DOWN, LEFT, RIGHT };
-  using position_type = std::pair<int, int>;
-  using trail_iterator = typename std::vector<movement_type>::iterator;
-  using const_trail_iterator = typename std::vector<movement_type>::const_iterator;
+  using position = std::pair<uint32_t, uint32_t>;
+  using trail_iterator = typename std::vector<position>::iterator;
+  using const_trail_iterator = typename std::vector<position>::const_iterator;
+
+  static const int UUID_SIZE = 15;
 
 private:
-  short identifier;
-  std::string username;
-  position_type location;
-  std::vector<movement_type> trail = new std::vector<movement_type>(ROWS * COLS);
+  std::string uuid;
+  direction next_direction;
+  position current_pos;
+  std::vector<position> trail;
+
 
 public:
-  virtual tile_map::stmt update() = 0;
-  virtual ~player();
-
-  short id() const noexcept { return identifier; }
-  std::string name() const noexcept { return username; }
-
-  position_type position() const noexcept {
-    return location;
+  Player() {
+    // temporaire
+    uuid = "1111-1111-1111-1111";
+    next_direction = DOWN;
+    current_pos = { 2, 4 };
+    trail.reserve(ROWS * COLS / 2);
   }
 
-  void set_position(position_type pos) {
-    location = pos;
+  std::string id() const noexcept { return uuid; }
+  position pos() const noexcept   { return current_pos; }
+
+  trail_iterator begin() noexcept { return trail.begin(); }
+  trail_iterator end() noexcept   { return trail.end(); }
+
+  const_trail_iterator begin() const noexcept { return trail.begin(); }
+  const_trail_iterator end() const noexcept   { return trail.end(); }
+
+  movement_type update() {
+    auto res = move(next_direction);
+    return res;
   }
 
-  trail_iterator trail_begin() noexcept {
-    return trail.begin();
+  void serialize(std::vector<uint8_t>& data) {
+    serialize_data<std::string>(data, id(), UUID_SIZE);
+    serialize_value<uint32_t>(data, pos().first);
+    serialize_value<uint32_t>(data, pos().second);
+    serialize_value<uint8_t>(data, static_cast<uint8_t>(begin() - end()));
+
+    for (auto it = begin(); it != end(); ++it) {
+      serialize_value<uint32_t>(data, it->first);
+      serialize_value<uint32_t>(data, it->second);
+    }
   }
 
-  trail_iterator trail_end() noexcept {
-    return trail.end();
-  }
+private:
+  movement_type move(direction d) noexcept {
+    // todo: if out of bound, return IDLE
 
-  const_trail_iterator trail_begin() const noexcept {
-    return trail.begin();
-  }
 
-  const_trail_iterator trail_end() const noexcept {
-    return trail.end();
-  }
+    switch (d) {
+      case UP:    --current_pos.second; break;
+      case DOWN:  ++current_pos.second; break;
+      case LEFT:  --current_pos.first; break;
+      case RIGHT: ++current_pos.first; break;
+    }
 
-protected:
-  virtual movement_type move() = 0;
+    // todo: on aurait besoin de la map pour savoir le type de mouvement fait
+    return movement_type::STEP;
+  }
 };
 
 #endif //SPACE_PLAYER_H
