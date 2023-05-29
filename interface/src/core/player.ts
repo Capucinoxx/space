@@ -15,9 +15,6 @@ class Player {
   private current_position: Position;
   private destination_position: Position;
 
-  // private pos_x: number;
-  // private pos_y: number;
-
   constructor(name: string, color: HSL) {
     this.name = name
 
@@ -28,6 +25,29 @@ class Player {
 
     this.current_position = { x: 30, y: 30 };
     this.destination_position = this.current_position;
+  }
+
+  public move(pos: Position): void {
+    this.current_position = pos;
+  }
+
+  public get position(): Position {
+    return this.current_position;
+  }
+
+  public set destination(pos: Position) {
+    this.destination_position = pos;
+  }
+
+  public get destination(): Position {
+    return this.destination_position;
+  }
+
+  public get delta(): Position {
+    return {
+      x: this.destination_position.x - this.current_position.x,
+      y: this.destination_position.y - this.current_position.y
+    }
   }
 
   public render(ctx: CanvasRenderingContext2D): void {
