@@ -33,6 +33,16 @@ public:
     trail.reserve(ROWS * COLS / 2);
   }
 
+  static direction parse_action(const std::string& data) {
+    switch (static_cast<uint8_t>(data[0])) {
+      case 0: return UP;
+      case 1: return DOWN;
+      case 2: return LEFT;
+      case 3: return RIGHT;
+      default: return LEFT;
+    }
+  }
+
   std::string id() const noexcept { return uuid; }
   position pos() const noexcept   { return current_pos; }
 

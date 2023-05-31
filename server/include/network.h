@@ -18,6 +18,8 @@ namespace http = beast::http;
 namespace websocket = beast::websocket;
 namespace net = boost::asio;
 
+class WebsocketHandler;
+
 class Server {
 public:
   using tcp = net::ip::tcp;
@@ -27,13 +29,13 @@ public:
   using http_handler = std::function<void(http_request, http_response)>;
 
   using ws_stream_pointer = std::shared_ptr<websocket::stream<tcp::socket>>;
-  using ws_handler = std::function<void(ws_stream_pointer, http_request)>;
+  // using ws_handler = std::function<void(ws_stream_pointer, http_request)>;
 
 private:
   net::io_context ioc;
   tcp::acceptor acceptor;
   std::map<std::string, http_handler> http_endpoints;
-  std::map<std::string, ws_handler> ws_endpoints;
+  std::map<std::string, WebsocketHandler> ws_endpoints;
 
   std::unordered_set<ws_stream_pointer> ws_connections;
   std::vector<std::thread> thread_pool;
@@ -57,7 +59,7 @@ public:
     http_endpoints[path] = handler;
   }
 
-  void add_ws_endpoint(const std::string& path, ws_handler handler) {
+  void add_ws_endpoint(const std::string& path, const WebsocketHandler& handler) {
     ws_endpoints[path] = handler;
   }
 
@@ -133,7 +135,8 @@ private:
 
       auto it = server.ws_endpoints.find(req.target().to_string());
       if (it != server.ws_endpoints.end()) {
-        it->second(ws, req);
+        it->second.on_open(ws, req);
+        // it->second(ws, req); // TODO: a corrgier
 
         read_websocket_message();
       } else {
@@ -150,7 +153,10 @@ private:
           std::string message(beast::buffers_to_string(self->buffer.data()));
           self->buffer.consume(bytes_transferred);
 
-          std::cout << "received message: " << message << std::endl;
+          it->second.on_message(message); // todo: a corriger (doit passer iterateur + info player)
+          // - on devrait stocker info joueurs quelque part
+
+          std::cout << "received message: " << message << std::endl; // todo a corriger
 
           self->read_websocket_message();
         } else {
@@ -178,4 +184,10 @@ private:
       server.ws_connections.erase(ws);
     }
   };
+};
+
+class WebsocketHandler {
+public:
+  virtual void on_open(Server::ws_stream_pointer ws, Server::http_request req) = 0;
+  virtual void on_message(const std::string& message) = 0;
 };
