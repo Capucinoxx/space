@@ -77,7 +77,7 @@ public:
 
 private:
   void update_map() {
-    std::cout << "update" << std::endl;
+    // std::cout << "update" << std::endl;
   }
 
   void generate_spawns() {
