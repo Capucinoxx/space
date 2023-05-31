@@ -15,6 +15,18 @@ class Player {
   private current_position: Position;
   private destination_position: Position;
 
+  private trail: Position[] = [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    {  x: 1, y: 1},
+    { x: 2, y: 1 },
+    { x: 4, y: 3 },
+    { x: 6, y: 5 },
+    { x: 7, y: 6 },
+    { x: 8, y: 7 },
+    { x: 9, y: 7 }
+  ];
+
   constructor(name: string, color: HSL) {
     this.name = name
 
@@ -51,8 +63,10 @@ class Player {
   }
 
   public render(ctx: CanvasRenderingContext2D): void {
+    this.render_trail(ctx)
     this.render_name(ctx)
     this.render_cube(ctx)
+    
   }
 
   private render_name(ctx: CanvasRenderingContext2D): void {
@@ -74,6 +88,14 @@ class Player {
 
     ctx.fillStyle = this.light_color;
     ctx.fillRect(x - 1, y - SHADOW_OFFSET, CELL_WIDTH + 2, CELL_WIDTH);
+  }
+
+  private render_trail(ctx: CanvasRenderingContext2D): void {
+    ctx.fillStyle = this.trace_color;
+
+    this.trail.forEach(point => {
+      ctx.fillRect(point.x * CELL_WIDTH, point.y * CELL_WIDTH, CELL_WIDTH, CELL_WIDTH);
+    });
   }
 }
 
