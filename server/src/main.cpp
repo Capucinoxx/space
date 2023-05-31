@@ -9,14 +9,12 @@ int main() {
   auto game = std::make_shared<GameManager<ROWS, COLS>>();
   Server server(8030);
 
-  server.add_ws_endpoint("/game", [](Server::ws_stream_pointer ws, const Server::http_request req) {
+  server.add_ws_endpoint("/game", [&game](Server::ws_stream_pointer ws, Server::http_request req) {
     std::cout << "New connection" << std::endl;
     std::cout << "Token: " << req[http::field::authorization] << std::endl;
 
-
-    // todo register
-    // - aller chercher le token
-    // pour le moment juste associer token  == nouveau player, pas de verif
+    std::string token = req[http::field::authorization].to_string();
+    game->register_player(std::make_shared<Player<ROWS, COLS>>(token));
   });
 
 

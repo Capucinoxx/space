@@ -26,9 +26,8 @@ private:
 
 
 public:
-  Player() {
+  Player(const std::string& uuid) : uuid{ uuid } {
     // temporaire
-    uuid = "1111-1111-1111-1111";
     next_direction = DOWN;
     current_pos = { 2, 4 };
     trail.reserve(ROWS * COLS / 2);
