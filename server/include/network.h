@@ -22,12 +22,12 @@ class Server {
 public:
   using tcp = net::ip::tcp;
 
-  using ws_stream_pointer = std::shared_ptr<websocket::stream<tcp::socket>>;
-  using ws_handler = std::function<void(ws_stream_pointer)>;
-
   using http_request = http::request<http::string_body>&;
   using http_response = http::response<http::string_body>&;
   using http_handler = std::function<void(http_request, http_response)>;
+
+  using ws_stream_pointer = std::shared_ptr<websocket::stream<tcp::socket>>;
+  using ws_handler = std::function<void(ws_stream_pointer, http_request)>;
 
 private:
   net::io_context ioc;
@@ -128,12 +128,12 @@ private:
       write_http_response(response);
     }
 
-    void process_websocket_request(ws_stream_pointer ws, const http::request<http::string_body>& req) {
+    void process_websocket_request(ws_stream_pointer ws, http::request<http::string_body>& req) {
       add_ws_connection(ws);
 
       auto it = server.ws_endpoints.find(req.target().to_string());
       if (it != server.ws_endpoints.end()) {
-        it->second(ws);
+        it->second(ws, req);
 
         read_websocket_message();
       } else {

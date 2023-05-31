@@ -33,8 +33,8 @@ def deserialize_game_manager(data):
 
 def receive_response(ws):
     data = ws.recv_frame().data
-
-    print(deserialize_game_manager(data))
+    print("ok")
+    # print(deserialize_game_manager(data))
 
 def send_request(ws):
     request = "some_data"
@@ -42,7 +42,7 @@ def send_request(ws):
     print(f"Send {request}")
 
 
-ws = websocket.create_connection("ws://localhost:8080")
+ws = websocket.create_connection("ws://localhost:8030/game", header=["Authorization: test1234"])
 
 while True:
     send_request(ws)

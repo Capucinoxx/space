@@ -9,19 +9,14 @@ int main() {
   auto game = std::make_shared<GameManager<ROWS, COLS>>();
   Server server(8030);
 
-  server.add_ws_endpoint("/game", [](Server::ws_stream_pointer ws) {
+  server.add_ws_endpoint("/game", [](Server::ws_stream_pointer ws, const Server::http_request req) {
     std::cout << "New connection" << std::endl;
+    std::cout << "Token: " << req[http::field::authorization] << std::endl;
 
-  //   while (true) {
-  //     beast::flat_buffer buffer;
-  //     ws->async_read(buffer, [](boost::system::error_code ec, std::size_t bytes_transferred) {
-  //       if (!ec) {
-  //         // Traitement des données reçues depuis le client WebSocket
-  //         std::cout << "received data" << std::endl;
-  //       }        else
-  //         return;
-  //     });
-  //   }
+
+    // todo register
+    // - aller chercher le token
+    // pour le moment juste associer token  == nouveau player, pas de verif
   });
 
 
