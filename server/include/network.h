@@ -1,212 +1,164 @@
-#ifndef SPACE_NETWORK_H
-#define SPACE_NETWORK_H
-
-#include "game_manager.h"
-
 #include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
+#include <boost/asio.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <thread>
 #include <vector>
-#include <unordered_set>
 
-namespace asio = boost::asio;
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace websocket = beast::websocket;
 namespace net = boost::asio;
 
-template<uint32_t ROWS, uint32_t COLS>
-class Session : public std::enable_shared_from_this<Session<ROWS, COLS>> {
-public:
-  using tcp = net::ip::tcp;
-  using stream_socket = websocket::stream<tcp::socket>;
-
-private:
-  stream_socket ws;
-  beast::flat_buffer write_buffer;
-  beast::flat_buffer read_buffer;
-
-public:
-  explicit Session(tcp::socket&& socket) : ws(std::move(socket)) {}
-
-  void run() {
-    net::dispatch(ws.get_executor(),
-                  beast::bind_front_handler(
-                      &Session<ROWS, COLS>::on_run,
-                      this->shared_from_this()));
-  }
-
-  void write(const std::vector<uint8_t>& data) {
-    if (ws.is_open()) {
-      ws.binary(true);
-      ws.async_write(net::buffer(data),
-                     beast::bind_front_handler(&Session::on_write, this->shared_from_this()));
-    }
-  }
-
-  bool is_open() const noexcept {
-    return ws.is_open();
-  }
-
-
-private:
-  void on_run() {
-    ws.set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
-
-    ws.set_option(websocket::stream_base::decorator([](websocket::response_type& res) {
-      res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " ws-server");
-    }));
-
-    ws.async_accept(beast::bind_front_handler(&Session::on_accept, this->shared_from_this()));
-  }
-
-  void on_accept(beast::error_code ec) {
-    if (!ec)
-      do_read();
-  }
-
-  void do_read() {
-    ws.async_read(read_buffer, beast::bind_front_handler(&Session::on_read, this->shared_from_this()));
-  }
-
-  void on_read(beast::error_code ec, std::size_t bytes_transferred) {
-    boost::ignore_unused(bytes_transferred);
-
-    if (ec == websocket::error::closed)
-      return;
-
-    if (!ec) {
-      auto text = read_buffer.data().data();
-      std::cout << "READ: " << static_cast<char *>(text) << std::endl;
-      read_buffer.consume(read_buffer.size());
-    }
-
-    do_read();
-  }
-
-  void on_write(beast::error_code ec, std::size_t bytes_transferred) {
-    boost::ignore_unused(bytes_transferred);
-
-    if (ec)
-      return;
-  }
-};
-
-template<uint32_t ROWS, uint32_t COLS>
-class Listener : public std::enable_shared_from_this<Listener<ROWS, COLS>> {
-public:
-  using tcp = net::ip::tcp;
-
-private:
-  net::io_context& ioc;
-  tcp::acceptor acceptor;
-  std::unordered_set<std::shared_ptr<Session<ROWS, COLS>>> sessions;
-  std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
-
-public:
-  Listener(net::io_context& ioc, tcp::endpoint endpoint, std::shared_ptr<GameManager<ROWS, COLS>> manager)
-    : ioc(ioc), acceptor(ioc), game_manager(std::move(manager)) {
-    beast::error_code ec;
-
-    acceptor.open(endpoint.protocol(), ec);
-    if (ec) return;
-
-    acceptor.set_option(net::socket_base::reuse_address(true), ec);
-    if (ec) return;
-
-    acceptor.bind(endpoint, ec);
-    if (ec) return;
-
-    acceptor.listen(net::socket_base::max_listen_connections, ec);
-    if (ec) return;
-  }
-
-  void run() {
-    do_accept();
-  }
-
-  void broadcast(const std::vector<uint8_t>& data) {
-    std::cout << "braocast  for " << sessions.size() << std::endl;
-    std::unordered_set<std::shared_ptr<Session<ROWS, COLS>>> closedSessions;
-
-    for (const auto& session : sessions) {
-      if (session->is_open()) {
-        session->write(data);
-      }
-      else {
-        closedSessions.insert(session);
-      }
-    }
-
-    // Supprimer les sessions fermées
-    for (const auto& session : closedSessions) {
-      sessions.erase(session);
-    }
-  }
-
-private:
-  void do_accept() {
-    acceptor.async_accept(
-        net::make_strand(ioc),
-        beast::bind_front_handler(
-            &Listener::on_accept,
-            this->shared_from_this()));
-  }
-
-  void on_accept(beast::error_code ec, tcp::socket socket) {
-    if (!ec) {
-      auto session = std::make_shared<Session<ROWS, COLS>>(std::move(socket));
-      sessions.insert(session);
-      game_manager->register_player(std::make_shared<Player<ROWS, COLS>>());
-
-      session->run();
-    } else {
-      std::cout << ec << std::endl;
-    }
-
-    do_accept();
-  }
-};
-
-template<uint32_t ROWS, uint32_t COLS>
 class Server {
 public:
   using tcp = net::ip::tcp;
 
+  using ws_stream_pointer = std::shared_ptr<websocket::stream<tcp::socket>>;
+  using ws_handler        = std::function<void(ws_stream_pointer)>;
+
+  using http_request  = http::request<http::string_body>&;
+  using http_response = http::response<http::string_body>&;
+  using http_handler  = std::function<void(http_request, http_response)>;
+
 private:
   net::io_context ioc;
-  tcp::endpoint endpoint;
-  int threads;
-  std::shared_ptr<Listener<ROWS, COLS>> listener;
-  std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
+  tcp::acceptor acceptor;
+  std::map<std::string, http_handler> http_endpoints;
+  std::map<std::string, ws_handler>   ws_endpoints;
+
+  std::unordered_set<ws_stream_pointer> ws_connections;
+  std::vector<std::thread> thread_pool;
 
 public:
-  Server(const std::string& address, unsigned short port, int threads, std::shared_ptr<GameManager<ROWS, COLS>> manager)
-    : threads{ threads }, ioc{ threads }, endpoint{ net::ip::make_address(address), port }, game_manager(std::move(manager)) {}
+  Server(short unsigned int port, std::size_t thread_pool_size = 4)
+    : acceptor(ioc, { tcp::v4(), port }), thread_pool(thread_pool_size) {}
 
-  void listen() {
-    listener = std::make_shared<Listener<ROWS, COLS>>(ioc, endpoint, game_manager);
-    listener->run();
+  void run() {
+    start_accept();
 
-    std::vector<std::thread> v;
-    v.reserve(threads - 1);
+    for (std::size_t i = 0; i != thread_pool.size(); ++i)
+      thread_pool[i] = std::thread([this]() { ioc.run(); });
 
-    for (auto i = threads - 1; i > 0; --i)
-      v.emplace_back([&]{ ioc.run(); });
-
-    ioc.run();
+    for (std::size_t i = 0; i != thread_pool.size(); ++i)
+      thread_pool[i].join();
   }
 
-  void broadcast(const std::vector<uint8_t>& data) {
-    listener->broadcast(data);
+  void add_http_endpoint(const std::string& path, http_handler handler) {
+    http_endpoints[path] = handler;
   }
+
+  void add_ws_endpoint(const std::string& path, ws_handler handler) {
+    ws_endpoints[path] = handler;
+  }
+
+  void broadcast_websocket_message(const std::string& message) {
+    for (auto& ws : ws_connections)
+      send_websocket_message(ws, message);
+  }
+
+private:
+  void start_accept() {
+    tcp::socket socket(ioc);
+
+    acceptor.async_accept(socket, [this, &socket](boost::system::error_code ec) {
+      if (!ec)
+        std::make_shared<Connection>(std::move(socket), *this)->start();
+
+      start_accept();
+    });
+  }
+
+  void send_websocket_message(ws_stream_pointer ws, const std::string& message) {
+    ws->async_write(net::buffer(message), [&, ws](boost::system::error_code ec, std::size_t) {});
+  }
+
+  class Connection : public std::enable_shared_from_this<Connection> {
+  private:
+    tcp::socket socket;
+    Server& server;
+    beast::flat_buffer buffer;
+    http::request<http::string_body> request;
+    ws_stream_pointer ws;
+
+  public:
+    Connection(tcp::socket socket, Server& server) 
+      : socket(std::move(socket)), server(server) {}
+
+    void start() {
+      read_request();
+    }
+
+  private:
+    void read_request() {
+      http::async_read(socket, buffer, request, 
+        [self = shared_from_this()](boost::system::error_code ec, std::size_t) {
+          if (!ec)
+            self->process_request();
+        });
+    }
+
+    void process_request() {
+      if (websocket::is_upgrade(request)) {
+        ws = std::make_shared<websocket::stream<tcp::socket>>(std::move(socket));
+        ws->async_accept(request, [self = shared_from_this()](boost::system::error_code ec) {
+          if (!ec)
+            self->process_websocket_request(self->ws, self->request);
+        });        
+
+        return;
+      }
+
+      auto it = server.http_endpoints.find(request.target().to_string());
+      if (it != server.http_endpoints.end()) {
+        http::response<http::string_body> response;
+        it->second(request, response);
+        write_http_response(response);
+        return;
+      }
+
+      http::response<http::string_body> response;
+      response.result(http::status::not_found);
+      response.set(http::field::content_type, "text/plain");
+      response.body() = "404 Not Found";
+      write_http_response(response);
+    }
+
+    void process_websocket_request(ws_stream_pointer ws, const http::request<http::string_body>& req) {
+      add_ws_connection(ws);
+
+      auto it = server.ws_endpoints.find(req.target().to_string());
+      if (it != server.ws_endpoints.end()) {
+        it->second(ws);
+      } else {
+        ws->async_close(websocket::close_code::normal, [&, ws](boost::system::error_code ec) {
+            remove_ws_connection(ws);
+        });
+      }
+    }
+
+    void write_http_response(const http::response<http::string_body>& resp) {
+      http::async_write(socket, resp, [self = shared_from_this()](boost::system::error_code ec, std::size_t) {
+        if (!ec)
+          self->read_request();
+      });
+    }
+
+    
+
+    void add_ws_connection(ws_stream_pointer ws) {
+      server.ws_connections.insert(ws);
+    }
+
+    void remove_ws_connection(ws_stream_pointer ws) {
+      server.ws_connections.erase(ws);
+    }
+  };
 };
-
-#endif //SPACE_NETWORK_H
