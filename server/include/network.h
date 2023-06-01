@@ -1,3 +1,6 @@
+#ifndef SPACE_NETWORK_H
+#define SPACE_NETWORK_H
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
@@ -13,12 +16,22 @@
 #include <mutex>
 #include <vector>
 
+
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace websocket = beast::websocket;
 namespace net = boost::asio;
 
-class WebsocketHandler;
+class WebsocketHandler {
+public:
+  using tcp = net::ip::tcp;
+  using ws_stream_pointer = std::shared_ptr<websocket::stream<tcp::socket>>;
+  using http_request = http::request<http::string_body>&;
+
+
+  virtual void on_open(ws_stream_pointer ws, http_request req) = 0;
+  virtual void on_message(const std::string& message) = 0;
+};
 
 class Server {
 public:
@@ -29,13 +42,14 @@ public:
   using http_handler = std::function<void(http_request, http_response)>;
 
   using ws_stream_pointer = std::shared_ptr<websocket::stream<tcp::socket>>;
+  using ws_handler = std::function<std::shared_ptr<WebsocketHandler>()>;
   // using ws_handler = std::function<void(ws_stream_pointer, http_request)>;
 
 private:
   net::io_context ioc;
   tcp::acceptor acceptor;
   std::map<std::string, http_handler> http_endpoints;
-  std::map<std::string, WebsocketHandler> ws_endpoints;
+  std::map<std::string, ws_handler> ws_endpoints;
 
   std::unordered_set<ws_stream_pointer> ws_connections;
   std::vector<std::thread> thread_pool;
@@ -59,7 +73,7 @@ public:
     http_endpoints[path] = handler;
   }
 
-  void add_ws_endpoint(const std::string& path, const WebsocketHandler& handler) {
+  void add_ws_endpoint(const std::string& path, ws_handler handler) {
     ws_endpoints[path] = handler;
   }
 
@@ -135,10 +149,17 @@ private:
 
       auto it = server.ws_endpoints.find(req.target().to_string());
       if (it != server.ws_endpoints.end()) {
-        it->second.on_open(ws, req);
+        // auto handler = it->second;
+        // handler->on_open(ws, req);
+        // handler.on_open(ws, req);
+
+        auto handler = it->second();
+        handler->on_open(ws, req);
+
+        // it->second.on_open(ws, req);
         // it->second(ws, req); // TODO: a corrgier
 
-        read_websocket_message();
+        read_websocket_message(handler);
       } else {
         ws->async_close(websocket::close_code::normal, [&, ws](boost::system::error_code ec) {
           remove_ws_connection();
@@ -147,25 +168,25 @@ private:
     }
 
 
-    void read_websocket_message() {
-      ws->async_read(buffer, [self = shared_from_this()](boost::system::error_code ec, std::size_t bytes_transferred) {
+    void read_websocket_message(std::shared_ptr<WebsocketHandler> handler) {
+      ws->async_read(buffer, [self = shared_from_this(), handler](boost::system::error_code ec, std::size_t bytes_transferred) {
         if (!ec) {
           std::string message(beast::buffers_to_string(self->buffer.data()));
           self->buffer.consume(bytes_transferred);
 
-          it->second.on_message(message); // todo: a corriger (doit passer iterateur + info player)
+          handler->on_message(message);
+
+          // it->second.on_message(message); // todo: a corriger (doit passer iterateur + info player)
           // - on devrait stocker info joueurs quelque part
 
           std::cout << "received message: " << message << std::endl; // todo a corriger
 
-          self->read_websocket_message();
+          self->read_websocket_message(handler);
         } else {
           self->remove_ws_connection();
         }
       });
     }
-
-
 
     void write_http_response(const http::response<http::string_body>& resp) {
       http::async_write(socket, resp, [self = shared_from_this()](boost::system::error_code ec, std::size_t) {
@@ -184,10 +205,8 @@ private:
       server.ws_connections.erase(ws);
     }
   };
+
+  friend class WebSocketHandler;
 };
 
-class WebsocketHandler {
-public:
-  virtual void on_open(Server::ws_stream_pointer ws, Server::http_request req) = 0;
-  virtual void on_message(const std::string& message) = 0;
-};
+#endif //SPACE_NETWORK_H
