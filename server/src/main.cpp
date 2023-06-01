@@ -15,6 +15,10 @@ int main() {
     return std::make_shared<GameHandler<ROWS, COLS>>(game);
   });
 
+  server.add_ws_endpoint("/spectate", [&]() -> std::shared_ptr<WebsocketHandler> {
+    return std::make_shared<SpectatorHandler>();
+  });
+
   std::atomic<bool> running{ true };
   auto th = std::thread([&]() {
     while(running) {

@@ -33,4 +33,13 @@ public:
     }
 };
 
+class SpectatorHandler : public WebsocketHandler {
+public:
+    SpectatorHandler() = default;
+
+    void on_open(Server::ws_stream_pointer ws, Server::http_request req) override {}
+
+    void on_message(const std::string& message) override {}
+};
+
 #endif //SPACE_HANDLER_H
