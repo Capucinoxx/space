@@ -1,22 +1,19 @@
-#include "network.h"
+#include "handler.h"
 #include "game_manager.h"
+#include "player.h"
 
 #include <atomic>
 
 enum { ROWS = 300, COLS = 300 };
 
-int main() {
-  auto game = std::make_shared<GameManager<ROWS, COLS>>();
+auto game = std::make_shared<GameManager<ROWS, COLS>>();
+
+int main() {  
   Server server(8030);
 
-  server.add_ws_endpoint("/game", [&game](Server::ws_stream_pointer ws, Server::http_request req) {
-    std::cout << "New connection" << std::endl;
-    std::cout << "Token: " << req[http::field::authorization] << std::endl;
-
-    std::string token = req[http::field::authorization].to_string();
-    game->register_player(std::make_shared<Player<ROWS, COLS>>(token));
+  server.add_ws_endpoint("/game", [&]() -> std::shared_ptr<WebsocketHandler> {
+    return std::make_shared<GameHandler<ROWS, COLS>>(game);
   });
-
 
   std::atomic<bool> running{ true };
   auto th = std::thread([&]() {

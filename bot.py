@@ -37,7 +37,7 @@ def receive_response(ws):
     # print(deserialize_game_manager(data))
 
 def send_request(ws):
-    request = "some_data"
+    request = "\x03"
     ws.send(request)
     print(f"Send {request}")
 
