@@ -30,7 +30,6 @@ public:
     void on_message(const std::string& message) override {
         typename Player<ROWS, COLS>::direction dir = Player<ROWS, COLS>::parse_action(message);
         std::cout << "Direction : " << dir << std::endl;
-        // do action !
     }
 };
 

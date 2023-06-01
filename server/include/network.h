@@ -43,7 +43,6 @@ public:
 
   using ws_stream_pointer = std::shared_ptr<websocket::stream<tcp::socket>>;
   using ws_handler = std::function<std::shared_ptr<WebsocketHandler>()>;
-  // using ws_handler = std::function<void(ws_stream_pointer, http_request)>;
 
 private:
   net::io_context ioc;
@@ -149,15 +148,8 @@ private:
 
       auto it = server.ws_endpoints.find(req.target().to_string());
       if (it != server.ws_endpoints.end()) {
-        // auto handler = it->second;
-        // handler->on_open(ws, req);
-        // handler.on_open(ws, req);
-
         auto handler = it->second();
         handler->on_open(ws, req);
-
-        // it->second.on_open(ws, req);
-        // it->second(ws, req); // TODO: a corrgier
 
         read_websocket_message(handler);
       } else {
@@ -175,11 +167,7 @@ private:
           self->buffer.consume(bytes_transferred);
 
           handler->on_message(message);
-
-          // it->second.on_message(message); // todo: a corriger (doit passer iterateur + info player)
-          // - on devrait stocker info joueurs quelque part
-
-          std::cout << "received message: " << message << std::endl; // todo a corriger
+          std::cout << "received message: " << message << std::endl;
 
           self->read_websocket_message(handler);
         } else {
