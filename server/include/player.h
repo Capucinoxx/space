@@ -43,6 +43,10 @@ public:
     }
   }
 
+  void set_direction(direction d) noexcept {
+    next_direction = d;
+  }
+
   std::string id() const noexcept { return uuid; }
   position pos() const noexcept   { return current_pos; }
 
