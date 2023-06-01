@@ -1,40 +1,55 @@
 import struct
 import websocket
 
+from typing import List, Tuple
 
-def deserialize_player(data):
-    uuid = data[:15].decode('utf-8')
-    data = data[15:]
+class Player:
+    UUID_SIZE = 15
 
-    pos_x, pos_y = struct.unpack('II', data[:8])
-    data = data[8:]
+    def __init__(self):
+        self.id: str | None = None
+        self.pos: Tuple[int, int] | None = None
+        self.trail: List[tuple[int, int]] = []
 
-    n_trail = struct.unpack('I', data[:4])[0]
-    data = data[4:]
+    
+    def deserialize(self, data: bytes) -> None:
+        self.id = data[:self.UUID_SIZE]
+        self.pos = struct.unpack('<II', data[self.UUID_SIZE:self.UUID_SIZE + 8])
+        data = data[self.UUID_SIZE + 8:]
 
-    trail = []
-    # for _ in range(n_trail):
-    #     trail.append(struct.unpack('II', data[:8]))
-    data = data[:0]
+        count = struct.unpack("<B", data[:1])[0]
+        data = data[1:]
 
-    return {'uuid': uuid, 'x':  pos_x, 'y': pos_y, 'trail': trail}
+        for _ in range(count):
+            self.trail.append(struct.unpack('<II', data[:8]))
+            data = data[8:]
+
+    def __str__(self) -> str:
+        return f"Player(id={self.id}, pos={self.pos}, trail={self.trail})"
 
 
-def deserialize_game_manager(data):
-    rows, cols = struct.unpack('II', data[:8])
-    data = data[8:]
-    players = []
-    while len(data) > 0:
-        players.append(deserialize_player(data))
-        data = []
+class Deserializer:
+    def __init__(self, data: bytes) -> None:
+        self.__data: bytes = data
+        self.__offset: int = 0
 
-    return {'rows': rows, 'cols': cols, 'players': players}
+    def deserialize(self) -> Tuple[int, int, List[Player]]:
+        rows, cols = struct.unpack('<II', self.__data[self.__offset:self.__offset + 8])
+        self.__offset += 8
 
+        players: List[Player] = []
+        while self.__offset < len(self.__data):
+            player = Player()
+            player.deserialize(self.__data[self.__offset:])
+            players.append(player)
+            self.__offset += Player.UUID_SIZE + 8 + 1 + len(player.trail) * 8
+
+        return rows, cols, players
 
 def receive_response(ws):
     data = ws.recv_frame().data
-    print("ok")
-    # print(deserialize_game_manager(data))
+    rows, cols, players = Deserializer(data).deserialize()
+    print(f"Received {rows} {cols}", ", ".join([f"{player}" for player in players]))
 
 def send_request(ws):
     request = "\x03"
