@@ -11,6 +11,9 @@ ws.subscribe((message: string) => {
 const board = document.getElementById('game-canvas') as HTMLCanvasElement;
 const ctx = board.getContext('2d') as CanvasRenderingContext2D;
 
+board.width = board.offsetWidth;
+board.height = board.offsetHeight;
+
 
 const player = new Player("Test", new HSL(217, 0.90, 0.61));
 player.render(ctx);
