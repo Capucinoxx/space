@@ -1,5 +1,3 @@
-import WebSocket from 'ws';
-
 type MessageCallback = (message: string) => void;
 
 class WebsocketService {
@@ -7,24 +5,26 @@ class WebsocketService {
   private cb: MessageCallback | null = null;
 
   constructor(url: string) {
+    console.log(`Connecting to ${url}`);
     this.socket = new WebSocket(url);
-    this.socket.on('open', this.handle_open)
-    this.socket.on('message', this.handle_message)
-    this.socket.on('close', this.handle_close)
+    this.socket.onmessage = this.handle_message.bind(this);
+    this.socket.onclose = this.handle_close;
   }
 
-  private handle_open = () => {};
-
-  private handle_message = (message: WebSocket.Data) => {
-    if (typeof message === 'string' && this.cb)
-      this.cb(message);
+  private handle_message = (message: MessageEvent) => {
+    if (this.cb)
+      this.cb(message.data);
   };
 
-  private handle_close = () => {};
+  private handle_close = () => {
+    this.socket.close();
+  };
 
   public subscribe(cb: MessageCallback) {
     this.cb = cb;
   }
+
+
 };
 
 export { WebsocketService };
