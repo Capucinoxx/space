@@ -1,6 +1,12 @@
 import { Player } from './core/player'
 import { HSL } from './core/color'
 import { Position } from './core/position'
+import { WebsocketService } from './service/websocket';
+
+const ws = new WebsocketService('ws://localhost:8030/spectate');
+ws.subscribe((message: string) => {
+  console.log(message);
+});
 
 const board = document.getElementById('game-canvas') as HTMLCanvasElement;
 const ctx = board.getContext('2d') as CanvasRenderingContext2D;
