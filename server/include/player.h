@@ -19,9 +19,12 @@ public:
   static const int UUID_SIZE = 15;
 
 private:
+  static constexpr uint32_t MAX_SIZE = (ROWS > COLS) ? ROWS : COLS;
+
   std::string uuid;
   direction next_direction;
   position current_pos;
+  position next_position;
   std::vector<position> trail;
 
 
@@ -30,7 +33,7 @@ public:
     // temporaire
     next_direction = DOWN;
     current_pos = { 2, 4 };
-    trail.reserve(ROWS * COLS / 2);
+    trail.reserve(MAX_SIZE);
   }
 
   static direction parse_action(const std::string& data) {
@@ -57,7 +60,10 @@ public:
   const_trail_iterator end() const noexcept   { return trail.end(); }
 
   movement_type update() {
+    trail.push_back(current_pos);
+
     auto res = move(next_direction);
+
     return res;
   }
 
@@ -79,14 +85,45 @@ private:
 
 
     switch (d) {
-      case UP:    --current_pos.second; break;
-      case DOWN:  ++current_pos.second; break;
-      case LEFT:  --current_pos.first; break;
-      case RIGHT: ++current_pos.first; break;
+      case UP:    
+        --current_pos.second; 
+        if (is_out_of_bound()) {
+          ++current_pos.second;
+          return movement_type::IDLE;
+        }
+        break;
+
+      case DOWN:  
+        ++current_pos.second; 
+        if (is_out_of_bound()) {
+          --current_pos.second;
+          return movement_type::IDLE;
+        }
+        break;
+
+      case LEFT:  
+        --current_pos.first;
+        if (is_out_of_bound()) {
+          ++current_pos.first;
+          return movement_type::IDLE;
+        }
+        break;
+
+      case RIGHT:
+        ++current_pos.first;
+        if (is_out_of_bound()) {
+          --current_pos.first;
+          return movement_type::IDLE;
+        }
+        break;
     }
 
     // todo: on aurait besoin de la map pour savoir le type de mouvement fait
     return movement_type::STEP;
+  }
+
+  bool is_out_of_bound() const noexcept {
+    return current_pos.first >= ROWS || current_pos.second >= COLS;
   }
 };
 
