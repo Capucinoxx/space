@@ -57,7 +57,10 @@ public:
   const_trail_iterator end() const noexcept   { return trail.end(); }
 
   movement_type update() {
+    trail.push_back(current_pos);
+
     auto res = move(next_direction);
+
     return res;
   }
 
