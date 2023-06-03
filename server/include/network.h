@@ -79,26 +79,33 @@ public:
   void broadcast_websocket_message(const std::vector<uint8_t>& message) {
     for (auto& ws : ws_connections)
       if (ws->is_open())
-        ws->async_write(net::buffer(message), [](boost::system::error_code ec, std::size_t) {});
+        ws->async_write(net::buffer(message), [](boost::system::error_code ec, std::size_t) {
+          if (ec)
+            std::cout << "Error sending message: " << ec.message() << std::endl;
+        });
   }
 
 private:
   void start_accept() {
-    acceptor.async_accept([this](boost::system::error_code ec, tcp::socket socket) {
-      if (!ec)
-        std::make_shared<Connection>(std::move(socket), *this)->start();
+    std::shared_ptr<tcp::socket> socket = std::make_shared<tcp::socket>(ioc);
+    acceptor.async_accept(*socket, [this, socket](boost::system::error_code ec) {
+      if (!ec) {
+        std::make_shared<Connection>(std::move(*socket), *this)->start();
+      } else {
+        std::cout << "Error accepting connection: " << ec.message() << std::endl;
+      }
 
       start_accept();
     });
   }
 
+
   class Connection : public std::enable_shared_from_this<Connection> {
   private:
     tcp::socket socket;
     Server& server;
-    beast::flat_buffer buffer;
     http::request<http::string_body> request;
-    ws_stream_pointer ws;
+
 
   public:
     Connection(tcp::socket socket, Server& server)
@@ -110,19 +117,24 @@ private:
 
   private:
     void read_request() {
-      http::async_read(socket, buffer, request,
-        [self = shared_from_this()](boost::system::error_code ec, std::size_t) {
-          if (!ec)
+      auto buffer = std::make_shared<beast::flat_buffer>();
+
+      http::async_read(socket, *buffer, request,
+        [self = shared_from_this(), buffer](boost::system::error_code ec, std::size_t) {
+          if (!ec) {
             self->process_request();
+          }
         });
     }
 
+
     void process_request() {
-      if (websocket::is_upgrade(request)) {
-        ws = std::make_shared<websocket::stream<tcp::socket>>(std::move(socket));
-        ws->async_accept(request, [self = shared_from_this()](boost::system::error_code ec) {
+      auto req = request;
+      if (websocket::is_upgrade(req)) {
+        auto ws = std::make_shared<websocket::stream<tcp::socket>>(std::move(socket));
+        ws->async_accept(request, [self = shared_from_this(), ws, req](boost::system::error_code ec) {
           if (!ec)
-            self->process_websocket_request(self->ws, self->request);
+            self->process_websocket_request(ws, req);
         });
 
         return;
@@ -143,7 +155,7 @@ private:
       write_http_response(response);
     }
 
-    void process_websocket_request(ws_stream_pointer ws, http::request<http::string_body>& req) {
+    void process_websocket_request(ws_stream_pointer ws, http::request<http::string_body> req) {
       add_ws_connection(ws);
 
       auto it = server.ws_endpoints.find(req.target().to_string());
@@ -151,30 +163,29 @@ private:
         auto handler = it->second();
         handler->on_open(ws, req);
 
-        read_websocket_message(handler);
+        read_websocket_message(ws, handler);
       } else {
         ws->async_close(websocket::close_code::normal, [&, ws](boost::system::error_code ec) {
-          remove_ws_connection();
+          remove_ws_connection(ws);
         });
       }
     }
 
 
-    void read_websocket_message(std::shared_ptr<WebsocketHandler> handler) {
-      ws->async_read(buffer, [self = shared_from_this(), handler](boost::system::error_code ec, std::size_t bytes_transferred) {
-        if (!ec) {
-          std::string message(beast::buffers_to_string(self->buffer.data()));
-          self->buffer.consume(bytes_transferred);
+    void read_websocket_message(ws_stream_pointer ws, std::shared_ptr<WebsocketHandler> handler) {
+      auto buffer = std::make_shared<beast::flat_buffer>();
+
+      ws->async_read(*buffer, [self = shared_from_this(), handler, ws, buffer](boost::system::error_code ec, std::size_t bytes_transferred) {
+        if (!ec || ec == boost::asio::error::eof) {
+          std::string message(beast::buffers_to_string(buffer->data()));
+          buffer->consume(bytes_transferred);
 
           handler->on_message(message);
-          std::cout << "received message: " << message << std::endl;
-
-          self->read_websocket_message(handler);
-        } else {
-          self->remove_ws_connection();
+          self->read_websocket_message(ws, handler);
         }
       });
     }
+
 
     void write_http_response(const http::response<http::string_body>& resp) {
       http::async_write(socket, resp, [self = shared_from_this()](boost::system::error_code ec, std::size_t) {
@@ -185,12 +196,15 @@ private:
 
     void add_ws_connection(ws_stream_pointer ws) {
       std::lock_guard<std::mutex> lock(server.mu);
+      std::cout << &ws << std::endl;
       server.ws_connections.insert(ws);
+      std::cout << server.ws_connections.size() << std::endl;
     }
 
-    void remove_ws_connection() {
+    void remove_ws_connection(ws_stream_pointer ws) {
       std::lock_guard<std::mutex> lock(server.mu);
       server.ws_connections.erase(ws);
+      std::cout << "remove " << server.ws_connections.size() << std::endl;
     }
   };
 
