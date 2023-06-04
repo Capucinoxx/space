@@ -34,6 +34,7 @@ class Deserializer:
         self.__offset: int = 0
 
     def deserialize(self) -> Tuple[int, int, List[Player]]:
+        print(f"Deserializing {len(self.__data)}")
         rows, cols = struct.unpack('<II', self.__data[self.__offset:self.__offset + 8])
         self.__offset += 8
 
@@ -48,17 +49,21 @@ class Deserializer:
 
 def receive_response(ws):
     data = ws.recv_frame().data
-    rows, cols, players = Deserializer(data).deserialize()
-    print(f"Received {rows} {cols}", ", ".join([f"{player}" for player in players]))
+    print(f"Received {len(data)}")
+    # rows, cols, players = Deserializer(data).deserialize()
+    # print(f"Received {rows} {cols}", ", ".join([f"{player}" for player in players]))
 
 def send_request(ws):
     request = "\x03"
     ws.send(request)
     print(f"Send {request}")
 
+import random
 
-ws = websocket.create_connection("ws://localhost:8030/game", header=["Authorization: test1234"])
+
+ws = websocket.create_connection("ws://localhost:8080/game", header=[f"Authorization: test1234"])
 
 while True:
     send_request(ws)
     receive_response(ws)
+
