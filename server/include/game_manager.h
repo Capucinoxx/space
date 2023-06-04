@@ -26,6 +26,7 @@ private:
   std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
 
   std::unique_ptr<std::thread> th;
+  uint32_t frame = 0;
 
 public:
   GameManager() { generate_spawns(); }
@@ -68,6 +69,7 @@ public:
 
     serialize_value<uint32_t>(data, ROWS);
     serialize_value<uint32_t>(data, COLS);
+    serialize_value<uint32_t>(data, frame);
 
     for (const auto& player : players)
       player->serialize(data);
@@ -79,6 +81,7 @@ private:
   void update_map() {
     for (auto& p : players)
       p->update();
+    ++frame;
   }
 
   void generate_spawns() {

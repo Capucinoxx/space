@@ -27,6 +27,7 @@ const render_with_data = (ctx: CanvasRenderingContext2D, message: ArrayBuffer): 
     const id = deserialize_string(UUID_SIZE);
     const px = deserialize_value<number>() * 30;
     const py = deserialize_value<number>() * 30;
+    const frame_alive = deserialize_value<number>();
 
     const trail_length = deserialize_value<number>();
     console.log(trail_length);
@@ -41,6 +42,7 @@ const render_with_data = (ctx: CanvasRenderingContext2D, message: ArrayBuffer): 
 
   const rows = deserialize_value<number>();
   const cols = deserialize_value<number>();
+  const frame = deserialize_value<number>();
 
   const names: Array<string> = new Array<string>();
   const colors: Array<HSL> = [];
