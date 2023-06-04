@@ -26,6 +26,7 @@ private:
   std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
 
   std::unique_ptr<std::thread> th;
+  uint32_t frame = 0;
 
 public:
   GameManager() { generate_spawns(); }
@@ -79,6 +80,7 @@ private:
   void update_map() {
     for (auto& p : players)
       p->update();
+    ++frame;
   }
 
   void generate_spawns() {

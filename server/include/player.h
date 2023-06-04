@@ -27,6 +27,8 @@ private:
   position next_position;
   std::vector<position> trail;
 
+  uint32_t frame_alive = 0;
+
 
 public:
   Player(const std::string& uuid) : uuid{ uuid } {
@@ -66,6 +68,7 @@ public:
       return res;
 
     trail.push_back(current_pos);
+    ++frame;
 
     return res;
   }
