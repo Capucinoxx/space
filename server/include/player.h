@@ -60,9 +60,12 @@ public:
   const_trail_iterator end() const noexcept   { return trail.end(); }
 
   movement_type update() {
-    trail.push_back(current_pos);
-
     auto res = move(next_direction);
+
+    if (res == movement_type::IDLE)
+      return res;
+
+    trail.push_back(current_pos);
 
     return res;
   }
@@ -71,7 +74,11 @@ public:
     serialize_data<std::string>(data, id(), UUID_SIZE);
     serialize_value<uint32_t>(data, pos().first);
     serialize_value<uint32_t>(data, pos().second);
-    serialize_value<uint8_t>(data, static_cast<uint8_t>(begin() - end()));
+    serialize_value<uint8_t>(data, static_cast<uint8_t>(trail.size()));
+
+    std::cout << "Pos: " << pos().first << ", " << pos().second << std::endl;
+
+    std::cout << "Trail size: " << trail.size() << std::endl;
 
     for (auto it = begin(); it != end(); ++it) {
       serialize_value<uint32_t>(data, it->first);
@@ -82,8 +89,6 @@ public:
 private:
   movement_type move(direction d) noexcept {
     // todo: if out of bound, return IDLE
-
-
     switch (d) {
       case UP:    
         --current_pos.second; 
