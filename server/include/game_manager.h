@@ -69,6 +69,7 @@ public:
 
     serialize_value<uint32_t>(data, ROWS);
     serialize_value<uint32_t>(data, COLS);
+    serialize_value<uint32_t>(data, frame);
 
     for (const auto& player : players)
       player->serialize(data);

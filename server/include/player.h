@@ -64,11 +64,12 @@ public:
   movement_type update() {
     auto res = move(next_direction);
 
+    ++frame_alive;
+
     if (res == movement_type::IDLE)
       return res;
 
     trail.push_back(current_pos);
-    ++frame;
 
     return res;
   }
@@ -77,6 +78,7 @@ public:
     serialize_data<std::string>(data, id(), UUID_SIZE);
     serialize_value<uint32_t>(data, pos().first);
     serialize_value<uint32_t>(data, pos().second);
+    serialize_value<uint32_t>(data, frame_alive);
     serialize_value<uint8_t>(data, static_cast<uint8_t>(trail.size()));
 
     std::cout << "Pos: " << pos().first << ", " << pos().second << std::endl;
