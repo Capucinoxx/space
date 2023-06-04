@@ -1,23 +1,21 @@
-#include "handler.h"
-#include "game_manager.h"
-#include "player.h"
-
+#include "network.h"
 #include <atomic>
 
-enum { ROWS = 300, COLS = 300 };
+int main() {
+  constexpr std::size_t rows = 20;
+  constexpr std::size_t cols = 20;
+  auto game = std::make_shared<GameManager<rows, cols>>();
 
-auto game = std::make_shared<GameManager<ROWS, COLS>>();
+  Server server(8080);
 
-int main() {  
-  Server server(8030);
+  // Add game handler
+  auto game_handler = std::make_shared<GameHandler<rows, cols>>(game);
+  server.add_websocket_handler(game_handler);
 
-  server.add_ws_endpoint("/game", [&]() -> std::shared_ptr<WebsocketHandler> {
-    return std::make_shared<GameHandler<ROWS, COLS>>(game);
-  });
+  // Add spectate handler
+  auto spectate_handler = std::make_shared<SpectateHandler>();
+  server.add_websocket_handler(spectate_handler);
 
-  server.add_ws_endpoint("/spectate", [&]() -> std::shared_ptr<WebsocketHandler> {
-    return std::make_shared<SpectatorHandler>();
-  });
 
   std::atomic<bool> running{ true };
   auto th = std::thread([&]() {

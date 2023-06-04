@@ -79,7 +79,6 @@ private:
   void update_map() {
     for (auto& p : players)
       p->update();
-    // std::cout << "update" << std::endl;
   }
 
   void generate_spawns() {

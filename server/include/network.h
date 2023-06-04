@@ -15,22 +15,25 @@
 #include <thread>
 #include <mutex>
 #include <vector>
+#include <algorithm>
 
+#include "game_manager.h"
+#include "player.h"
 
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace websocket = beast::websocket;
 namespace net = boost::asio;
 
-class WebsocketHandler {
+class WebSocketHandler {
 public:
   using tcp = net::ip::tcp;
   using ws_stream_pointer = std::shared_ptr<websocket::stream<tcp::socket>>;
   using http_request = http::request<http::string_body>&;
 
-
   virtual void on_open(ws_stream_pointer ws, http_request req) = 0;
   virtual void on_message(const std::string& message) = 0;
+  virtual std::string get_path() const = 0;
 };
 
 class Server {
@@ -42,27 +45,27 @@ public:
   using http_handler = std::function<void(http_request, http_response)>;
 
   using ws_stream_pointer = std::shared_ptr<websocket::stream<tcp::socket>>;
-  using ws_handler = std::function<std::shared_ptr<WebsocketHandler>()>;
+  using ws_handler = std::shared_ptr<WebSocketHandler>;
 
 private:
   net::io_context ioc;
   tcp::acceptor acceptor;
   std::map<std::string, http_handler> http_endpoints;
-  std::map<std::string, ws_handler> ws_endpoints;
+  std::vector<ws_handler> ws_handlers;
 
   std::unordered_set<ws_stream_pointer> ws_connections;
   std::vector<std::thread> thread_pool;
   std::mutex mu;
 
 public:
-  Server(short unsigned int port, std::size_t thread_pool_size = 4)
-    : acceptor(ioc, { tcp::v4(), port }), thread_pool(thread_pool_size) {}
+  explicit Server(short unsigned int port, std::size_t thread_pool_size = 4)
+    : acceptor(ioc, { tcp::v4(), port }), thread_pool(thread_pool_size) { }
 
   void run() {
     start_accept();
 
     for (std::size_t i = 0; i != thread_pool.size(); ++i)
-      thread_pool[i] = std::thread([this]() { ioc.run(); });
+      thread_pool[i] = std::thread([this] { ioc.run(); });
 
     for (std::size_t i = 0; i != thread_pool.size(); ++i)
       thread_pool[i].join();
@@ -72,40 +75,36 @@ public:
     http_endpoints[path] = handler;
   }
 
-  void add_ws_endpoint(const std::string& path, ws_handler handler) {
-    ws_endpoints[path] = handler;
+  void add_websocket_handler(ws_handler handler) {
+    ws_handlers.push_back(handler);
   }
 
   void broadcast_websocket_message(const std::vector<uint8_t>& message) {
     for (auto& ws : ws_connections)
-      if (ws->is_open())
-        ws->async_write(net::buffer(message), [](boost::system::error_code ec, std::size_t) {
-          if (ec)
-            std::cout << "Error sending message: " << ec.message() << std::endl;
-        });
+      if (ws->is_open()) {
+        ws->binary(true);
+        ws->async_write(net::buffer(message), [](beast::error_code ec, std::size_t) {});
+      }
+        
   }
 
 private:
   void start_accept() {
     std::shared_ptr<tcp::socket> socket = std::make_shared<tcp::socket>(ioc);
-    acceptor.async_accept(*socket, [this, socket](boost::system::error_code ec) {
-      if (!ec) {
-        std::make_shared<Connection>(std::move(*socket), *this)->start();
-      } else {
-        std::cout << "Error accepting connection: " << ec.message() << std::endl;
-      }
+    acceptor.async_accept(*socket, [this, socket](beast::error_code ec) {
+      if (!ec)
+        std::make_shared<Connection>(std::move(*socket), std::ref(*this))->start();
 
       start_accept();
     });
   }
 
-
   class Connection : public std::enable_shared_from_this<Connection> {
   private:
     tcp::socket socket;
     Server& server;
+    beast::flat_buffer buffer;
     http::request<http::string_body> request;
-
 
   public:
     Connection(tcp::socket socket, Server& server)
@@ -117,98 +116,105 @@ private:
 
   private:
     void read_request() {
-      auto buffer = std::make_shared<beast::flat_buffer>();
-
-      http::async_read(socket, *buffer, request,
-        [self = shared_from_this(), buffer](boost::system::error_code ec, std::size_t) {
-          if (!ec) {
-            self->process_request();
-          }
-        });
-    }
-
-
-    void process_request() {
-      auto req = request;
-      if (websocket::is_upgrade(req)) {
-        auto ws = std::make_shared<websocket::stream<tcp::socket>>(std::move(socket));
-        ws->async_accept(request, [self = shared_from_this(), ws, req](boost::system::error_code ec) {
-          if (!ec)
-            self->process_websocket_request(ws, req);
-        });
-
-        return;
-      }
-
-      auto it = server.http_endpoints.find(request.target().to_string());
-      if (it != server.http_endpoints.end()) {
-        http::response<http::string_body> response;
-        it->second(request, response);
-        write_http_response(response);
-        return;
-      }
-
-      http::response<http::string_body> response;
-      response.result(http::status::not_found);
-      response.set(http::field::content_type, "text/plain");
-      response.body() = "404 Not Found";
-      write_http_response(response);
-    }
-
-    void process_websocket_request(ws_stream_pointer ws, http::request<http::string_body> req) {
-      add_ws_connection(ws);
-
-      auto it = server.ws_endpoints.find(req.target().to_string());
-      if (it != server.ws_endpoints.end()) {
-        auto handler = it->second();
-        handler->on_open(ws, req);
-
-        read_websocket_message(ws, handler);
-      } else {
-        ws->async_close(websocket::close_code::normal, [&, ws](boost::system::error_code ec) {
-          remove_ws_connection(ws);
-        });
-      }
-    }
-
-
-    void read_websocket_message(ws_stream_pointer ws, std::shared_ptr<WebsocketHandler> handler) {
-      auto buffer = std::make_shared<beast::flat_buffer>();
-
-      ws->async_read(*buffer, [self = shared_from_this(), handler, ws, buffer](boost::system::error_code ec, std::size_t bytes_transferred) {
-        if (!ec || ec == boost::asio::error::eof) {
-          std::string message(beast::buffers_to_string(buffer->data()));
-          buffer->consume(bytes_transferred);
-
-          handler->on_message(message);
-          self->read_websocket_message(ws, handler);
-        }
-      });
-    }
-
-
-    void write_http_response(const http::response<http::string_body>& resp) {
-      http::async_write(socket, resp, [self = shared_from_this()](boost::system::error_code ec, std::size_t) {
+      http::async_read(socket, buffer, request, [this, self = shared_from_this()](beast::error_code ec, std::size_t) {
         if (!ec)
-          self->read_request();
+          handle_request();
       });
     }
 
-    void add_ws_connection(ws_stream_pointer ws) {
-      std::lock_guard<std::mutex> lock(server.mu);
-      std::cout << &ws << std::endl;
-      server.ws_connections.insert(ws);
-      std::cout << server.ws_connections.size() << std::endl;
+    void handle_request() {
+      if (websocket::is_upgrade(request)) {
+        upgrade_websocket();
+      } else {
+        auto it = server.http_endpoints.find(request.target().to_string());
+        if (it != server.http_endpoints.end()) {
+          http::response<http::string_body> response;
+          it->second(request, response);
+          write_response(response);
+        } else {
+          http::response<http::string_body> response{ http::status::not_found, request.version() };
+          response.set(http::field::content_type, "text/plain");
+          response.body() = "The resource '" + request.target().to_string() + "' was not found.";
+          response.prepare_payload();
+          write_response(response);
+        }
+      }
     }
 
-    void remove_ws_connection(ws_stream_pointer ws) {
-      std::lock_guard<std::mutex> lock(server.mu);
-      server.ws_connections.erase(ws);
-      std::cout << "remove " << server.ws_connections.size() << std::endl;
+    void write_response(http::response<http::string_body>& response) {
+      http::async_write(socket, response, [this, self = shared_from_this(), response](beast::error_code ec, std::size_t) {
+        if (!ec && response.need_eof())
+          socket.shutdown(tcp::socket::shutdown_send, ec);
+      });
+    }
+
+    void upgrade_websocket() {
+      auto ws = std::make_shared<websocket::stream<tcp::socket>>(std::move(socket));
+      ws->set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
+      ws->set_option(websocket::stream_base::decorator([](websocket::response_type& res) {
+        res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
+      }));
+
+      ws->async_accept(request, [this, ws, self = shared_from_this()](beast::error_code ec) {
+        if (!ec)
+          handle_websocket_upgrade(ws);
+      });
+    }
+
+    void handle_websocket_upgrade(ws_stream_pointer ws) {
+      auto it = std::find_if(server.ws_handlers.begin(), server.ws_handlers.end(), [this](ws_handler handler) {
+        return handler->get_path() == request.target().to_string();
+      });
+
+      if (it != server.ws_handlers.end()) {
+        server.ws_connections.insert(ws);
+        (*it)->on_open(ws, request);
+      }
     }
   };
+};
 
-  friend class WebSocketHandler;
+template<std::size_t ROWS, std::size_t COLS>
+class GameHandler : public WebSocketHandler {
+private:
+  std::shared_ptr<Player<ROWS, COLS>> player;
+  std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
+
+public:
+  explicit GameHandler(std::shared_ptr<GameManager<ROWS, COLS>> game_manager)
+    : game_manager(std::move(game_manager)) { }
+
+  void on_open(ws_stream_pointer ws, http_request req) override {
+    std::cout << "New connection" << std::endl;
+    std::cout << "Token: " << req[http::field::authorization] << std::endl;
+
+    std::string token = req[http::field::authorization].to_string();
+    player = std::make_shared<Player<ROWS, COLS>>(token);
+
+    game_manager->register_player(player);
+  }
+
+  void on_message(const std::string& message) override {
+    typename Player<ROWS, COLS>::direction dir = Player<ROWS, COLS>::parse_action(message);
+    player->set_direction(dir);
+  }
+
+  std::string get_path() const override {
+    return "/game";
+  }
+};
+
+class SpectateHandler : public WebSocketHandler {
+public:
+  void on_open(ws_stream_pointer ws, http_request req) override {
+    std::cout << "New spectator" << std::endl;
+  }
+
+  void on_message(const std::string& message) override { }
+
+  std::string get_path() const override {
+    return "/spectate";
+  }
 };
 
 #endif //SPACE_NETWORK_H
