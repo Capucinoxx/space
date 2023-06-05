@@ -15,11 +15,11 @@ all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@ -lpqxx -lpq
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ -lpqxx -lpq
 
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
