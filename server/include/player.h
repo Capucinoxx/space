@@ -73,9 +73,16 @@ public:
     region.insert(p);
   }
 
-
   void set_position(position p) noexcept {
     current_pos = p;
+  }
+
+  double frame_score() noexcept {
+    if (frame_alive == 0)
+      return 0.0;
+
+    double percentage = static_cast<double>(region.size()) / static_cast<double>(ROWS * COLS) * 100.00;
+    return percentage * percentage / static_cast<double>(frame_alive);
   }
 
   uint8_t idx() const noexcept { return game_manager_idx; }
