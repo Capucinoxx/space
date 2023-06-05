@@ -169,7 +169,19 @@ private:
       if (it != server.ws_handlers.end()) {
         server.ws_connections.insert(ws);
         (*it)->on_open(ws, request);
+
+        handle_websocket_message(ws, it);
       }
+    }
+
+    void handle_websocket_message(ws_stream_pointer ws, std::vector<ws_handler>::iterator it) {
+      ws->async_read(buffer, [this, ws, it](beast::error_code ec, std::size_t) {
+        if (!ec) {
+          std::string message = beast::buffers_to_string(buffer.data());
+          buffer.consume(buffer.size());
+          (*it)->on_message(message);
+        }
+      });
     }
   };
 };
@@ -189,14 +201,15 @@ public:
     std::cout << "Token: " << req[http::field::authorization] << std::endl;
 
     std::string token = req[http::field::authorization].to_string();
-    player = std::make_shared<Player<ROWS, COLS>>(token);
+    player = std::make_shared<Player<ROWS, COLS>>(token, game_manager->frame(), game_manager->get_grid());
 
     game_manager->register_player(player);
   }
 
   void on_message(const std::string& message) override {
     typename Player<ROWS, COLS>::direction dir = Player<ROWS, COLS>::parse_action(message);
-    player->set_direction(dir);
+    auto res = player->perform(game_manager->frame(), dir);
+    std::cout << "res: " << res << std::endl;
   }
 
   std::string get_path() const override {
