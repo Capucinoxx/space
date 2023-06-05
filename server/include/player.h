@@ -2,6 +2,7 @@
 #define SPACE_PLAYER_H
 
 #include "tile_map.h"
+#include <unordered_set>
 #include "utils.h"
 
 #include <vector>
@@ -22,10 +23,12 @@ private:
   static constexpr uint32_t MAX_SIZE = (ROWS > COLS) ? ROWS : COLS;
 
   std::string uuid;
+  uint8_t id = 1; // todo use game_manager idx
   direction next_direction;
   position current_pos;
   position next_position;
   std::vector<position> trail;
+  std::unordered_set<position> region;
 
   uint32_t frame_alive = 0;
 
@@ -34,8 +37,8 @@ public:
   Player(const std::string& uuid) : uuid{ uuid } {
     // temporaire
     next_direction = DOWN;
-    current_pos = { 2, 4 };
     trail.reserve(MAX_SIZE);
+    region.reserve(MAX_SIZE * 2);
   }
 
   static direction parse_action(const std::string& data) {
@@ -51,6 +54,17 @@ public:
   void set_direction(direction d) noexcept {
     next_direction = d;
   }
+
+  void append_region(position p) noexcept {
+    region.insert(p);
+  }
+
+
+  void set_position(position p) noexcept {
+    current_pos = p;
+  }
+
+  uint8_t idx() const npexcept { return id; }
 
   std::string id() const noexcept { return uuid; }
   position pos() const noexcept   { return current_pos; }
@@ -80,10 +94,6 @@ public:
     serialize_value<uint32_t>(data, pos().second);
     serialize_value<uint32_t>(data, frame_alive);
     serialize_value<uint8_t>(data, static_cast<uint8_t>(trail.size()));
-
-    std::cout << "Pos: " << pos().first << ", " << pos().second << std::endl;
-
-    std::cout << "Trail size: " << trail.size() << std::endl;
 
     for (auto it = begin(); it != end(); ++it) {
       serialize_value<uint32_t>(data, it->first);
