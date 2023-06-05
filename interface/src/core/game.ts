@@ -29,7 +29,7 @@ const render_with_data = (ctx: CanvasRenderingContext2D, message: ArrayBuffer): 
     const py = deserialize_value<number>() * 30;
     const frame_alive = deserialize_value<number>();
 
-    const trail_length = deserialize_value<number>();
+    const trail_length = deserialize_value<number>(1);
     console.log(trail_length);
 
     const trail: Array<Position> = new Array<Position>(trail_length);
