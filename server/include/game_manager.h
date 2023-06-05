@@ -2,7 +2,7 @@
 #define SPACE_MAP_H
 
 #include "player.h"
-#include "tile_map.h"
+#include "grid.h"
 #include "utils.h"
 
 #include <iostream>
@@ -19,7 +19,8 @@
 template<uint32_t ROWS, uint32_t COLS>
 class GameManager {
 private:
-  std::array<std::array<TileMap, COLS>, ROWS> grid;
+  // std::array<std::array<TileMap, COLS>, ROWS> grid;
+  std::shared_ptr<Grid<ROWS, COLS>> grid;
   std::vector<std::shared_ptr<Player<ROWS, COLS>>> players;
   std::vector<std::pair<uint32_t, uint32_t>> spawns;
   std::atomic<int> current_spawn { 1 };
@@ -29,7 +30,10 @@ private:
   uint32_t frame = 0;
 
 public:
-  GameManager() { generate_spawns(); }
+  GameManager() { 
+    generate_spawns();
+    grid = std::make_shared<Grid<ROWS, COLS>>();
+  }
 
   ~GameManager() = default;
   GameManager(const GameManager&) = delete;
@@ -56,7 +60,9 @@ public:
       for (int j = -1; j != 2; ++j) {
         auto px = position.first + i;
         auto py = position.second + j;
-        grid[px][py].set(p->idx());
+        grid->at({ px, py }).step(p->idx());
+
+        // (*grid)[{ px, py }]->step(p->idx());
         p->append_region({ px, py });
       }
     }
