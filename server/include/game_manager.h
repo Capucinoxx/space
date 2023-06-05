@@ -19,7 +19,6 @@
 template<uint32_t ROWS, uint32_t COLS>
 class GameManager {
 private:
-  // std::array<std::array<TileMap, COLS>, ROWS> grid;
   std::shared_ptr<Grid<ROWS, COLS>> grid;
   std::vector<std::shared_ptr<Player<ROWS, COLS>>> players;
   std::vector<std::pair<uint32_t, uint32_t>> spawns;
@@ -27,7 +26,7 @@ private:
   std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
 
   std::unique_ptr<std::thread> th;
-  uint32_t frame = 0;
+  uint32_t frame_count = 0;
 
 public:
   GameManager() { 
@@ -48,6 +47,14 @@ public:
     update_map();
   }
 
+  uint32_t frame() const noexcept {
+    return frame_count;
+  }
+
+  std::shared_ptr<Grid<ROWS, COLS>> get_grid() const noexcept {
+    return grid;
+  }
+
   void stop() {
     if (th->joinable())
       th->join();
@@ -56,18 +63,7 @@ public:
   void spawn_player(std::shared_ptr<Player<ROWS, COLS>> p) {
     auto position = spawns[current_spawn++ % spawns.size()];
 
-    for (int i = -1; i != 2; ++i) {
-      for (int j = -1; j != 2; ++j) {
-        auto px = position.first + i;
-        auto py = position.second + j;
-        grid->at({ px, py }).step(p->idx());
-
-        // (*grid)[{ px, py }]->step(p->idx());
-        p->append_region({ px, py });
-      }
-    }
-
-    p->set_position(position);
+    p->spawn(position);
   }
 
   void kill() {
@@ -87,7 +83,7 @@ public:
 
     serialize_value<uint32_t>(data, ROWS);
     serialize_value<uint32_t>(data, COLS);
-    serialize_value<uint32_t>(data, frame);
+    serialize_value<uint32_t>(data, frame());
 
     for (const auto& player : players)
       player->serialize(data);
@@ -98,8 +94,8 @@ public:
 private:
   void update_map() {
     for (auto& p : players)
-      p->update();
-    ++frame;
+      p->perform(frame_count, Player<ROWS, COLS>::direction::DOWN);
+    ++frame_count;
   }
 
   void generate_spawns() {
