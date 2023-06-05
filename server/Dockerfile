@@ -12,6 +12,8 @@ RUN wget --max-redirect 4 -q https://boostorg.jfrog.io/artifactory/main/release/
     ./bootstrap.sh && \
     ./b2 install
 
+RUN apt-get install libpqxx-dev -y
+
 WORKDIR /app
 
 COPY . .
