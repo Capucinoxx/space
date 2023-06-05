@@ -2,6 +2,8 @@ body, html {
   border: 0;
   margin: 0;
   background: #0E0E14;
+  font-family: sans-serif;
+  color: #15151D;
 }
 
 #container {
@@ -24,4 +26,108 @@ canvas {
 #game-canvas {
   width: 100%;
   height: 100%;
+}
+
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+
+  padding-bottom: 48px;
+  padding-top: 32px;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.card {
+  border-radius: 4px;
+  margin: 15% auto;
+  border: 1px solid #888;
+  max-width: 630px;
+  padding: 40px;
+  background: #fff;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #D7D8DF;
+  padding-bottom: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(297px, 1fr));
+  grid-gap: 24px;
+  align-items: stretch;
+}
+
+@media only screen and (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;;
+  }
+
+  .card {
+    padding: 24px;
+  }
+}
+
+.form-group {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+}
+
+.form-control {
+  display: block;
+  width: calc(100% - 22px);
+  border: 1px solid #D2D6DB;
+  border-radius: 6px;
+  font-size: 16px;
+  padding: 14px 10px;
+}
+
+.form-control[type='color'] {
+  flex: 1;
+  padding: 0;
+  height: auto;
+}
+
+.btn {
+  border: none;
+  font-weight: 500;
+  padding: 15px 25px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  color: #fff;
+  background: #21BD8E;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-end {
+  justify-content: flex-end;
 }

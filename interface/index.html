@@ -1,23 +1,53 @@
 <!doctype html>
 
 <html lang="en">
+
 <head>
-    <meta charset="utf-8">
+  <meta charset="utf-8">
 
-    <title>JDIS Games 2023</title>
-    <meta name="description" content="">
-    <meta name="author" content="">
+  <title>JDIS Games 2023</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
 
-    <link rel="stylesheet" href="dist/main.css">
+  <link rel="stylesheet" href="dist/main.css">
 </head>
 
 <body>
-<div id='container'>
+  <div id='container'>
     <section class='game-container'>
-        <canvas id='game-canvas'></canvas>
+      <canvas id='game-canvas'></canvas>
     </section>
-</div>
 
-<script type="module" src="dist/main.js"></script>
+    <section class='sidebar-container'>
+      <div></div>
+      <div>
+        <button class='btn btn-primary'>Inscription</button>
+      </div>
+    </section>
+  </div>
+
+  <section class='modal'>
+    <div class='card'>
+      <div class='card-title'>Inscription d'agent</div>
+      <form class='grid'>
+        <div class='form-group'>
+          <label form='name'>Nom d'équipe</label>
+          <input type='text' name='name' id='name' maxlength='15' class='form-control'>
+        </div>
+
+        <div class='form-group'>
+          <label form='name'>Couleur</label>
+          <input type='color' name='color' id='color' class='form-control'>
+        </div>
+
+        <div class='flex flex-end full'>
+          <button class='btn btn-primary'>Je m'enregistre</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <script type="module" src="dist/main.js"></script>
 </body>
+
 </html>
