@@ -23,21 +23,23 @@ const render_with_data = (ctx: CanvasRenderingContext2D, message: ArrayBuffer): 
     return str;
   };
 
-  const deserialize_player = (): [string, HSL, Position, Array<Position>] => {
+  const deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>] => {
     const id = deserialize_string(UUID_SIZE);
     const px = deserialize_value<number>() * 30;
     const py = deserialize_value<number>() * 30;
     const frame_alive = deserialize_value<number>();
 
-    const trail_length = deserialize_value<number>();
-    console.log(trail_length);
-
+    const trail_length = deserialize_value<number>(1);
     const trail: Array<Position> = new Array<Position>(trail_length);
-    for (let i = 0; i != trail_length; i++) {
+    for (let i = 0; i != trail_length; i++)
       trail[i] = {x: deserialize_value<number>() * 30, y: deserialize_value<number>() * 30};
-    }
 
-    return [id, new HSL(217, 0.9, 0.61), { x: px, y: py }, trail];
+    const region_length = deserialize_value<number>();
+    const region: Array<Position> = new Array<Position>(region_length);
+    for (let i = 0; i != region_length; i++)
+      region[i] = {x: deserialize_value<number>() * 30, y: deserialize_value<number>() * 30};
+
+    return [id, new HSL(217, 0.9, 0.61), { x: px, y: py }, trail, region];
   };
 
   const rows = deserialize_value<number>();
@@ -48,18 +50,23 @@ const render_with_data = (ctx: CanvasRenderingContext2D, message: ArrayBuffer): 
   const colors: Array<HSL> = [];
   const positions: Array<Position> = [];
   const trails: Array<Array<Position>> = [];
+  const regions: Array<Array<Position>> = [];
 
   while (offset < data.length) {
-    const [name, color, pos, trail] = deserialize_player();
+    const [name, color, pos, trail, region] = deserialize_player();
     names.push(name);
     colors.push(color);
     positions.push(pos);
     trails.push(trail);
+    regions.push(region);
 
     console.log(offset, data.length);
   }
 
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  for (let i = 0; i != regions.length; i++)
+    render_region(ctx, colors[i], regions[i]);
 
   for (let i = 0; i != trails.length; i++)
     render_trail(ctx, colors[i], trails[i]);
@@ -92,6 +99,14 @@ const render_player = (ctx: CanvasRenderingContext2D, name: string, hsl: HSL, po
   ctx.fillStyle = light_color;
   ctx.fillRect(x - 1, y - SHADOW_OFFSET, CELL_WIDTH + 2, CELL_WIDTH);
 };
+
+const render_region = (ctx: CanvasRenderingContext2D, hsl: HSL, region: Array<Position>): void => {
+  ctx.fillStyle = hsl.to_rgba(1);
+
+  region.forEach(pos => {
+    ctx.fillRect(pos.x, pos.y, CELL_WIDTH, CELL_WIDTH);
+  });
+}
 
 const render_trail = (ctx: CanvasRenderingContext2D, hsl: HSL, trail: Array<Position>): void => {
   ctx.fillStyle = hsl.adjust_luminosity(0.74).to_rgba(0.95);

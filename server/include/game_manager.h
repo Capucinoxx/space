@@ -36,6 +36,7 @@ public:
   GameManager& operator=(const GameManager&) = delete;
 
   void register_player(std::shared_ptr<Player<ROWS, COLS>> p) {
+    spawn_player(p);
     players.push_back(std::move(p));
   }
 
@@ -48,8 +49,19 @@ public:
       th->join();
   }
 
-  void spawn() {
-    // TODO
+  void spawn_player(std::shared_ptr<Player<ROWS, COLS>> p) {
+    auto position = spawns[current_spawn++ % spawns.size()];
+
+    for (int i = -1; i != 2; ++i) {
+      for (int j = -1; j != 2; ++j) {
+        auto px = position.first + i;
+        auto py = position.second + j;
+        grid[px][py].set(p->idx());
+        p->append_region({ px, py });
+      }
+    }
+
+    p->set_position(position);
   }
 
   void kill() {

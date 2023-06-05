@@ -11,6 +11,7 @@ class Player:
         self.pos: Tuple[int, int] | None = None
         self.alive: int | None = None
         self.trail: List[tuple[int, int]] = []
+        self.region: List[tuple[int, int]] = []
 
     
     def deserialize(self, data: bytes) -> None:
@@ -19,11 +20,18 @@ class Player:
         self.alive = struct.unpack('<I', data[self.UUID_SIZE + 8:self.UUID_SIZE + 12])[0]
         data = data[self.UUID_SIZE + 12:]
 
-        count = struct.unpack("<B", data[:1])[0]
+        trail_length = struct.unpack("<B", data[:1])[0]
         data = data[1:]
 
-        for _ in range(count):
+        for _ in range(trail_length):
             self.trail.append(struct.unpack('<II', data[:8]))
+            data = data[8:]
+
+        region_length = struct.unpack("<I", data[:4])[0]
+        data = data[4:]
+
+        for _ in range(region_length):
+            self.region.append(struct.unpack('<II', data[:8]))
             data = data[8:]
 
     def __str__(self) -> str:
@@ -45,7 +53,7 @@ class Deserializer:
             player = Player()
             player.deserialize(self.__data[self.__offset:])
             players.append(player)
-            self.__offset += Player.UUID_SIZE + 12 + 1 + len(player.trail) * 8
+            self.__offset += Player.UUID_SIZE + 12 + 1 + 4 + (len(player.trail) + len(player.region)) * 8
 
         return rows, cols, players
 
