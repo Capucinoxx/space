@@ -2,10 +2,21 @@
 #define SPACE_PLAYER_H
 
 #include "tile_map.h"
-#include <unordered_set>
+
 #include "utils.h"
 
 #include <vector>
+#include <unordered_set>
+#include <mutex>
+
+struct PairHash {
+    template <typename T1, typename T2>
+    std::size_t operator()(const std::pair<T1, T2>& p) const {
+        auto h1 = std::hash<T1>{}(p.first);
+        auto h2 = std::hash<T2>{}(p.second);
+        return h1 ^ h2;
+    }
+};
 
 template<uint32_t ROWS, uint32_t COLS>
 class Player {
@@ -23,12 +34,14 @@ private:
   static constexpr uint32_t MAX_SIZE = (ROWS > COLS) ? ROWS : COLS;
 
   std::string uuid;
-  uint8_t id = 1; // todo use game_manager idx
+  uint8_t game_manager_idx = 1; // todo use game_manager idx
   direction next_direction;
   position current_pos;
   position next_position;
   std::vector<position> trail;
-  std::unordered_set<position> region;
+
+  std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash> region;
+  std::mutex region_mutex;
 
   uint32_t frame_alive = 0;
 
@@ -56,6 +69,7 @@ public:
   }
 
   void append_region(position p) noexcept {
+    std::lock_guard<std::mutex> lock(region_mutex);
     region.insert(p);
   }
 
@@ -64,7 +78,7 @@ public:
     current_pos = p;
   }
 
-  uint8_t idx() const npexcept { return id; }
+  uint8_t idx() const noexcept { return game_manager_idx; }
 
   std::string id() const noexcept { return uuid; }
   position pos() const noexcept   { return current_pos; }
@@ -93,11 +107,23 @@ public:
     serialize_value<uint32_t>(data, pos().first);
     serialize_value<uint32_t>(data, pos().second);
     serialize_value<uint32_t>(data, frame_alive);
-    serialize_value<uint8_t>(data, static_cast<uint8_t>(trail.size()));
 
+    // serialize trail
+    serialize_value<uint8_t>(data, static_cast<uint8_t>(trail.size()));
     for (auto it = begin(); it != end(); ++it) {
       serialize_value<uint32_t>(data, it->first);
       serialize_value<uint32_t>(data, it->second);
+    }
+
+    // serialize region
+    std::lock_guard<std::mutex> lock(region_mutex);
+    {
+      serialize_value<uint32_t>(data, static_cast<uint8_t>(region.size()));
+      std::cout << "region size: " << region.size() << std::endl;
+      for (auto it = region.begin(); it != region.end(); ++it) {
+        serialize_value<uint32_t>(data, it->first);
+        serialize_value<uint32_t>(data, it->second);
+      }
     }
   }
 

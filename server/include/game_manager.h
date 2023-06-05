@@ -56,7 +56,7 @@ public:
       for (int j = -1; j != 2; ++j) {
         auto px = position.first + i;
         auto py = position.second + j;
-        grid[px][py] = p->idx();
+        grid[px][py].set(p->idx());
         p->append_region({ px, py });
       }
     }
