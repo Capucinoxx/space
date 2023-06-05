@@ -97,6 +97,7 @@ public:
   const_trail_iterator end() const noexcept   { return trail.end(); }
 
   movement_type update() {
+    std::cout << "Player [" << uuid << "] score tick(" << frame_alive << ") = " << frame_score() << std::endl;
     ++frame_alive;
 
     auto res = move(next_direction);
