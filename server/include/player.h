@@ -90,9 +90,13 @@ public:
   const_trail_iterator end() const noexcept   { return trail.end(); }
 
   movement_type update() {
+    ++frame_alive;
+
     auto res = move(next_direction);
 
-    ++frame_alive;
+    if (region.find(current_pos) != region.end())
+      return movement_type::IDLE;
+
 
     if (res == movement_type::IDLE)
       return res;
@@ -119,7 +123,6 @@ public:
     std::lock_guard<std::mutex> lock(region_mutex);
     {
       serialize_value<uint32_t>(data, static_cast<uint8_t>(region.size()));
-      std::cout << "region size: " << region.size() << std::endl;
       for (auto it = region.begin(); it != region.end(); ++it) {
         serialize_value<uint32_t>(data, it->first);
         serialize_value<uint32_t>(data, it->second);
