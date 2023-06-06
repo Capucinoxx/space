@@ -3,6 +3,7 @@
 
 #include "tile_map.h"
 #include "grid.h"
+#include "concurent_unordered_set.h"
 #include "utils.h"
 
 #include <vector>
@@ -39,9 +40,9 @@ private:
   direction last_direction;;
   std::shared_ptr<Grid<ROWS, COLS>> grid;
 
-  std::unordered_set<position, PairHash> trail;
-  std::unordered_set<position, PairHash> region;
-  std::mutex region_mu;
+  ConcurrentUnorderedSet<position, PairHash> trail{ };
+  ConcurrentUnorderedSet<position, PairHash> region{ };
+  std::mutex mu;
 
 public:
   Player(const std::string& name, uint32_t frame, std::shared_ptr<Grid<ROWS, COLS>> grid) 
@@ -77,9 +78,11 @@ public:
   }
 
   movement_type perform(uint32_t frame, direction d) {
+    std::lock_guard<std::mutex> lock(mu);
     if (frame <= last_frame_played)
       return movement_type::IDLE;
 
+    
     last_frame_played = frame;
 
     ++frame_alive;
@@ -96,10 +99,7 @@ public:
       return res;
 
 
-
     trail.insert(current_pos);
-
-
 
     return res;
   }
@@ -116,6 +116,7 @@ public:
       }
     }
 
+    std::lock_guard<std::mutex> lock(mu);
     current_pos = p;
   }
 
@@ -130,10 +131,12 @@ public:
 
     region.clear();
 
+    std::lock_guard<std::mutex> lock(mu);
     frame_alive = 0;
   }
 
   void serialize(std::vector<uint8_t>& data) {
+    std::lock_guard<std::mutex> lock(mu);
     serialize_data<std::string>(data, player_name(), NAME_SIZE);
     serialize_value<uint32_t>(data, pos().first);
     serialize_value<uint32_t>(data, pos().second);
@@ -164,7 +167,6 @@ private:
     }
 
     if (is_out_of_bound(new_pos)) {
-      std::cout << "OUT OF BOUND" << std::endl;
       return TileMap::stmt::IDLE;
     }
 
