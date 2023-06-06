@@ -72,6 +72,10 @@ public:
     return percentage * percentage / static_cast<double>(frame_alive);
   }
 
+  movement_type perform(uint32_t frame) {
+    return perform(frame, last_direction);
+  }
+
   movement_type perform(uint32_t frame, direction d) {
     if (frame <= last_frame_played)
       return movement_type::IDLE;
@@ -82,16 +86,20 @@ public:
 
     auto res = move(d);
 
-    if (res == movement_type::IDLE)
-      return res;
-
     if (trail.find(current_pos) != trail.end())
       return movement_type::DEATH;
 
-    trail.insert(current_pos);
-
     if (region.find(current_pos) != region.end())
       return movement_type::COMPLETE;
+
+    if (res == movement_type::IDLE)
+      return res;
+
+
+
+    trail.insert(current_pos);
+
+
 
     return res;
   }
@@ -109,6 +117,20 @@ public:
     }
 
     current_pos = p;
+  }
+
+  void death() {  
+    for (auto it = trail.begin(); it != trail.end(); ++it)
+      grid->at(*it).reset();
+
+    trail.clear();
+
+    for (auto it = region.begin(); it != region.end(); ++it)
+      grid->at(*it).reset();
+
+    region.clear();
+
+    frame_alive = 0;
   }
 
   void serialize(std::vector<uint8_t>& data) {
@@ -141,15 +163,17 @@ private:
       case RIGHT: ++new_pos.first; break;
     }
 
-    if (is_out_of_bound(new_pos))
+    if (is_out_of_bound(new_pos)) {
+      std::cout << "OUT OF BOUND" << std::endl;
       return TileMap::stmt::IDLE;
+    }
 
     current_pos = new_pos;
     return TileMap::stmt::STEP;
   }
 
   bool is_out_of_bound(const position& pos) const noexcept {
-    return pos.first >= ROWS || pos.second >= COLS;
+    return pos.first > ROWS || pos.second > COLS;
   }
 };
 
