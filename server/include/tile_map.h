@@ -36,15 +36,13 @@ public:
   }
 
   void reset() noexcept {
-    std::lock_guard<std::mutex> lock(mu);
-
-    value = 0;
+    std::lock_guard<std::mutex> lock(mu);    
     clear();
   }
 
 private:
   void clear() noexcept {
-    std::lock_guard<std::mutex> lock(mu);
+    value = 0;
     is_step = false;
   }
 };
