@@ -153,7 +153,7 @@ private:
     }
 
     void handle_websocket_message(ws_stream_ptr ws) {
-      ws->async_read(buffer, [this, ws](beast::error_code ec, std::size_t) {
+      ws->async_read(buffer, [this, ws, self = shared_from_this()](beast::error_code ec, std::size_t) {
         if (!ec) {
           handler->on_message(beast::buffers_to_string(buffer.data()));
           buffer.consume(buffer.size());
@@ -175,7 +175,7 @@ public:
     : game_manager(game_manager) { };
 
   void on_open(ws_stream_ptr ws, http_request req) override {
-    std::string token = req[http::field::cookie].to_string();
+    std::string token = req[http::field::authorization].to_string();
     player = std::make_shared<Player<ROWS, COLS>>(token, game_manager->frame(), game_manager->get_grid());
 
     game_manager->register_player(player);
