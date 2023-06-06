@@ -2,6 +2,7 @@
 #define SPACE_TILE_MAP_H
 
 #include "player.h"
+#include <mutex>
 
 class TileMap {
 public:
@@ -10,11 +11,14 @@ public:
 private:
   uint8_t value;
   bool is_step;
+  mutable std::mutex mu;
 
 public:
   TileMap() : value{ 0 }, is_step{ false } { }
 
   stmt step(short id) {
+    std::lock_guard<std::mutex> lock(mu);
+
     if (is_step)
       return stmt::DEATH;
 
@@ -26,15 +30,20 @@ public:
     return stmt::STEP;
   }
 
-  void set(short id) {
-    value = id;
+  bool is_trail() const noexcept {
+    std::lock_guard<std::mutex> lock(mu);
+    return is_step;
   }
 
-  bool is_trail() const noexcept { return is_step; }
-  void clear() noexcept { is_step = false; }
   void reset() noexcept {
-    value = 0;
+    std::lock_guard<std::mutex> lock(mu);    
     clear();
+  }
+
+private:
+  void clear() noexcept {
+    value = 0;
+    is_step = false;
   }
 };
 

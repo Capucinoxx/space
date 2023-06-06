@@ -2,7 +2,7 @@
 #define SPACE_MAP_H
 
 #include "player.h"
-#include "tile_map.h"
+#include "grid.h"
 #include "utils.h"
 
 #include <iostream>
@@ -18,18 +18,24 @@
 
 template<uint32_t ROWS, uint32_t COLS>
 class GameManager {
+public:
+  using position = Player<ROWS, COLS>::position;
+
 private:
-  std::array<std::array<TileMap, COLS>, ROWS> grid;
+  std::shared_ptr<Grid<ROWS, COLS>> grid;
   std::vector<std::shared_ptr<Player<ROWS, COLS>>> players;
   std::vector<std::pair<uint32_t, uint32_t>> spawns;
   std::atomic<int> current_spawn { 1 };
   std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
 
   std::unique_ptr<std::thread> th;
-  uint32_t frame = 0;
+  uint32_t frame_count = 0;
 
 public:
-  GameManager() { generate_spawns(); }
+  GameManager() { 
+    generate_spawns();
+    grid = std::make_shared<Grid<ROWS, COLS>>();
+  }
 
   ~GameManager() = default;
   GameManager(const GameManager&) = delete;
@@ -44,6 +50,14 @@ public:
     update_map();
   }
 
+  uint32_t frame() const noexcept {
+    return frame_count;
+  }
+
+  std::shared_ptr<Grid<ROWS, COLS>> get_grid() const noexcept {
+    return grid;
+  }
+
   void stop() {
     if (th->joinable())
       th->join();
@@ -52,16 +66,16 @@ public:
   void spawn_player(std::shared_ptr<Player<ROWS, COLS>> p) {
     auto position = spawns[current_spawn++ % spawns.size()];
 
-    for (int i = -1; i != 2; ++i) {
-      for (int j = -1; j != 2; ++j) {
-        auto px = position.first + i;
-        auto py = position.second + j;
-        grid[px][py].set(p->idx());
-        p->append_region({ px, py });
-      }
-    }
+    p->spawn(position);
+  }
 
-    p->set_position(position);
+  void handle_move_result(std::shared_ptr<Player<ROWS, COLS>> p, Player<ROWS, COLS>::movement_type movement) {
+    switch (movement) {
+      case Player<ROWS, COLS>::movement_type::DEATH:
+        p->death();
+        spawn_player(p);
+        break;
+    }
   }
 
   void kill() {
@@ -81,7 +95,7 @@ public:
 
     serialize_value<uint32_t>(data, ROWS);
     serialize_value<uint32_t>(data, COLS);
-    serialize_value<uint32_t>(data, frame);
+    serialize_value<uint32_t>(data, frame());
 
     for (const auto& player : players)
       player->serialize(data);
@@ -92,36 +106,57 @@ public:
 private:
   void update_map() {
     for (auto& p : players)
-      p->update();
-    ++frame;
+      p->perform(frame_count);
+    ++frame_count;
   }
 
   void generate_spawns() {
-    int n_spawns = static_cast<int>(std::sqrt(ROWS * COLS));
+    uint32_t num_spawns = std::sqrt(ROWS * COLS);
+    double min_distance = std::sqrt(static_cast<double>(ROWS * COLS)) / num_spawns;
 
-    int n_cols = static_cast<int>(std::sqrt(n_spawns));
-    int n_rows = static_cast<int>((n_spawns + n_cols - 1) / n_cols);
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-    float spacing_x = static_cast<float>(COLS) / n_cols;
-    float spacing_y = static_cast<float>(ROWS) / n_rows;
+    std::vector<std::vector<bool>> spawn_grid(ROWS, std::vector<bool>(COLS, false));
+    std::vector<position> active_spawns;
 
-    std::random_device rd;
-    std::mt19937 rng(rd());
-    std::uniform_real_distribution<float> dist(-0.2f, 0.2f);
+    auto is_valid_point = [&](position p) {
+      if (p.first < COLS && p.second < ROWS)
+        return !spawn_grid[p.second][p.first];
+      return false;
+    };
 
-    for (int i = 0; i != n_rows; ++i) {
-      for (int j = 0; j != n_cols; ++j) {
-        float offset_x = dist(rng) * spacing_x;
-        float offset_y = dist(rng) * spacing_y;
+    auto add_point = [&](position p) {
+      active_spawns.push_back(p);
+      spawn_grid[p.second][p.first] = true;
+      spawns.push_back(p);
+    };
 
-        int x = static_cast<int>(i * spacing_x + spacing_x / 2 + offset_x);
-        int y = static_cast<int>(j * spacing_y + spacing_y / 2 + offset_y);
+    position start = {  static_cast<int>(distribution(rng) * COLS), 
+                        static_cast<int>(distribution(rng) * ROWS) };
+    add_point(start);
+    
 
-        spawns.push_back({ x, y });
+    while (!active_spawns.empty()) {
+      std::uniform_int_distribution<uint32_t> distribution(0, active_spawns.size() - 1);
+      uint32_t index = distribution(rng);
+      position active_pos = active_spawns[index];
+      active_spawns.erase(active_spawns.begin() + index);
+
+      const int num_attemps = 30;
+      for (int i = 0; i != num_attemps; ++i) {
+        double angle = 2.0 * M_PI * distribution(rng);
+        double distance = min_distance * (1.0 + distribution(rng));
+        uint32_t x = static_cast<uint32_t>(distance * std::cos(angle));
+        uint32_t y = static_cast<uint32_t>(distance * std::sin(angle));
+        
+        position new_pos = { active_pos.first + x, active_pos.second + y };
+        if (is_valid_point(new_pos)) {
+          add_point(new_pos);
+          active_spawns.push_back(new_pos);
+        }
       }
     }
-
-    std::shuffle(spawns.begin(), spawns.end(), rng);
   }
 };
 

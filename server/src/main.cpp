@@ -2,19 +2,17 @@
 #include <atomic>
 
 int main() {
-  constexpr std::size_t rows = 20;
-  constexpr std::size_t cols = 20;
+  constexpr std::size_t rows = 40;
+  constexpr std::size_t cols = 40;
   auto game = std::make_shared<GameManager<rows, cols>>();
 
   Server server(8080);
 
-  // Add game handler
-  auto game_handler = std::make_shared<GameHandler<rows, cols>>(game);
-  server.add_websocket_handler(game_handler);
+  auto game_handler = [&game](){ return std::make_unique<GameHandler<rows, cols>>(game); };
+  server.add_ws_endpoint("/game", game_handler);
 
-  // Add spectate handler
-  auto spectate_handler = std::make_shared<SpectateHandler>();
-  server.add_websocket_handler(spectate_handler);
+  auto spectate_handler = [&game](){ return std::make_unique<SpectateHandler>(); };
+  server.add_ws_endpoint("/spectate", spectate_handler);
 
 
   std::atomic<bool> running{ true };

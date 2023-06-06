@@ -57,6 +57,32 @@ class Deserializer:
 
         return rows, cols, players
 
+
+
+
+
+class Path:
+    def __init__(self) -> None:
+        self.__actions: List[str] = [
+            "\x03", "\x03", "\x03",
+            "\x01", "\x01", "\x01",
+            "\x02", "\x02", "\x02", "\x02", "\x02",
+            "\x00", "\x00", "\x00", "\x00", "\x00",
+            "\x03", "\x03", "\x03", "\x03",
+            "\x01", "\x01"
+        ]
+        self.__idx: int = 0
+
+    def next(self) -> str:
+        self.__idx += 1
+        print(ord(self.__actions[self.__idx % len(self.__actions)]))
+        return self.__actions[self.__idx % len(self.__actions)]
+
+
+ws = websocket.create_connection("ws://localhost:8080/game", header=[f"Authorization: test1234"])
+
+path = Path()
+
 def receive_response(ws):
     data = ws.recv_frame().data
     print(f"Received {len(data)}")
@@ -64,14 +90,8 @@ def receive_response(ws):
     print(f"Received {rows} {cols}", ", ".join([f"{player}" for player in players]))
 
 def send_request(ws):
-    request = "\x03"
-    ws.send(request)
-    print(f"Send {request}")
+    ws.send(path.next())
 
-import random
-
-
-ws = websocket.create_connection("ws://localhost:8080/game", header=[f"Authorization: test1234"])
 
 while True:
     send_request(ws)
