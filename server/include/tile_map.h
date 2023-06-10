@@ -30,6 +30,12 @@ public:
     return stmt::STEP;
   }
 
+  void take(short id) {
+    std::lock_guard<std::mutex> lock(mu);
+    value = id;
+    is_step = false;
+  }
+
   bool is_trail() const noexcept {
     std::lock_guard<std::mutex> lock(mu);
     return is_step;
@@ -38,6 +44,11 @@ public:
   void reset() noexcept {
     std::lock_guard<std::mutex> lock(mu);    
     clear();
+  }
+
+  uint8_t get_value() const noexcept {
+    std::lock_guard<std::mutex> lock(mu);
+    return value;
   }
 
 private:
