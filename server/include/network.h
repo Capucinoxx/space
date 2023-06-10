@@ -34,8 +34,20 @@ void prepare_http_response(http::request<http::string_body>& req, http::response
   resp.keep_alive(req.keep_alive());
   resp.body() = body;
   resp.prepare_payload();
-}
+};
 
+std::string retrieve_field(const std::string& body, const std::string& field) {
+    std::size_t pos = body.find(field);
+    if (pos == std::string::npos)
+      return "";
+
+    std::size_t start = pos + field.size() + 1;
+    std::size_t end = body.find('&', start);
+    if (end == std::string::npos)
+      end = body.size();
+
+    return body.substr(start, end - start);
+  };
 
 class WebSocketHandler {
 public:

@@ -15,7 +15,12 @@ int main() {
   server.add_ws_endpoint("/spectate", spectate_handler);
 
   auto subscription_handler = [&game](Server::http_request req) -> std::pair<http::status, std::string> {
-    std::string message = "hello world !";
+    std::string body = req.body();
+    std::string name = retrieve_field(body, "name");
+    std::string color = retrieve_field(body, "color");
+
+    std::string message = "name=" + name + " color=" + color;
+
     return std::make_pair(http::status::not_found, message);
   };
   server.add_http_endpoint("/subscribe", subscription_handler);
