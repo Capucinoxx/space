@@ -8,7 +8,7 @@ template <typename T, class Hash = std::hash<T>>
 class ConcurrentUnorderedSet
 {
 private:
-  std::unordered_set<T, Hash> set;
+  std::unordered_set<T, Hash> set{ };
   mutable std::mutex mu;
 
 public:

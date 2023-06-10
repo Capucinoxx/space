@@ -64,7 +64,9 @@ public:
   }
 
   void spawn_player(std::shared_ptr<Player<ROWS, COLS>> p) {
-    auto position = spawns[current_spawn++ % spawns.size()];
+    // auto position = spawns[current_spawn++ % spawns.size()];
+
+    auto position = std::make_pair(uint32_t(20), uint32_t(20));
 
     p->spawn(position);
   }
@@ -74,6 +76,9 @@ public:
       case Player<ROWS, COLS>::movement_type::DEATH:
         p->death();
         spawn_player(p);
+        break;
+      case Player<ROWS, COLS>::movement_type::COMPLETE:
+        p->fill_region();
         break;
     }
   }
