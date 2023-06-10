@@ -48,6 +48,10 @@ public:
     players.push_back(std::move(p));
   }
 
+  bool is_running() const noexcept {
+    return running.load();
+  }
+
   void start(std::function<void(const std::vector<uint8_t>&)> f) { 
     if (running.load())
       return;

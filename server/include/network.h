@@ -229,6 +229,9 @@ public:
   };
 
   void on_message(const std::string& message) override {
+    if (!game_manager->is_running())
+      return;
+    
     typename Player<ROWS, COLS>::direction direction = Player<ROWS, COLS>::parse_action(message);
     auto res = player->perform(game_manager->frame(), direction);
     
