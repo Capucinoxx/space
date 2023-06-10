@@ -29,7 +29,7 @@ private:
   std::atomic<int> current_spawn { 1 };
   std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
 
-  std::unique_ptr<std::thread> th;
+  std::thread th;
   uint32_t frame_count = 0;
   std::atomic<bool> running{ false };
 
@@ -53,7 +53,7 @@ public:
       return;
 
     running.store(true);
-    std::thread([&]() {
+    th = std::thread([&]() {
       while(running) {
         update();
         auto data = serialize();
@@ -63,7 +63,11 @@ public:
       }
     });
   }
-  void stop()  { running.store(false); }
+  void stop()  { 
+    running.store(false);
+    if (th.joinable())
+      th.join();
+  }
 
   void update() {
     update_map();
@@ -75,11 +79,6 @@ public:
 
   std::shared_ptr<Grid<ROWS, COLS>> get_grid() const noexcept {
     return grid;
-  }
-
-  void stop() {
-    if (th->joinable())
-      th->join();
   }
 
   void spawn_player(std::shared_ptr<Player<ROWS, COLS>> p) {
