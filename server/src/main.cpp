@@ -25,6 +25,18 @@ int main() {
   };
   server.add_http_endpoint("/subscribe", subscription_handler);
 
+  server.add_http_endpoint("/start_game", [&](Server::http_request req) -> std::pair<http::status, std::string> {
+    game->start([&](const std::vector<uint8_t>& data) {
+      server.broadcast_websocket_message(data);
+    });
+    return std::make_pair(http::status::ok, "Game started");
+  });
+
+  server.add_http_endpoint("/stop_game", [&](Server::http_request req) -> std::pair<http::status, std::string> {
+    game->stop();
+    return std::make_pair(http::status::ok, "Game stopped");
+  }); 
+
 
 
   std::atomic<bool> running{ true };
