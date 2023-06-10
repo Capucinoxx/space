@@ -83,7 +83,6 @@ public:
     if (frame <= last_frame_played)
       return movement_type::IDLE;
 
-    
     last_frame_played = frame;
 
     ++frame_alive;
@@ -98,7 +97,6 @@ public:
 
     if (res == movement_type::IDLE)
       return res;
-
 
     trail.insert(current_pos);
 
@@ -167,8 +165,10 @@ public:
 
     bool surrounded = true;
     std::vector<position> coords{};
+    coords.reserve(MAX_SIZE);
 
     std::vector<position> filled{};
+    filled.reserve(MAX_SIZE / 2);
 
     coords.push_back(p);
     while (coords.size() != 0) {
@@ -185,9 +185,8 @@ public:
 
       been[pos.first][pos.second] = true;
 
-      if (surrounded) {
+      if (surrounded)
         filled.push_back(pos);
-      }
 
       coords.push_back(std::make_pair(pos.first + 1, pos.second));
       coords.push_back(std::make_pair(pos.first - 1, pos.second));
