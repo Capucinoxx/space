@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <functional>
 #include <memory>
+#include <atomic>
 
 template<uint32_t ROWS, uint32_t COLS>
 class GameManager {
@@ -30,6 +31,7 @@ private:
 
   std::unique_ptr<std::thread> th;
   uint32_t frame_count = 0;
+  std::atomic<bool> running{ false };
 
 public:
   GameManager() { 
@@ -45,6 +47,23 @@ public:
     spawn_player(p);
     players.push_back(std::move(p));
   }
+
+  void start(std::function<void(const std::vector<uint8_t>&)> f) { 
+    if (running.load())
+      return;
+
+    running.store(true);
+    std::thread([&]() {
+      while(running) {
+        update();
+        auto data = serialize();
+        f(data);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+    });
+  }
+  void stop()  { running.store(false); }
 
   void update() {
     update_map();
