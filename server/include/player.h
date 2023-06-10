@@ -9,6 +9,7 @@
 #include <vector>
 #include <unordered_set>
 #include <mutex>
+#include <stack>
 
 struct PairHash {
     template <typename T1, typename T2>
@@ -120,6 +121,88 @@ public:
     current_pos = p;
   }
 
+  void fill_region() {
+    std::lock_guard<std::mutex> lock(mu);
+    if (trail.size() == 0)
+      return;
+
+    for (auto& pos : trail) {
+      grid->at(pos).step(game_id());
+      region.insert(pos);
+    }
+
+    std::array<std::array<bool, COLS>, ROWS> been{};
+    std::vector<position> coords{};
+
+    coords.push_back(current_pos);
+    while (coords.size() != 0) {
+      auto pos = coords.back();
+      coords.pop_back();
+
+      if (is_out_of_bound(pos) || been[pos.first][pos.second] || trail.find(pos) != trail.end())
+        continue;
+
+
+      been[pos.first][pos.second] = true;
+      region.insert(pos);
+      grid->at(pos).take(game_id());
+
+      flood_fill(std::make_pair(pos.first + 1, pos.second), been);
+      flood_fill(std::make_pair(pos.first - 1, pos.second), been);
+      flood_fill(std::make_pair(pos.first, pos.second + 1), been);
+      flood_fill(std::make_pair(pos.first, pos.second - 1), been);
+      
+      coords.push_back(std::make_pair(pos.first + 1, pos.second));
+      coords.push_back(std::make_pair(pos.first - 1, pos.second));
+      coords.push_back(std::make_pair(pos.first, pos.second + 1));
+      coords.push_back(std::make_pair(pos.first, pos.second - 1));
+    }
+
+    trail.clear();
+  }
+
+  void flood_fill(position p, std::array<std::array<bool, COLS>, ROWS>& been) {
+    if (is_out_of_bound(p) || been[p.first][p.second] || trail.find(p) != trail.end() || grid->at(p).get_value() == game_id())
+      return;
+
+    bool surrounded = true;
+    std::vector<position> coords{};
+
+    std::vector<position> filled{};
+
+    coords.push_back(p);
+    while (coords.size() != 0) {
+      auto pos = coords.back();
+      coords.pop_back();
+
+      if (is_out_of_bound(pos)) {
+        surrounded = false;
+        continue;
+      }
+
+      if (been[pos.first][pos.second] || trail.find(pos) != trail.end() || grid->at(pos).get_value() == game_id())
+        continue;
+
+      been[pos.first][pos.second] = true;
+
+      if (surrounded) {
+        filled.push_back(pos);
+      }
+
+      coords.push_back(std::make_pair(pos.first + 1, pos.second));
+      coords.push_back(std::make_pair(pos.first - 1, pos.second));
+      coords.push_back(std::make_pair(pos.first, pos.second + 1));
+      coords.push_back(std::make_pair(pos.first, pos.second - 1));
+    }
+
+    if (surrounded) {
+      for (const auto& pos : filled) {
+        region.insert(pos);
+        grid->at(pos).take(game_id());
+      }
+    }
+  }
+
   void death() {  
     for (auto it = trail.begin(); it != trail.end(); ++it)
       grid->at(*it).reset();
@@ -175,7 +258,7 @@ private:
   }
 
   bool is_out_of_bound(const position& pos) const noexcept {
-    return pos.first > ROWS || pos.second > COLS;
+    return pos.first >= ROWS || pos.second >= COLS;
   }
 };
 
