@@ -89,6 +89,14 @@ public:
     }
   }
 
+  static void handle_http_request(http_request req, http_response resp, const std::string& body) {
+    resp.set(http::field::server, "Space");
+    resp.set(http::field::content_type, "text/plain");
+    resp.keep_alive(req.keep_alive());
+    resp.body() = body;
+    resp.prepare_payload();
+  }
+
 private:
   void start_accept() {
     std::shared_ptr<tcp::socket> socket = std::make_shared<tcp::socket>(ioc);
@@ -125,11 +133,31 @@ private:
     }
 
     void handle_request() {
-      if (websocket::is_upgrade(request)) {
-        upgrade_websocket();
-        return;
-      }
-    }
+  if (websocket::is_upgrade(request)) {
+    upgrade_websocket();
+    return;
+  }
+
+  std::cout << "ICI" << std::endl;
+
+  http::response<http::string_body> response(http::status::not_found, request.version());
+  response.set(http::field::server, "Space");
+  response.keep_alive(request.keep_alive());
+
+  auto it = server.http_endpoints.find(request.target().to_string());
+  if (it != server.http_endpoints.end()) {
+    it->second(request, response);
+  } else {
+    response.set(http::field::content_type, "text/plain");
+    response.body() = "The resource '" + request.target().to_string() + "' was not found.";
+  }
+
+  response.prepare_payload();
+
+  beast::error_code ec;
+  http::write(socket, std::move(response), ec);
+  socket.shutdown(tcp::socket::shutdown_send, ec);
+}
 
     void upgrade_websocket() {
       auto ws = std::make_shared<websocket::stream<tcp::socket>>(std::move(socket));
