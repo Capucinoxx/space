@@ -2,7 +2,7 @@
 #include <atomic>
 
 int main() {
-  constexpr std::size_t rows = 40;
+  constexpr std::size_t rows = 30;
   constexpr std::size_t cols = 40;
   auto game = std::make_shared<GameManager<rows, cols>>();
 
@@ -13,6 +13,18 @@ int main() {
 
   auto spectate_handler = [&game](){ return std::make_unique<SpectateHandler>(); };
   server.add_ws_endpoint("/spectate", spectate_handler);
+
+  auto subscription_handler = [&game](Server::http_request req) -> std::pair<http::status, std::string> {
+    std::string body = req.body();
+    std::string name = retrieve_field(body, "name");
+    std::string color = retrieve_field(body, "color");
+
+    std::string message = "name=" + name + " color=" + color;
+
+    return std::make_pair(http::status::not_found, message);
+  };
+  server.add_http_endpoint("/subscribe", subscription_handler);
+
 
 
   std::atomic<bool> running{ true };

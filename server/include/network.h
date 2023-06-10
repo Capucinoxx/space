@@ -25,6 +25,30 @@ namespace http = beast::http;
 namespace websocket = beast::websocket;
 namespace net = boost::asio;
 
+bool is_post(http::request<http::string_body>& req) noexcept { return req.method() == http::verb::post; }
+bool is_get(http::request<http::string_body>& req) noexcept  { return req.method() == http::verb::get; }
+
+void prepare_http_response(http::request<http::string_body>& req, http::response<http::string_body>& resp, const std::string& body) {
+  resp.set(http::field::server, "Space");
+  resp.set(http::field::content_type, "text/plain");
+  resp.keep_alive(req.keep_alive());
+  resp.body() = body;
+  resp.prepare_payload();
+};
+
+std::string retrieve_field(const std::string& body, const std::string& field) {
+    std::size_t pos = body.find(field);
+    if (pos == std::string::npos)
+      return "";
+
+    std::size_t start = pos + field.size() + 1;
+    std::size_t end = body.find('&', start);
+    if (end == std::string::npos)
+      end = body.size();
+
+    return body.substr(start, end - start);
+  };
+
 class WebSocketHandler {
 public:
   using tcp = net::ip::tcp;
@@ -43,7 +67,7 @@ public:
 
   using http_request = http::request<http::string_body>&;
   using http_response = http::response<http::string_body>&;
-  using http_handler = std::function<void(http_request, http_response)>;
+  using http_handler = std::function<std::pair<http::status, std::string>(http_request)>;
 
   using ws_stream_ptr = std::shared_ptr<websocket::stream<tcp::socket>>;
   using ws_handler = std::function<std::unique_ptr<WebSocketHandler>()>;
@@ -125,11 +149,34 @@ private:
     }
 
     void handle_request() {
-      if (websocket::is_upgrade(request)) {
-        upgrade_websocket();
-        return;
-      }
-    }
+  if (websocket::is_upgrade(request)) {
+    upgrade_websocket();
+    return;
+  }
+
+ 
+  http::status status;
+  std::string body;
+
+  auto it = server.http_endpoints.find(request.target().to_string());
+  if (it != server.http_endpoints.end()) {
+    auto resp = it->second(request);
+    status = resp.first;
+    body = resp.second;
+  } else {
+    status = http::status::not_found;
+    body = "The resource '" + request.target().to_string() + "' was not found.";
+  }
+
+  std::cout << body << std::endl;
+
+  http::response<http::string_body> response(status, request.version());
+  prepare_http_response(request, response, body);
+
+  beast::error_code ec;
+  http::write(socket, std::move(response), ec);
+  socket.shutdown(tcp::socket::shutdown_send, ec);
+}
 
     void upgrade_websocket() {
       auto ws = std::make_shared<websocket::stream<tcp::socket>>(std::move(socket));
@@ -198,5 +245,7 @@ public:
 
   bool handle_message() { return false; }
 };
+
+
 
 #endif //SPACE_NETWORK_H
