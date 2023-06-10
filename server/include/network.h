@@ -25,6 +25,18 @@ namespace http = beast::http;
 namespace websocket = beast::websocket;
 namespace net = boost::asio;
 
+bool is_post(http::request<http::string_body>& req) noexcept { return req.method() == http::verb::post; }
+bool is_get(http::request<http::string_body>& req) noexcept  { return req.method() == http::verb::get; }
+
+void prepare_http_response(http::request<http::string_body>& req, http::response<http::string_body>& resp, const std::string& body) {
+  resp.set(http::field::server, "Space");
+  resp.set(http::field::content_type, "text/plain");
+  resp.keep_alive(req.keep_alive());
+  resp.body() = body;
+  resp.prepare_payload();
+}
+
+
 class WebSocketHandler {
 public:
   using tcp = net::ip::tcp;
@@ -43,7 +55,7 @@ public:
 
   using http_request = http::request<http::string_body>&;
   using http_response = http::response<http::string_body>&;
-  using http_handler = std::function<void(http_request, http_response)>;
+  using http_handler = std::function<std::pair<http::status, std::string>(http_request)>;
 
   using ws_stream_ptr = std::shared_ptr<websocket::stream<tcp::socket>>;
   using ws_handler = std::function<std::unique_ptr<WebSocketHandler>()>;
@@ -89,14 +101,6 @@ public:
     }
   }
 
-  static void handle_http_request(http_request req, http_response resp, const std::string& body) {
-    resp.set(http::field::server, "Space");
-    resp.set(http::field::content_type, "text/plain");
-    resp.keep_alive(req.keep_alive());
-    resp.body() = body;
-    resp.prepare_payload();
-  }
-
 private:
   void start_accept() {
     std::shared_ptr<tcp::socket> socket = std::make_shared<tcp::socket>(ioc);
@@ -138,21 +142,24 @@ private:
     return;
   }
 
-  std::cout << "ICI" << std::endl;
-
-  http::response<http::string_body> response(http::status::not_found, request.version());
-  response.set(http::field::server, "Space");
-  response.keep_alive(request.keep_alive());
+ 
+  http::status status;
+  std::string body;
 
   auto it = server.http_endpoints.find(request.target().to_string());
   if (it != server.http_endpoints.end()) {
-    it->second(request, response);
+    auto resp = it->second(request);
+    status = resp.first;
+    body = resp.second;
   } else {
-    response.set(http::field::content_type, "text/plain");
-    response.body() = "The resource '" + request.target().to_string() + "' was not found.";
+    status = http::status::not_found;
+    body = "The resource '" + request.target().to_string() + "' was not found.";
   }
 
-  response.prepare_payload();
+  std::cout << body << std::endl;
+
+  http::response<http::string_body> response(status, request.version());
+  prepare_http_response(request, response, body);
 
   beast::error_code ec;
   http::write(socket, std::move(response), ec);
@@ -226,5 +233,7 @@ public:
 
   bool handle_message() { return false; }
 };
+
+
 
 #endif //SPACE_NETWORK_H
