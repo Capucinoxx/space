@@ -35,7 +35,7 @@ class Player:
             data = data[8:]
 
     def __str__(self) -> str:
-        return f"Player(id={self.id}, pos={self.pos}, alive={self.alive}, trail={self.trail})"
+        return f"Player(id={self.id}, pos={self.pos}, alive={self.alive}, trail={self.trail}, region={self.region})"
 
 
 class Deserializer:
@@ -69,7 +69,7 @@ class Path:
             "\x02", "\x02", "\x02", "\x02", "\x02",
             "\x00", "\x00", "\x00", "\x00", "\x00",
             "\x03", "\x03", "\x03", "\x03",
-            "\x01", "\x01"
+            "\x01", "\x02"
         ]
         self.__idx: int = 0
 
@@ -84,7 +84,7 @@ ws = websocket.create_connection("ws://localhost:8080/game", header=[f"Authoriza
 path = Path()
 
 def receive_response(ws):
-    data = ws.recv_frame().data
+    data = ws.recv()
     print(f"Received {len(data)}")
     rows, cols, players = Deserializer(data).deserialize()
     print(f"Received {rows} {cols}", ", ".join([f"{player}" for player in players]))
