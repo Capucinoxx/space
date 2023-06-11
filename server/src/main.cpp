@@ -4,9 +4,10 @@
 int main() {
   constexpr std::size_t rows = 30;
   constexpr std::size_t cols = 40;
-  auto game = std::make_shared<GameManager<rows, cols>>();
-
+  
   Server server(8080);
+
+  auto game = std::make_shared<GameManager<rows, cols>>();
 
   auto game_handler = [&game](){ return std::make_unique<GameHandler<rows, cols>>(game); };
   server.add_ws_endpoint("/game", game_handler);
@@ -26,9 +27,7 @@ int main() {
   server.add_http_endpoint("/subscribe", subscription_handler);
 
   server.add_http_endpoint("/start_game", [&](Server::http_request req) -> std::pair<http::status, std::string> {
-    game->start([&](const std::vector<uint8_t>& data) {
-      server.broadcast_websocket_message(data);
-    });
+    game->start(&server, &Server::broadcast_websocket_message);
     return std::make_pair(http::status::ok, "Game started");
   });
 
@@ -36,20 +35,6 @@ int main() {
     game->stop();
     return std::make_pair(http::status::ok, "Game stopped");
   }); 
-
-
-
-  std::atomic<bool> running{ true };
-  auto th = std::thread([&]() {
-    while(running) {
-      game->update();
-      auto data = game->serialize();
-
-      server.broadcast_websocket_message(data);
-
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-  });
 
   server.run();
 

@@ -21,6 +21,7 @@ template<uint32_t ROWS, uint32_t COLS>
 class GameManager {
 public:
   using position = Player<ROWS, COLS>::position;
+  using broadcast_fn_type = void (*)(const std::vector<uint8_t>&);
 
 private:
   std::shared_ptr<Grid<ROWS, COLS>> grid;
@@ -34,7 +35,7 @@ private:
   std::atomic<bool> running{ false };
 
 public:
-  GameManager() { 
+  explicit GameManager() { 
     generate_spawns();
     grid = std::make_shared<Grid<ROWS, COLS>>();
   }
@@ -52,21 +53,23 @@ public:
     return running.load();
   }
 
-  void start(std::function<void(const std::vector<uint8_t>&)> f) { 
+  template<typename T>
+  void start(T* object, void (T::*callback)(const std::vector<uint8_t>&)) { 
     if (running.load())
       return;
 
     running.store(true);
-    th = std::thread([&]() {
+    th = std::thread([object, callback, this]() {
       while(running) {
         update();
         auto data = serialize();
-        f(data);
+        (object->*callback)(data);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
     });
   }
+  
   void stop()  { 
     running.store(false);
     if (th.joinable())
