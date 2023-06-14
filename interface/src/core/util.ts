@@ -5,3 +5,5 @@ const get_index_array_sorted_by_values = (vals: number[]): number[] => {
 
     return idx_val.map((obj) => obj.i);
 };
+
+export { get_index_array_sorted_by_values };

@@ -1,11 +1,12 @@
 import { HSL } from './color';
 import { Position } from './position';
+import { get_index_array_sorted_by_values } from './util';
 
 const UUID_SIZE = 15;
 const SHADOW_OFFSET = 3;
 const CELL_WIDTH = 30;
 
-const render_with_data = (ctx: CanvasRenderingContext2D, section: HTMLElement, message: ArrayBuffer): void => {
+const render_with_data = (ctx: CanvasRenderingContext2D, scoreboard: HTMLElement, message: ArrayBuffer): void => {
   const data = new Uint8Array(message);
   console.log(data.length);
   let offset = 0;
@@ -70,6 +71,8 @@ const render_with_data = (ctx: CanvasRenderingContext2D, section: HTMLElement, m
 
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
+  const scoreboard_childrens: Array<HTMLElement> = [];
+
   for (let i = 0; i != regions.length; i++)
     render_region(ctx, colors[i], regions[i]);
 
@@ -80,8 +83,15 @@ const render_with_data = (ctx: CanvasRenderingContext2D, section: HTMLElement, m
     render_player(ctx, names[i], colors[i], positions[i]);
 
     const score_idx = sorted_idx.indexOf(i);
-    render_player_score(section, names[score_idx], regions_length[score_idx] / n_cells * 100, colors[score_idx].to_rgba(1));
+
+    scoreboard_childrens.push(
+      create_player_score_el(
+        names[score_idx], 
+        regions_length[score_idx] / n_cells * 100, 
+        colors[score_idx].to_rgba(1)));
   }
+
+  scoreboard.replaceChildren(...scoreboard_childrens);
     
 };
 
@@ -126,7 +136,7 @@ const render_trail = (ctx: CanvasRenderingContext2D, hsl: HSL, trail: Array<Posi
   });
 };
 
-const render_player_score = (section: HTMLElement, name: string, score: number, color: string) => {
+const create_player_score_el = (name: string, score: number, color: string): HTMLElement => {
   const container = document.createElement('div');
   container.classList.add('score');
   container.style.color = color;
@@ -140,7 +150,7 @@ const render_player_score = (section: HTMLElement, name: string, score: number, 
   container.appendChild(name_element);
   container.appendChild(score_element);
 
-  section.appendChild(container);
+  return container;
 };
 
 export { render_with_data }
