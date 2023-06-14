@@ -2,7 +2,7 @@ import { render_with_data } from './core/game'
 import { WebsocketService } from './service/websocket';
 
 const board = document.getElementById('game-canvas') as HTMLCanvasElement;
-const scoreboard = document.getElementById('scoreboard') as HTMLElement;
+const scoreboard = document.getElementById('scores') as HTMLElement;
 const ctx = board.getContext('2d') as CanvasRenderingContext2D;
 
 board.width = board.offsetWidth;
