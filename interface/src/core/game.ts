@@ -1,11 +1,12 @@
 import { HSL } from './color';
 import { Position } from './position';
+import { get_index_array_sorted_by_values } from './util';
 
 const UUID_SIZE = 15;
 const SHADOW_OFFSET = 3;
 const CELL_WIDTH = 30;
 
-const render_with_data = (ctx: CanvasRenderingContext2D, message: ArrayBuffer): void => {
+const render_with_data = (ctx: CanvasRenderingContext2D, scoreboard: HTMLElement, message: ArrayBuffer): void => {
   const data = new Uint8Array(message);
   console.log(data.length);
   let offset = 0;
@@ -51,6 +52,7 @@ const render_with_data = (ctx: CanvasRenderingContext2D, message: ArrayBuffer): 
   const positions: Array<Position> = [];
   const trails: Array<Array<Position>> = [];
   const regions: Array<Array<Position>> = [];
+  const regions_length: Array<number> = [];
 
   while (offset < data.length) {
     const [name, color, pos, trail, region] = deserialize_player();
@@ -59,11 +61,17 @@ const render_with_data = (ctx: CanvasRenderingContext2D, message: ArrayBuffer): 
     positions.push(pos);
     trails.push(trail);
     regions.push(region);
+    regions_length.push(region.length);
 
     console.log(offset, data.length);
   }
 
+  const sorted_idx = get_index_array_sorted_by_values(regions_length);
+  const n_cells = rows * cols;
+
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  const scoreboard_childrens: Array<HTMLElement> = [];
 
   for (let i = 0; i != regions.length; i++)
     render_region(ctx, colors[i], regions[i]);
@@ -71,8 +79,20 @@ const render_with_data = (ctx: CanvasRenderingContext2D, message: ArrayBuffer): 
   for (let i = 0; i != trails.length; i++)
     render_trail(ctx, colors[i], trails[i]);
     
-  for (let i = 0; i != names.length; i++)
+  for (let i = 0; i != names.length; i++) {
     render_player(ctx, names[i], colors[i], positions[i]);
+
+    const score_idx = sorted_idx.indexOf(i);
+
+    scoreboard_childrens.push(
+      create_player_score_el(
+        names[score_idx], 
+        regions_length[score_idx] / n_cells * 100, 
+        colors[score_idx].to_rgba(1)));
+  }
+
+  scoreboard.replaceChildren(...scoreboard_childrens);
+    
 };
 
 const render_player = (ctx: CanvasRenderingContext2D, name: string, hsl: HSL, pos: Position): void => {
@@ -114,6 +134,23 @@ const render_trail = (ctx: CanvasRenderingContext2D, hsl: HSL, trail: Array<Posi
   trail.forEach(pos => {
     ctx.fillRect(pos.x, pos.y, CELL_WIDTH, CELL_WIDTH);
   });
+};
+
+const create_player_score_el = (name: string, score: number, color: string): HTMLElement => {
+  const container = document.createElement('div');
+  container.classList.add('score');
+  container.style.color = color;
+
+  const name_element = document.createElement('span');
+  name_element.textContent = name;
+
+  const score_element = document.createElement('span');
+  score_element.textContent = `${score.toFixed(2)} %`;
+
+  container.appendChild(name_element);
+  container.appendChild(score_element);
+
+  return container;
 };
 
 export { render_with_data }
