@@ -1,10 +1,21 @@
 #include "network.h"
+#include "configuration.h"
+#include "postgres_connector.h"
 #include <atomic>
 
 int main() {
+  Config cfg = load_config(".env");
+
+  PostgresConnector& postgres = PostgresConnector::get_instance(cfg);
+  if (!postgres.connected()) {
+    std::cerr << "Failed to connect to database" << std::endl;
+    return 1;
+  }
+
+
   constexpr std::size_t rows = 30;
   constexpr std::size_t cols = 40;
-  
+
   Server server(8080);
 
   auto game = std::make_shared<GameManager<rows, cols>>();
