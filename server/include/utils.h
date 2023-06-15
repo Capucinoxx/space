@@ -33,7 +33,7 @@ public:
     std::uniform_int_distribution<> dis('A', 'Z');
 
     std::stringstream ss;
-    ss << sts::setw(3) << std::setfill('0') << ++count;
+    ss << std::setw(3) << std::setfill('0') << ++count;
 
     while (ss.str().size() < LENGTH)
       ss << static_cast<char>(dis(gen));
