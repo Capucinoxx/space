@@ -1,0 +1,21 @@
+version: '3.4'
+
+services:
+  server:
+    build:
+      context: ./server
+    ports:
+      - 8080:8080
+    depends_on:
+      - database
+
+  database:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d
