@@ -16,8 +16,8 @@ void serialize_value(std::vector<uint8_t>& data, const T& value) {
 
 template<typename T>
 static void serialize_data(std::vector<uint8_t>& data, const T& value, size_t length) {
-  const uint8_t* pValue = reinterpret_cast<const uint8_t*>(value.data());
-  data.insert(data.end(), pValue, pValue + length);
+  const uint8_t* p_value = reinterpret_cast<const uint8_t*>(value.data());
+  data.insert(data.end(), p_value, p_value + length);
 }
 
 template<std::size_t LENGTH>
