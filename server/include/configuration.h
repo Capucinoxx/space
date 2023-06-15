@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 
+typedef std::unordered_map<std::string, std::string> Config;
 
 std::string trim(const std::string& str) {
   std::string trimmed = str;
@@ -18,8 +19,8 @@ std::string trim(const std::string& str) {
   return trimmed;
 }
 
-std::unordered_map<std::string, std::string> load_config(const std::string& filename) {
-  std::unordered_map<std::string, std::string> config;
+Config load_config(const std::string& filename) {
+  Config config;
 
   std::ifstream file(filename);
   if (!file.is_open()) {
@@ -41,6 +42,8 @@ std::unordered_map<std::string, std::string> load_config(const std::string& file
       std::string value = trim(line.substr(pos + 1));
 
       config[key] = value;
+
+      std::cout << key << " = " << value << std::endl;
     }
   }
 
