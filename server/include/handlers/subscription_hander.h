@@ -4,6 +4,8 @@
 #include "network.h"
 #include "postgres_connector.h"
 #include <iostream>
+#include <string>
+#include <sstream>
 
 template<uint32_t ROWS, uint32_t COLS>
 class SubscriptionHandle {
@@ -30,9 +32,18 @@ private:
         std::string name = retrieve_field(body, "name");
         std::string color = retrieve_field(body, "color");
 
-        std::string message = "name=" + name + " color=" + color;
+        // validate name and color
+        if (name.empty() || color.empty())
+            return std::make_pair(http::status::bad_request, "name or color is empty");
 
-        return std::make_pair(http::status::not_found, message);
+        if (name.length() > 15)
+            return std::make_pair(http::status::bad_request, "name is too long");
+
+        auto hsl = parse_color(color);
+        if (!hsl)
+            return std::make_pair(http::status::bad_request, "invalid color");
+
+        return std::make_pair(http::status::created, "");
     }
 };
 
