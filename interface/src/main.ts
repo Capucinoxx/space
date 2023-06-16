@@ -1,6 +1,7 @@
 import { render_with_data } from './core/game'
 import { WebsocketService } from './service/websocket';
 import { HSL } from './core/color';
+import { send } from './service/api';
 
 // handle register modal events
 // ==================================================
@@ -18,7 +19,11 @@ register_form.onsubmit = (e: SubmitEvent) => {
     const hsl = HSL.from_hex(data.get('color') as string).to_array();
     data.set('color', hsl.join(' '));
 
-    console.log(data);    
+    console.log(data);
+
+    send('http://localhost:8080/subscribe', 
+        { method: 'POST', body: data },
+        (response: ArrayBuffer) => {  });
 };
 
 // Game management
