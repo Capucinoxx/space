@@ -37,8 +37,22 @@ private:
   }
 
 public:
-  pqxx::result execute_query(const std::string& query) {
-    pqxx::work w(*connection);
+
+  template<typename... Args>
+  pqxx::result execute_query(const std::string& query, Args&&... args) {
+    try {
+      pqxx::work w(*connection);
+
+      pqxx::prepare::invocation invoc = w.prepared("custom_query");
+      set_parameters(invoc, 1, std::forward<Args>(args)...);
+
+      pqxx::result result = invoc.exec(query);
+
+      w.commit();
+      return result;
+    } catch(const std::exception &e) {
+      return pxqq::result();
+    }
 
     pqxx::result result = w.exec(query);
 
@@ -50,6 +64,15 @@ public:
  
   bool connected() const noexcept {
     return connection->is_open();
+  }
+
+private:
+  void set_parameters(pqxx::prepare::invocation& invoc) {};
+
+  template<typename T, typename... Args>
+  void set_parameters(pqxx::prepare::invocation& invoc, int index, const T& value, Args&&... args) {
+    invoc("$" + std::to_string(index), value);
+    set_parameters(invoc, index + 1, std::forward<Args>(args)...);
   }
 };
 
