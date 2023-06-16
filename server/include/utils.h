@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <ctime>
 #include <vector>
+#include <optional>
 
 template<typename T>
 void serialize_value(std::vector<uint8_t>& data, const T& value) {
@@ -41,5 +42,19 @@ public:
     return ss.str();
   }
 };
+
+std::optional<std::tuple<double, double, double>> parse_color(const std::string& color) {
+  std::istringstream iss(color);
+  std::vector<double> hsl;
+  double value;
+
+  while (iss >> value)
+    hsl.push_back(value);
+
+  if (hsl.size() != 3)
+    return std::nullopt;
+
+  return std::make_tuple(hsl[0], hsl[1], hsl[2]);
+}
 
 #endif //SPACE_UTILS_H
