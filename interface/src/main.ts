@@ -23,7 +23,9 @@ register_form.onsubmit = (e: SubmitEvent) => {
 
     send('http://localhost:8080/subscribe', 
         { method: 'POST', body: data },
-        (response: ArrayBuffer) => {  });
+        (response: ArrayBuffer) => {
+            alert(`secret: ${new TextDecoder().decode(response)}`);
+        });
 };
 
 // Game management
