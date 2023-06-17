@@ -1,12 +1,13 @@
 import { HSL } from './color';
 import { Position } from './position';
 import { get_index_array_sorted_by_values } from './util';
+import { Canvas } from './canvas';
 
 const UUID_SIZE = 15;
 const SHADOW_OFFSET = 3;
 const CELL_WIDTH = 30;
 
-const render_with_data = (ctx: CanvasRenderingContext2D, scoreboard: HTMLElement, message: ArrayBuffer): void => {
+const render_with_data = (canvas: Canvas, scoreboard: HTMLElement, message: ArrayBuffer): void => {
   const data = new Uint8Array(message);
   console.log(data.length);
   let offset = 0;
@@ -47,6 +48,8 @@ const render_with_data = (ctx: CanvasRenderingContext2D, scoreboard: HTMLElement
   const cols = deserialize_value<number>();
   const frame = deserialize_value<number>();
 
+  canvas.resize(rows, cols);
+
   const names: Array<string> = new Array<string>();
   const colors: Array<HSL> = [];
   const positions: Array<Position> = [];
@@ -68,6 +71,8 @@ const render_with_data = (ctx: CanvasRenderingContext2D, scoreboard: HTMLElement
 
   const sorted_idx = get_index_array_sorted_by_values(regions_length);
   const n_cells = rows * cols;
+
+  const ctx = canvas.ctx;
 
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 

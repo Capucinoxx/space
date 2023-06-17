@@ -2,6 +2,7 @@ import { render_with_data } from './core/game'
 import { WebsocketService } from './service/websocket';
 import { HSL } from './core/color';
 import { send } from './service/api';
+import { Canvas } from './core/canvas';
 
 // handle register modal events
 // ==================================================
@@ -30,13 +31,14 @@ register_form.onsubmit = (e: SubmitEvent) => {
 
 // Game management
 // ==================================================
-const board = document.getElementById('game-canvas') as HTMLCanvasElement;
+const board_container = document.querySelector('.game-container') as HTMLElement;
+const board = board_container.querySelector('#game-canvas') as HTMLCanvasElement;
 const scoreboard = document.getElementById('scores') as HTMLElement;
-const ctx = board.getContext('2d') as CanvasRenderingContext2D;
 
-board.width = board.offsetWidth;
-board.height = board.offsetHeight;
+const canvas = new Canvas(board_container, board);
 
 
 const ws = new WebsocketService('ws://localhost:8080/spectate');
-ws.subscribe((data: ArrayBuffer) => { render_with_data(ctx, scoreboard, data); });
+ws.subscribe((data: ArrayBuffer) => { 
+    render_with_data(canvas, scoreboard, data);
+});
