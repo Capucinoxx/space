@@ -5,7 +5,6 @@ import { Canvas } from './canvas';
 
 const UUID_SIZE = 15;
 const SHADOW_OFFSET = 3;
-const CELL_WIDTH = 30;
 
 const render_with_data = (canvas: Canvas, scoreboard: HTMLElement, message: ArrayBuffer): void => {
   const data = new Uint8Array(message);
@@ -25,30 +24,34 @@ const render_with_data = (canvas: Canvas, scoreboard: HTMLElement, message: Arra
     return str;
   };
 
-  const deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>] => {
-    const id = deserialize_string(UUID_SIZE);
-    const px = deserialize_value<number>() * 30;
-    const py = deserialize_value<number>() * 30;
-    const frame_alive = deserialize_value<number>();
-
-    const trail_length = deserialize_value<number>(1);
-    const trail: Array<Position> = new Array<Position>(trail_length);
-    for (let i = 0; i != trail_length; i++)
-      trail[i] = {x: deserialize_value<number>() * 30, y: deserialize_value<number>() * 30};
-
-    const region_length = deserialize_value<number>();
-    const region: Array<Position> = new Array<Position>(region_length);
-    for (let i = 0; i != region_length; i++)
-      region[i] = {x: deserialize_value<number>() * 30, y: deserialize_value<number>() * 30};
-
-    return [id, new HSL(217, 0.9, 0.61), { x: px, y: py }, trail, region];
-  };
-
   const rows = deserialize_value<number>();
   const cols = deserialize_value<number>();
   const frame = deserialize_value<number>();
 
   canvas.resize(rows, cols);
+
+  const cell_size = canvas.cell_size;
+
+  const deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>] => {
+    const id = deserialize_string(UUID_SIZE);
+    const px = deserialize_value<number>() * cell_size;
+    const py = deserialize_value<number>() * cell_size;
+    const frame_alive = deserialize_value<number>();
+
+    const trail_length = deserialize_value<number>(1);
+    const trail: Array<Position> = new Array<Position>(trail_length);
+    for (let i = 0; i != trail_length; i++)
+      trail[i] = {x: deserialize_value<number>() * cell_size, y: deserialize_value<number>() * cell_size};
+
+    const region_length = deserialize_value<number>();
+    const region: Array<Position> = new Array<Position>(region_length);
+    for (let i = 0; i != region_length; i++)
+      region[i] = {x: deserialize_value<number>() * cell_size, y: deserialize_value<number>() * cell_size};
+
+    return [id, new HSL(217, 0.9, 0.61), { x: px, y: py }, trail, region];
+  };
+
+  
 
   const names: Array<string> = new Array<string>();
   const colors: Array<HSL> = [];
@@ -79,13 +82,13 @@ const render_with_data = (canvas: Canvas, scoreboard: HTMLElement, message: Arra
   const scoreboard_childrens: Array<HTMLElement> = [];
 
   for (let i = 0; i != regions.length; i++)
-    render_region(ctx, colors[i], regions[i]);
+    render_region(ctx, colors[i], regions[i], cell_size);
 
   for (let i = 0; i != trails.length; i++)
-    render_trail(ctx, colors[i], trails[i]);
+    render_trail(ctx, colors[i], trails[i], cell_size);
     
   for (let i = 0; i != names.length; i++) {
-    render_player(ctx, names[i], colors[i], positions[i]);
+    render_player(ctx, names[i], colors[i], positions[i], cell_size);
 
     const score_idx = sorted_idx.indexOf(i);
 
@@ -100,7 +103,7 @@ const render_with_data = (canvas: Canvas, scoreboard: HTMLElement, message: Arra
     
 };
 
-const render_player = (ctx: CanvasRenderingContext2D, name: string, hsl: HSL, pos: Position): void => {
+const render_player = (ctx: CanvasRenderingContext2D, name: string, hsl: HSL, pos: Position, cell_size: number): void => {
   console.log(name, hsl, pos);
   // --- render name
   const { x, y } = pos;
@@ -115,29 +118,29 @@ const render_player = (ctx: CanvasRenderingContext2D, name: string, hsl: HSL, po
   ctx.font = 'bold 12px sans-serif';
 
   const y_offset = -SHADOW_OFFSET * 2;
-  ctx.fillText(name, x + CELL_WIDTH / 2, y + y_offset);
+  ctx.fillText(name, x + cell_size / 2, y + y_offset);
 
   // --- render cube
   ctx.fillStyle = dark_color;
-  ctx.fillRect(x, y, CELL_WIDTH, CELL_WIDTH);
+  ctx.fillRect(x, y, cell_size, cell_size);
 
   ctx.fillStyle = light_color;
-  ctx.fillRect(x - 1, y - SHADOW_OFFSET, CELL_WIDTH + 2, CELL_WIDTH);
+  ctx.fillRect(x - 1, y - SHADOW_OFFSET, cell_size + 2, cell_size);
 };
 
-const render_region = (ctx: CanvasRenderingContext2D, hsl: HSL, region: Array<Position>): void => {
+const render_region = (ctx: CanvasRenderingContext2D, hsl: HSL, region: Array<Position>, cell_size: number): void => {
   ctx.fillStyle = hsl.to_rgba(1);
 
   region.forEach(pos => {
-    ctx.fillRect(pos.x, pos.y, CELL_WIDTH, CELL_WIDTH);
+    ctx.fillRect(pos.x, pos.y, cell_size, cell_size);
   });
 }
 
-const render_trail = (ctx: CanvasRenderingContext2D, hsl: HSL, trail: Array<Position>): void => {
+const render_trail = (ctx: CanvasRenderingContext2D, hsl: HSL, trail: Array<Position>, cell_size: number): void => {
   ctx.fillStyle = hsl.adjust_luminosity(0.74).to_rgba(0.95);
 
   trail.forEach(pos => {
-    ctx.fillRect(pos.x, pos.y, CELL_WIDTH, CELL_WIDTH);
+    ctx.fillRect(pos.x, pos.y, cell_size, cell_size);
   });
 };
 

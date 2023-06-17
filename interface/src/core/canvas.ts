@@ -13,9 +13,12 @@ class Canvas {
   private max_width: number;
   private max_height: number;
 
+  private cell_width: number;
+
   constructor(canvas: HTMLCanvasElement) {
     this.current_size = { rows: -1, cols: -1 };
     this.next_size = { rows: 0, cols: 0 };
+    this.cell_width = 0;
 
     this.canvas = canvas;
     this.canvas_ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -36,6 +39,10 @@ class Canvas {
     return this.canvas_ctx;
   }
 
+  get cell_size(): number {
+    return this.cell_width;
+  }
+
   public resize(rows: number, cols: number) {
     this.next_size = { rows, cols };
     if (this.has_changed())
@@ -50,10 +57,10 @@ class Canvas {
     const cell_width = Math.floor(this.max_width / cols);
     const cell_height = Math.floor(this.max_height / rows);
 
-    const cell_size = Math.min(cell_width, cell_height);
+    this.cell_width = Math.min(cell_width, cell_height);
 
-    this.canvas.width = cell_size * cols;
-    this.canvas.height = cell_size * rows;
+    this.canvas.width = this.cell_width * cols;
+    this.canvas.height = this.cell_width * rows;
 
     this.canvas.style.width = `${this.canvas.width}px`;
     this.canvas.style.height = `${this.canvas.height}px`;
