@@ -38,7 +38,7 @@ const format_body = (body: any): string | undefined => {
 
   if (body instanceof FormData)
     return [...body.entries()]
-      .map((el) => `${encodeURIComponent(el[0])}=${encodeURIComponent(el[1].toString())}`)
+      .map((el) => `${el[0]}=${el[1]}`)
       .join('&');
 
   if (typeof body === 'object')
