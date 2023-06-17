@@ -31,13 +31,10 @@ register_form.onsubmit = (e: SubmitEvent) => {
 
 // Game management
 // ==================================================
-const board_container = document.querySelector('.game-container') as HTMLElement;
-const board = board_container.querySelector('#game-canvas') as HTMLCanvasElement;
+const board = document.getElementById('game-canvas') as HTMLCanvasElement;
 const scoreboard = document.getElementById('scores') as HTMLElement;
 
-const canvas = new Canvas(board_container, board);
-
-
+const canvas = new Canvas(board);
 const ws = new WebsocketService('ws://localhost:8080/spectate');
 ws.subscribe((data: ArrayBuffer) => { 
     render_with_data(canvas, scoreboard, data);

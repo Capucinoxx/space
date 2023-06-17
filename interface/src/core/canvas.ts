@@ -7,18 +7,16 @@ class Canvas {
   private current_size: CanvasSize;
   private next_size: CanvasSize;
 
-  private parent: HTMLElement;
   private canvas: HTMLCanvasElement;
   private canvas_ctx: CanvasRenderingContext2D;
 
   private max_width: number;
   private max_height: number;
 
-  constructor(parent: HTMLElement, canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement) {
     this.current_size = { rows: -1, cols: -1 };
     this.next_size = { rows: 0, cols: 0 };
 
-    this.parent = parent;
     this.canvas = canvas;
     this.canvas_ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
