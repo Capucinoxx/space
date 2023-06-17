@@ -60,7 +60,7 @@ public:
   using ws_stream_ptr = std::shared_ptr<websocket::stream<tcp::socket>>;
   using http_request = http::request<http::string_body>&;
 
-  virtual void on_open(ws_stream_ptr ws, http_request req) = 0;
+  virtual bool on_open(ws_stream_ptr ws, http_request req) = 0;
   virtual void on_message(const std::string& message) = 0;
 
   virtual bool handle_message() = 0;
@@ -161,23 +161,7 @@ private:
 
  
   http::status status;
-  std::string body;
-
-  // if (request.method() == http::verb::options) {
-  //   http::response<http::string_body> resp(status, request.version());
-  //   resp.set(http::field::access_control_allow_origin, "*");
-  //   resp.set(http::field::access_control_allow_methods, "GET, POST, OPTIONS");
-  //   resp.set(http::field::access_control_allow_headers, "Content-Type");
-  //   resp.set(http::field::access_control_max_age, "86400");
-  //   resp.set(http::field::content_length, "0");
-
-  //   prepare_http_response(request, resp, body);
-  //   http::write(socket, std::move(resp));
-  //   socket.shutdown(tcp::socket::shutdown_send);
-
-  //   return;
-  // }
-  
+  std::string body;  
 
   auto it = server.http_endpoints.find(request.target().to_string());
     if (it != server.http_endpoints.end()) {
@@ -232,39 +216,10 @@ private:
   };
 };
 
-template<std::size_t ROWS, std::size_t COLS>
-class GameHandler : public WebSocketHandler {
-private:
-  std::shared_ptr<Player<ROWS, COLS>> player;
-  std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
-
-public:
-  explicit GameHandler(std::shared_ptr<GameManager<ROWS, COLS>> game_manager)
-    : game_manager(game_manager) { };
-
-  void on_open(ws_stream_ptr ws, http_request req) override {
-    std::string token = req[http::field::authorization].to_string();
-    player = std::make_shared<Player<ROWS, COLS>>(token, game_manager->frame(), game_manager->get_grid());
-
-    game_manager->register_player(player);
-  };
-
-  void on_message(const std::string& message) override {
-    if (!game_manager->is_running())
-      return;
-    
-    typename Player<ROWS, COLS>::direction direction = Player<ROWS, COLS>::parse_action(message);
-    auto res = player->perform(game_manager->frame(), direction);
-    
-    game_manager->handle_move_result(player, res);
-  }
-
-  bool handle_message() { return true; }
-}; 
 
 class SpectateHandler : public WebSocketHandler {
 public:
-  void on_open(ws_stream_ptr ws, http_request req) override {}
+  bool on_open(ws_stream_ptr ws, http_request req) override { return true; }
   void on_message(const std::string& message) override {}
 
   bool handle_message() { return false; }
