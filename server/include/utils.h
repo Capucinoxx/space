@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <ctime>
 #include <vector>
+#include <optional>
 
 template<typename T>
 void serialize_value(std::vector<uint8_t>& data, const T& value) {
@@ -26,14 +27,14 @@ private:
   std::size_t count = 0;
   std::mt19937 gen;
 
+public:
   UniqueIDGenerator() : gen(std::random_device()()) {}
 
-public:
   std::string operator()() {
     std::uniform_int_distribution<> dis('A', 'Z');
 
     std::stringstream ss;
-    ss << sts::setw(3) << std::setfill('0') << ++count;
+    ss << std::setw(3) << std::setfill('0') << ++count;
 
     while (ss.str().size() < LENGTH)
       ss << static_cast<char>(dis(gen));
@@ -41,5 +42,22 @@ public:
     return ss.str();
   }
 };
+
+std::optional<std::tuple<double, double, double>> parse_color(const std::string& color) {
+  std::istringstream iss(color);
+  std::vector<double> hsl;
+  double value;
+
+  while (iss >> value) {
+    std::cout << value << std::endl;
+    hsl.push_back(value);
+  }
+    
+
+  if (hsl.size() != 3)
+    return std::nullopt;
+
+  return std::make_tuple(hsl[0], hsl[1], hsl[2]);
+}
 
 #endif //SPACE_UTILS_H

@@ -31,6 +31,11 @@ bool is_get(http::request<http::string_body>& req) noexcept  { return req.method
 void prepare_http_response(http::request<http::string_body>& req, http::response<http::string_body>& resp, const std::string& body) {
   resp.set(http::field::server, "Space");
   resp.set(http::field::content_type, "text/plain");
+  resp.set(http::field::access_control_allow_origin, "*");
+  resp.set(http::field::access_control_allow_methods, "GET, POST, OPTIONS");
+  resp.set(http::field::access_control_allow_headers, "Content-Type");
+  resp.set(http::field::access_control_max_age, "86400");
+  resp.set(http::field::content_length, "0");
   resp.keep_alive(req.keep_alive());
   resp.body() = body;
   resp.prepare_payload();
@@ -158,15 +163,31 @@ private:
   http::status status;
   std::string body;
 
+  // if (request.method() == http::verb::options) {
+  //   http::response<http::string_body> resp(status, request.version());
+  //   resp.set(http::field::access_control_allow_origin, "*");
+  //   resp.set(http::field::access_control_allow_methods, "GET, POST, OPTIONS");
+  //   resp.set(http::field::access_control_allow_headers, "Content-Type");
+  //   resp.set(http::field::access_control_max_age, "86400");
+  //   resp.set(http::field::content_length, "0");
+
+  //   prepare_http_response(request, resp, body);
+  //   http::write(socket, std::move(resp));
+  //   socket.shutdown(tcp::socket::shutdown_send);
+
+  //   return;
+  // }
+  
+
   auto it = server.http_endpoints.find(request.target().to_string());
-  if (it != server.http_endpoints.end()) {
-    auto resp = it->second(request);
-    status = resp.first;
-    body = resp.second;
-  } else {
-    status = http::status::not_found;
-    body = "The resource '" + request.target().to_string() + "' was not found.";
-  }
+    if (it != server.http_endpoints.end()) {
+      auto resp = it->second(request);
+      status = resp.first;
+      body = resp.second;
+    } else {
+      status = http::status::not_found;
+      body = "The resource '" + request.target().to_string() + "' was not found.";
+    }
 
   std::cout << body << std::endl;
 

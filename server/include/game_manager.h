@@ -34,6 +34,8 @@ private:
   uint32_t frame_count = 0;
   std::atomic<bool> running{ false };
 
+  UniqueIDGenerator<15> uuid_generator;
+
 public:
   explicit GameManager() { 
     generate_spawns();
@@ -51,6 +53,10 @@ public:
 
   bool is_running() const noexcept {
     return running.load();
+  }
+
+  std::string generate_secret() {
+    return uuid_generator();
   }
 
   template<typename T>
