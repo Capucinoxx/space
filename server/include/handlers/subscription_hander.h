@@ -43,14 +43,16 @@ private:
         if (!hsl)
             return std::make_pair(http::status::bad_request, "invalid color");
 
-        std::string query = "INSERT INTO player (name, secret, h, s, l) VALUES ($1, $2, $3, $4) RETURNING id";
+        std::string query = "INSERT INTO player (name, secret, h, s, l) VALUES ($1, $2, $3, $4, $5)";
 
+        std::string secret = game->generate_secret();
 
-
-        auto result = postgres.execute(query, {game->get_uuid(), name, std::get<0>(*hsl), std::get<1>(*hsl), std::get<2>(*hsl)});
+        auto result = postgres.execute(query, 
+            name, secret, std::get<0>(*hsl), std::get<1>(*hsl), std::get<2>(*hsl));
         
-
-        return std::make_pair(http::status::created, "");
+        return result.affected_rows() == 1 ? 
+            std::make_pair(http::status::created, secret) :
+            std::make_pair(http::status::bad_request, "failed to insert player");
     }
 };
 
