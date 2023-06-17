@@ -1,7 +1,7 @@
 CREATE TABLE player (
   id      SERIAL            PRIMARY KEY,
-  name    VARCHAR(15)       NOT NULL,
-  secret  VARCHAR(15)       NOT NULL,
+  name    VARCHAR(15)       NOT NULL UNIQUE,
+  secret  VARCHAR(15)       NOT NULL UNIQUE,
   h       DOUBLE PRECISION  NOT NULL,
   s       DOUBLE PRECISION  NOT NULL,
   l       DOUBLE PRECISION  NOT NULL
