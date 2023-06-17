@@ -3,6 +3,7 @@
 #include "postgres_connector.h"
 
 #include "handlers/subscription_hander.h"
+#include "handlers/game_handler.h"
 #include <atomic>
 
 int main() {
@@ -22,9 +23,10 @@ int main() {
   auto game = std::make_shared<GameManager<rows, cols>>();
 
   SubscriptionHandle<rows, cols>(game, postgres)(server);
+  GameHandle<rows, cols>(game, postgres)(server);
 
-  auto game_handler = [&game](){ return std::make_unique<GameHandler<rows, cols>>(game); };
-  server.add_ws_endpoint("/game", game_handler);
+  // auto game_handler = [&game](){ return std::make_unique<GameHandler<rows, cols>>(game); };
+  // server.add_ws_endpoint("/game", game_handler);
 
   auto spectate_handler = [&game](){ return std::make_unique<SpectateHandler>(); };
   server.add_ws_endpoint("/spectate", spectate_handler);
