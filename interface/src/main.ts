@@ -1,4 +1,4 @@
-import { render_with_data } from './core/game'
+import { BoardGame } from './core/game'
 import { WebsocketService } from './service/websocket';
 import { HSL } from './core/color';
 import { send } from './service/api';
@@ -35,7 +35,6 @@ const board = document.getElementById('game-canvas') as HTMLCanvasElement;
 const scoreboard = document.getElementById('scores') as HTMLElement;
 
 const canvas = new Canvas(board);
+const game = new BoardGame(canvas, scoreboard);
 const ws = new WebsocketService('ws://localhost:8080/spectate');
-ws.subscribe((data: ArrayBuffer) => { 
-    render_with_data(canvas, scoreboard, data);
-});
+ws.subscribe((data: ArrayBuffer) => game.render(data));
