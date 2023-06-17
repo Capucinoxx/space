@@ -27,9 +27,9 @@ private:
   std::size_t count = 0;
   std::mt19937 gen;
 
+public:
   UniqueIDGenerator() : gen(std::random_device()()) {}
 
-public:
   std::string operator()() {
     std::uniform_int_distribution<> dis('A', 'Z');
 
@@ -48,8 +48,11 @@ std::optional<std::tuple<double, double, double>> parse_color(const std::string&
   std::vector<double> hsl;
   double value;
 
-  while (iss >> value)
+  while (iss >> value) {
+    std::cout << value << std::endl;
     hsl.push_back(value);
+  }
+    
 
   if (hsl.size() != 3)
     return std::nullopt;
