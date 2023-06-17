@@ -33,8 +33,8 @@ public:
 private:
   static constexpr uint32_t MAX_SIZE = (ROWS > COLS) ? ROWS : COLS;
 
+  uint32_t id;
   std::string name;
-  uint8_t game_idx = 1;
   uint32_t last_frame_played;
   uint32_t frame_alive = 0;
   position current_pos;
@@ -46,15 +46,15 @@ private:
   std::mutex mu;
 
 public:
-  Player(const std::string& name, uint32_t frame, std::shared_ptr<Grid<ROWS, COLS>> grid) 
-    : name{ name }, last_frame_played{ frame }, grid(std::move(grid)) {
+  Player(const std::string& name, uint32_t id, uint32_t frame, std::shared_ptr<Grid<ROWS, COLS>> grid) 
+    : id{ id }, name{ name }, last_frame_played{ frame }, grid(std::move(grid)) {
     trail.reserve(ROWS * COLS / 2);
     region.reserve(MAX_SIZE * 2);
     last_direction = direction::DOWN;
   }
 
   std::string player_name() const noexcept { return name; }
-  uint8_t game_id() const noexcept         { return game_idx; }
+  uint32_t game_id() const noexcept         { return id; }
   position pos() const noexcept            { return current_pos; }
 
   static direction const parse_action(const std::string& data) {
