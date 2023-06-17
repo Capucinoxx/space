@@ -7,7 +7,7 @@ body, html {
 }
 
 #container {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   display: grid;
   overflow: hidden;
@@ -20,7 +20,9 @@ canvas {
 }
 
 .game-container {
-  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #game-canvas {
