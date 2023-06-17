@@ -196,11 +196,14 @@ private:
       auto it = server.ws_endpoints.find(request.target().to_string());
       if (it != server.ws_endpoints.end()) {
         handler = it->second();
-        handler->on_open(ws, request);
-        server.ws_connections.insert(ws);
+        if (handler->on_open(ws, request)) {
+          server.ws_connections.insert(ws);
 
-        if (handler->handle_message())
-          handle_websocket_message(ws);
+          if (handler->handle_message())
+            handle_websocket_message(ws);
+        } else {
+          ws->async_close(websocket::close_code::normal, [](beast::error_code ec) {});
+        }
       }
     }
 
