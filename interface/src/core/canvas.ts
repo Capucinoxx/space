@@ -22,10 +22,16 @@ class Canvas {
     this.canvas = canvas;
     this.canvas_ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-    this.max_width = this.parent.offsetWidth;
-    this.max_height = this.parent.offsetHeight;
+    this.max_width = window.innerWidth * 0.8;
+    this.max_height = window.innerHeight;
 
     this.render();
+
+    window.addEventListener('resize', () => {
+      this.max_width = window.innerWidth * 0.8;
+      this.max_height = window.innerHeight;
+      this.render();
+    });
   }
 
   get ctx(): CanvasRenderingContext2D {
