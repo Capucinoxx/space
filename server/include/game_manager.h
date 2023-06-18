@@ -4,6 +4,8 @@
 #include "player.h"
 #include "grid.h"
 #include "utils.h"
+#include "structures/concurrent_unordered_map.h"
+
 
 #include <iostream>
 #include <vector>
@@ -26,7 +28,8 @@ public:
 private:
   std::shared_ptr<Grid<ROWS, COLS>> grid;
 
-  std::unordered_map<uint32_t, std::shared_ptr<Player<ROWS, COLS>>> players{ };
+  ConcurrentUnorderedMap<uint32_t, std::shared_ptr<Player<ROWS, COLS>>> players{ };
+
   std::vector<std::pair<uint32_t, uint32_t>> spawns;
   std::atomic<int> current_spawn { 1 };
   std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
@@ -48,13 +51,12 @@ public:
   GameManager& operator=(const GameManager&) = delete;
 
   bool register_player(std::shared_ptr<Player<ROWS, COLS>> p) {
-    std::cout << "register" << std::endl;
-    if (players.find(p->id()) != players.end())
+    if (players.contains(p->id()))
       return false;
 
     spawn_player(p);
 
-    players.insert(std::make_pair(p->id(), p));
+    players.insert(p->id(), p);
     return true;
   }
 
