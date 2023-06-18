@@ -105,6 +105,7 @@ public:
   void handle_move_result(std::shared_ptr<Player<ROWS, COLS>> p, Player<ROWS, COLS>::movement_type movement) {
     switch (movement) {
       case Player<ROWS, COLS>::movement_type::DEATH:
+        p->dump_info();
         p->death();
         spawn_player(p);
         break;
