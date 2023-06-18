@@ -101,15 +101,15 @@ public:
     ++frame_alive;
 
     auto res = move(d);
+    if (res == movement_type::IDLE)
+      return res;
+
 
     if (trail.find(current_pos) != trail.end())
       return movement_type::DEATH;
 
     if (region.find(current_pos) != region.end())
       return movement_type::COMPLETE;
-
-    if (res == movement_type::IDLE)
-      return res;
 
     res = grid->at(current_pos).step(id());
 
