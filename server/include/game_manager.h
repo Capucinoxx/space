@@ -111,6 +111,9 @@ public:
       case Player<ROWS, COLS>::movement_type::COMPLETE:
         p->fill_region();
         break;
+
+      default:
+        break;
     }
   }
 
