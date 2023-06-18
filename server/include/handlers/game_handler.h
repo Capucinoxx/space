@@ -35,7 +35,7 @@ public:
     uint32_t id = result[0][0].as<uint32_t>(0);
     std::string name = result[0][1].as<std::string>("");
 
-    player_ptr player = std::make_shared<Player<ROWS, COLS>>(
+    player = std::make_shared<Player<ROWS, COLS>>(
       name, id, game->frame(), game->get_grid());
     game->register_player(player);
 
@@ -48,7 +48,7 @@ public:
     
     typename Player<ROWS, COLS>::direction direction = Player<ROWS, COLS>::parse_action(message);
     auto res = player->perform(game->frame(), direction);
-    
+
     game->handle_move_result(player, res);
   }
 
@@ -70,7 +70,7 @@ public:
 
   void operator()(Server& server) {
     server.add_ws_endpoint("/game", [&](){ 
-      return std::make_unique<GameHandler<ROWS, COLS>>(game, postgres); 
+      return std::make_unique<GameHandler<ROWS, COLS>>(std::move(game), postgres); 
     });
   }
 };
