@@ -35,11 +35,14 @@ public:
     uint32_t id = result[0][0].as<uint32_t>(0);
     std::string name = result[0][1].as<std::string>("");
 
-    player_ptr player = std::make_shared<Player<ROWS, COLS>>(
+    player = std::make_shared<Player<ROWS, COLS>>(
       name, id, game->frame(), game->get_grid());
-    game->register_player(player);
+    return game->register_player(player);
+  }
 
-    return true;
+  void on_close() {
+    if (player != nullptr)
+      game->remove_player(player);
   }
 
   void on_message(const std::string& message) override {
@@ -48,7 +51,7 @@ public:
     
     typename Player<ROWS, COLS>::direction direction = Player<ROWS, COLS>::parse_action(message);
     auto res = player->perform(game->frame(), direction);
-    
+
     game->handle_move_result(player, res);
   }
 
