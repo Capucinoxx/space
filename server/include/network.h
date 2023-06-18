@@ -62,6 +62,7 @@ public:
 
   virtual bool on_open(ws_stream_ptr ws, http_request req) = 0;
   virtual void on_message(const std::string& message) = 0;
+  virtual void on_close() = 0;
 
   virtual bool handle_message() = 0;
 };
@@ -201,10 +202,9 @@ private:
 
           if (handler->handle_message())
             handle_websocket_message(ws);
-        } else {
-          ws->async_close(websocket::close_code::normal, [](beast::error_code ec) {});
         }
-      }
+      } else
+        ws->async_close(websocket::close_code::normal, [](beast::error_code ec) {});
     }
 
     void handle_websocket_message(ws_stream_ptr ws) {
@@ -213,7 +213,8 @@ private:
           handler->on_message(beast::buffers_to_string(buffer.data()));
           buffer.consume(buffer.size());
           handle_websocket_message(ws);
-        }
+        } else
+          handler->on_close();
       });
     }
   };
@@ -224,6 +225,8 @@ class SpectateHandler : public WebSocketHandler {
 public:
   bool on_open(ws_stream_ptr ws, http_request req) override { return true; }
   void on_message(const std::string& message) override {}
+
+  void on_close() override {}
 
   bool handle_message() { return false; }
 };

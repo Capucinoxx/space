@@ -25,7 +25,8 @@ public:
 
 private:
   std::shared_ptr<Grid<ROWS, COLS>> grid;
-  std::vector<std::shared_ptr<Player<ROWS, COLS>>> players;
+
+  std::unordered_map<uint32_t, std::shared_ptr<Player<ROWS, COLS>>> players{ };
   std::vector<std::pair<uint32_t, uint32_t>> spawns;
   std::atomic<int> current_spawn { 1 };
   std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
@@ -46,13 +47,23 @@ public:
   GameManager(const GameManager&) = delete;
   GameManager& operator=(const GameManager&) = delete;
 
-  void register_player(std::shared_ptr<Player<ROWS, COLS>> p) {
+  bool register_player(std::shared_ptr<Player<ROWS, COLS>> p) {
+    std::cout << "register" << std::endl;
+    if (players.find(p->id()) != players.end())
+      return false;
+
     spawn_player(p);
-    players.push_back(std::move(p));
+
+    players.insert(std::make_pair(p->id(), p));
+    return true;
   }
 
   bool is_running() const noexcept {
     return running.load();
+  }
+
+  void remove_player(std::shared_ptr<Player<ROWS, COLS>> p) {
+    players.erase(p->id());
   }
 
   std::string generate_secret() {
@@ -106,18 +117,17 @@ public:
     switch (movement) {
       case Player<ROWS, COLS>::movement_type::DEATH: {
                 auto victim_id = grid->at(p->pos()).get_value();
-        auto victim = std::find_if(players.begin(), players.end(), [&](const auto& p) {
-          return p->id() == victim_id;
-        });
 
-        if (victim != players.end()) {
+        auto it = players.find(victim_id);
+        if (it != players.end()) {
+          auto victim = it->second;
           std::cout << "--- KILL by " << p->id() << " ---" << std::endl; 
-          (*victim)->dump_info();
-          (*victim)->death();
+          victim->dump_info();
+          victim->death();
 
-          spawn_player(*victim);
+          spawn_player(victim);
 
-          if ((*victim)->id() != p->id())
+          if (victim->id() != p->id())
             std::cout << "is not the same" << std::endl;
         }
       }
@@ -149,7 +159,7 @@ public:
     serialize_value<uint32_t>(data, frame());
 
     for (const auto& player : players)
-      player->serialize(data);
+      player.second->serialize(data);
 
     return data;
   }
@@ -157,7 +167,7 @@ public:
 private:
   void update_map() {
     for (auto& p : players)
-      p->perform(frame_count);
+      p.second->perform(frame_count);
     ++frame_count;
   }
 

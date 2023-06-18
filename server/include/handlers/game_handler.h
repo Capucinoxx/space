@@ -37,9 +37,12 @@ public:
 
     player = std::make_shared<Player<ROWS, COLS>>(
       name, id, game->frame(), game->get_grid());
-    game->register_player(player);
+    return game->register_player(player);
+  }
 
-    return true;
+  void on_close() {
+    if (player != nullptr)
+      game->remove_player(player);
   }
 
   void on_message(const std::string& message) override {
@@ -70,7 +73,7 @@ public:
 
   void operator()(Server& server) {
     server.add_ws_endpoint("/game", [&](){ 
-      return std::make_unique<GameHandler<ROWS, COLS>>(std::move(game), postgres); 
+      return std::make_unique<GameHandler<ROWS, COLS>>(game, postgres); 
     });
   }
 };
