@@ -104,10 +104,24 @@ public:
 
   void handle_move_result(std::shared_ptr<Player<ROWS, COLS>> p, Player<ROWS, COLS>::movement_type movement) {
     switch (movement) {
-      case Player<ROWS, COLS>::movement_type::DEATH:
-        p->dump_info();
-        p->death();
-        spawn_player(p);
+      case Player<ROWS, COLS>::movement_type::DEATH: {
+                auto victim_id = grid->at(p->pos()).get_value();
+        auto victim = std::find_if(players.begin(), players.end(), [&](const auto& p) {
+          return p->id() == victim_id;
+        });
+
+        if (victim != players.end()) {
+          std::cout << "--- KILL by " << p->id() << " ---" << std::endl; 
+          (*victim)->dump_info();
+          (*victim)->death();
+
+          spawn_player(*victim);
+
+          if ((*victim)->id() != p->id())
+            std::cout << "is not the same" << std::endl;
+        }
+      }
+
         break;
       case Player<ROWS, COLS>::movement_type::COMPLETE:
         p->fill_region();
