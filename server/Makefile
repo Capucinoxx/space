@@ -1,27 +1,29 @@
 CC = g++
-CFLAGS = -std=c++20 -Iinclude
+CFLAGS = -std=c++20 -Wall -Werror -Iinclude
 
-SRC_DIR = src
-INCLUDE_DIR = include
-BUILD_DIR = build
-BIN_DIR = bin
+SRCDIR = src
+TESTDIR = tests
+BINDIR = bin
 
-SRC_FILES = $(wildcard $(SRC_DIR)/*.cpp)
-OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
+SRCS = $(wildcard $(SRCDIR)/*.cpp)
+TESTSRCS = $(wildcard $(TESTDIR)/*.cpp)
 
-EXECUTABLE = $(BIN_DIR)/server
+OBJS = $(patsubst $(SRCDIR)/%.cpp,$(BINDIR)/%.o,$(SRCS))
+TESTOBJS = $(patsubst $(TESTDIR)/%.cpp,$(BINDIR)/%.o,$(TESTSRCS))
 
-all: $(EXECUTABLE)
+server: $(OBJS)
+	mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) -o $(BINDIR)/$@ $^ -lpqxx -lpq
 
-$(EXECUTABLE): $(OBJ_FILES)
-	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) $^ -o $@ -lpqxx -lpq
+test_server: $(TESTOBJS)
+	mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) -o $(BINDIR)/$@ $^
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(BUILD_DIR)
+$(BINDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@ -lpqxx -lpq
 
-clean:
-	rm -rf $(BUILD_DIR) $(BIN_DIR)
+$(BINDIR)/%.o: $(TESTDIR)/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
 
-.PHONY: all clean
+clean:
+	rm -rf $(BINDIR)/*.o $(BINDIR)/server $(BINDIR)/test_server
