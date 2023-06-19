@@ -87,21 +87,40 @@ public:
   GameManager(const GameManager&) = delete;
   GameManager& operator=(const GameManager&) = delete;
 
-  bool register_player(std::shared_ptr<Player<ROWS, COLS>> p) {
-    if (players.contains(p->id()))
-      return false;
+  std::shared_ptr<Player<ROWS, COLS>> register_player(const std::string& name, uint32_t id) {
+    // if (players.contains(id)) {
 
+    // }
+    //   return *players.find(id);
+
+    auto it = players.find(id);
+    if (it != players.end()) {
+      if (it->second->is_connected())
+        return nullptr;
+
+      it->second->set_connection(true);
+      return it->second;
+    }
+
+    auto p = std::make_shared<Player<ROWS, COLS>>(name, id, frame_count, grid);
     spawn_player(p);
+    players.insert(id, p);
 
-    players.insert(p->id(), p);
-    return true;
+    return p;
+
+    // spawn_player(p);
+
+    // players.insert(p->id(), p);
+    // return true;
   }
 
   bool is_running() const noexcept { return running.load(); }
   uint32_t frame() const noexcept { return frame_count; }
 
   void remove_player(std::shared_ptr<Player<ROWS, COLS>> p) {
-    players.erase(p->id());
+    auto it = players.find(p->id());
+    if (it != players.end())
+      it->second->set_connection(false);
   }
 
   std::string generate_secret() { return uuid_generator(); }

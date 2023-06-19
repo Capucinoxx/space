@@ -35,9 +35,8 @@ public:
     uint32_t id = result[0][0].as<uint32_t>(0);
     std::string name = result[0][1].as<std::string>("");
 
-    player = std::make_shared<Player<ROWS, COLS>>(
-      name, id, game->frame(), game->get_grid());
-    return game->register_player(player);
+    player = game->register_player(name, id);
+    return player != nullptr;
   }
 
   void on_close() {
