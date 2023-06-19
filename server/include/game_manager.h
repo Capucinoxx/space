@@ -10,7 +10,60 @@
 #include <thread>
 #include <atomic>
 #include <unordered_map>
+#include <unordered_set>
+#include <random>
 
+template<uint32_t ROWS, uint32_t COLS>
+class Spawn {
+private:
+  std::shared_ptr<Grid<ROWS, COLS>> grid;
+
+  std::random_device rd;
+  std::mt19937 gen;
+  std::uniform_int_distribution<uint32_t> dist_x;
+  std::uniform_int_distribution<uint32_t> dist_y;
+
+public:
+  Spawn(std::shared_ptr<Grid<ROWS, COLS>> grid) : grid(std::move(grid)), gen{ rd() } { 
+    std::cout << "Spawn initialized\n" << "ROWS" << ROWS << " COLS" << COLS << std::endl;
+    dist_x = std::uniform_int_distribution<uint32_t>(0, ROWS - 1);
+    dist_y = std::uniform_int_distribution<uint32_t>(0, COLS - 1);
+  }
+
+  std::pair<uint32_t, uint32_t> operator()() {
+    uint32_t x = dist_x(gen);
+    uint32_t y = dist_y(gen);
+
+    std::cout << "plop" << std::endl;
+    std::cout << grid->at({ 0, 0 }).is_trail() << std::endl;
+    std::cout << "plap" << std::endl;
+
+    while (position_is_valid({ x, y })) {
+      x = dist_x(gen);
+      y = dist_y(gen);
+    }
+
+    std::cout << "POSITION: (" << x << ", " << y << ") is valid" << std::endl;
+    return { x, y };
+  }
+
+  bool position_is_valid(const std::pair<uint32_t, uint32_t>& pos) {
+    for (int i = -1; i != 2; ++i) {
+      for (int j = -1; j != 2; ++j) {
+        auto px = pos.first + i;
+        auto py = pos.second + j;
+
+        bool is_out_of_bounds = px >= ROWS || py >= COLS;
+        if (is_out_of_bounds || grid->at({ px, py }).is_trail())
+          return true;
+      }
+    }
+
+    
+
+    return false;
+  }
+};
 
 template<uint32_t ROWS, uint32_t COLS>
 class GameManager {
@@ -23,6 +76,7 @@ private:
   std::shared_ptr<GameManager<ROWS, COLS>> game_manager;
 
   ConcurrentUnorderedMap<uint32_t, std::shared_ptr<Player<ROWS, COLS>>> players{ };
+  Spawn<ROWS, COLS> spawn;
   
   std::thread th;
   uint32_t frame_count = 0;
@@ -31,9 +85,7 @@ private:
   UniqueIDGenerator<15> uuid_generator;
 
 public:
-  explicit GameManager() { 
-    grid = std::make_shared<Grid<ROWS, COLS>>();
-  }
+  explicit GameManager() : grid(std::make_shared<Grid<ROWS, COLS>>()), spawn(grid) {}
 
   ~GameManager() = default;
   GameManager(const GameManager&) = delete;
@@ -86,9 +138,9 @@ public:
   }
 
   void spawn_player(std::shared_ptr<Player<ROWS, COLS>> p) {
-    auto position = std::make_pair(uint32_t(20), uint32_t(20));
+    // auto position = std::make_pair(uint32_t(20), uint32_t(20));
 
-    p->spawn(position);
+    p->spawn(spawn());
   }
 
   void handle_move_result(std::shared_ptr<Player<ROWS, COLS>> p, Player<ROWS, COLS>::movement_type movement) {
