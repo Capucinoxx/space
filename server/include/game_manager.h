@@ -33,7 +33,9 @@ public:
     uint32_t x = dist_x(gen);
     uint32_t y = dist_y(gen);
 
-    while (position_is_valid({ x, y })) {
+    int retry = 0;
+
+    while (position_is_valid({ x, y }) && retry++ < 10) {
       x = dist_x(gen);
       y = dist_y(gen);
     }
