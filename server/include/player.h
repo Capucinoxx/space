@@ -38,8 +38,10 @@ private:
   uint32_t last_frame_played;
   uint32_t frame_alive = 0;
   position current_pos;
-  direction last_direction;;
+  direction last_direction;
   std::shared_ptr<Grid<ROWS, COLS>> grid;
+  bool connected;
+
 
   ConcurrentUnorderedSet<position, PairHash> trail{ };
   ConcurrentUnorderedSet<position, PairHash> region{ };
@@ -47,7 +49,7 @@ private:
 
 public:
   Player(const std::string& name, uint32_t id, uint32_t frame, std::shared_ptr<Grid<ROWS, COLS>> grid) 
-    : identifier{ id }, name{ name }, last_frame_played{ frame }, grid(std::move(grid)) {
+    : identifier{ id }, name{ name }, last_frame_played{ frame }, grid(std::move(grid)), connected{ true } {
     trail.reserve(ROWS * COLS / 2);
     region.reserve(MAX_SIZE * 2);
     last_direction = direction::DOWN;
@@ -66,6 +68,9 @@ public:
       default: return direction::DOWN;
     }
   }
+
+  void set_connection(bool status) noexcept { connected = status; }
+  bool is_connected() const noexcept { return connected; }
 
   double frame_score() const noexcept {
     if (frame_alive == 0) return 0.0;
