@@ -2,6 +2,8 @@ from enum import IntEnum
 from dataclasses import dataclass
 from typing import Union
 
+import struct
+
 class Direction(IntEnum):
     """
     Direction in which the player can move
@@ -11,6 +13,9 @@ class Direction(IntEnum):
     LEFT = 2
     RIGHT = 3
 
+    def serialize(self) -> str:
+        return chr(self.value)
+
 @dataclass
 class Teleport:
     """
@@ -19,7 +24,13 @@ class Teleport:
     x: int
     y: int
 
+    def serialize(self) -> str:
+        return chr(0x05) + struct.pack('ii', self.x, self.y)
+
 
 @dataclass
 class Action:
     action_type: Union[Teleport, Direction]
+
+    def serialize(self) -> str:
+        return self.action_type.serialize()
