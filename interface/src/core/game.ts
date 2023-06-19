@@ -39,7 +39,7 @@ class Deserializer {
     const py = this.deserialize_value<number>();
     const frame_alive = this.deserialize_value<number>();
 
-    const trail_length = this.deserialize_value<number>(1);
+    const trail_length = this.deserialize_value<number>();
     const trail: Array<Position> = new Array<Position>(trail_length);
     for (let i = 0; i != trail_length; i++)
       trail[i] = {x: this.deserialize_value<number>(), y: this.deserialize_value<number>()};
