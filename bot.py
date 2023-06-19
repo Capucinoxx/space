@@ -20,8 +20,8 @@ class Player:
         self.alive = struct.unpack('<I', data[self.UUID_SIZE + 8:self.UUID_SIZE + 12])[0]
         data = data[self.UUID_SIZE + 12:]
 
-        trail_length = struct.unpack("<B", data[:1])[0]
-        data = data[1:]
+        trail_length = struct.unpack("<I", data[:1])[0]
+        data = data[4:]
 
         for _ in range(trail_length):
             self.trail.append(struct.unpack('<II', data[:8]))
@@ -58,36 +58,61 @@ class Deserializer:
         return rows, cols, players
 
 
+from enum import IntEnum
 
+# class Teleportation:
+    
 
+class Direction(IntEnum):
+    UP = 0
+    DOWN = 1
+    LEFT = 2
+    RIGHT = 3
+
+# class Action(IntEnum):
+#     def do(action: Direction | Teleportation) -> str:
+#         pass
 
 class Path:
     def __init__(self) -> None:
-        self.__actions: List[str] = [
-            "\x03", "\x03", "\x03",
-            "\x01", "\x01", "\x01",
-            "\x02", "\x02", "\x02", "\x02", "\x02",
-            "\x00", "\x00", "\x00", "\x00", "\x00",
-            "\x03", "\x03", "\x03", "\x03",
-            "\x01", "\x02"
+        self.__actions: List[Direction] = [
+            Direction.UP,
+            Direction.UP,
+            Direction.UP,
+            Direction.UP,
+            Direction.UP,
+            Direction.UP,
+            Direction.LEFT,
+            Direction.LEFT,
+            Direction.LEFT,
+            Direction.LEFT,
+            Direction.DOWN,
+            Direction.DOWN,
+            Direction.DOWN,
+            Direction.DOWN,
+            Direction.DOWN,
+            Direction.DOWN,
+            Direction.RIGHT,
+            Direction.RIGHT,
+            Direction.RIGHT,
+            Direction.RIGHT,
         ]
         self.__idx: int = 0
 
     def next(self) -> str:
         self.__idx += 1
-        print(ord(self.__actions[self.__idx % len(self.__actions)]))
-        return self.__actions[self.__idx % len(self.__actions)]
+        return chr(self.__actions[self.__idx % len(self.__actions)])
 
 
-ws = websocket.create_connection("ws://localhost:8080/game", header=[f"Authorization: test1234"])
+ws = websocket.create_connection("ws://localhost:8080/game", header=[f"Authorization: 001XXLYEMKFYYMZ"])
 
 path = Path()
 
 def receive_response(ws):
     data = ws.recv()
     print(f"Received {len(data)}")
-    rows, cols, players = Deserializer(data).deserialize()
-    print(f"Received {rows} {cols}", ", ".join([f"{player}" for player in players]))
+    # rows, cols, players = Deserializer(data).deserialize()
+    # print(f"Received {rows} {cols}", ", ".join([f"{player}" for player in players]))
 
 def send_request(ws):
     ws.send(path.next())

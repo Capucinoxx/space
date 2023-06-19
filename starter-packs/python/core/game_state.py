@@ -31,8 +31,8 @@ class GameState:
             pos_x, pos_y, tick_alive = struct.unpack_from('<III', data, offset)
             offset += 12
 
-            trail_length = struct.unpack_from('<B', data, offset)[0]
-            offset += 1
+            trail_length = struct.unpack_from('<I', data, offset)[0]
+            offset += 4
 
             trail = struct.unpack_from('<' + 'II' * trail_length, data, offset)
             offset += trail_length * 8
