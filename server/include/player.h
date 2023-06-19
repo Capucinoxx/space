@@ -239,13 +239,13 @@ public:
     serialize_value<uint32_t>(data, pos().second);
     serialize_value<uint32_t>(data, frame_alive);
 
-    serialize_value<uint8_t>(data, static_cast<uint8_t>(trail.size()));
+    serialize_value<uint32_t>(data, static_cast<uint32_t>(trail.size()));
     for (auto it = trail.begin(); it != trail.end(); ++it) {
       serialize_value<uint32_t>(data, it->first);
       serialize_value<uint32_t>(data, it->second);
     }
 
-    serialize_value<uint32_t>(data, static_cast<uint8_t>(region.size()));
+    serialize_value<uint32_t>(data, static_cast<uint32_t>(region.size()));
     for (auto it = region.begin(); it != region.end(); ++it) {
       serialize_value<uint32_t>(data, it->first);
       serialize_value<uint32_t>(data, it->second);
