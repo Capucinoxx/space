@@ -25,7 +25,6 @@ private:
 
 public:
   Spawn(std::shared_ptr<Grid<ROWS, COLS>> grid) : grid(std::move(grid)), gen{ rd() } { 
-    std::cout << "Spawn initialized\n" << "ROWS" << ROWS << " COLS" << COLS << std::endl;
     dist_x = std::uniform_int_distribution<uint32_t>(0, ROWS - 1);
     dist_y = std::uniform_int_distribution<uint32_t>(0, COLS - 1);
   }
@@ -34,16 +33,11 @@ public:
     uint32_t x = dist_x(gen);
     uint32_t y = dist_y(gen);
 
-    std::cout << "plop" << std::endl;
-    std::cout << grid->at({ 0, 0 }).is_trail() << std::endl;
-    std::cout << "plap" << std::endl;
-
     while (position_is_valid({ x, y })) {
       x = dist_x(gen);
       y = dist_y(gen);
     }
 
-    std::cout << "POSITION: (" << x << ", " << y << ") is valid" << std::endl;
     return { x, y };
   }
 
