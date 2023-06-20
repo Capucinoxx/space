@@ -6,10 +6,12 @@
 #include "structures/concurent_unordered_set.h"
 #include "utils.h"
 
+#include <boost/cstdfloat.hpp> 
 #include <vector>
 #include <unordered_set>
 #include <mutex>
 #include <stack>
+#include <tuple>
 
 struct PairHash {
     template <typename T1, typename T2>
@@ -25,6 +27,8 @@ class Player {
 public:
   enum direction { UP, DOWN, LEFT, RIGHT };
   using movement_type = TileMap::stmt;
+  using float64_t = boost::float64_t;
+  using hsl_color = std::tuple<float64_t, float64_t, float64_t>;
 
   using position = Grid<ROWS, COLS>::position;
 
@@ -40,6 +44,7 @@ private:
   position current_pos;
   direction last_direction;
   std::shared_ptr<Grid<ROWS, COLS>> grid;
+  hsl_color color;
   bool connected;
 
 
