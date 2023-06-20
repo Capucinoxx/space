@@ -102,6 +102,7 @@ public:
       return movement_type::IDLE;
 
     last_frame_played = frame;
+    last_direction = d;
 
     ++frame_alive;
 
