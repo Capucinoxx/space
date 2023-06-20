@@ -25,7 +25,7 @@ class GameState:
 
         players = []
         while offset < len(data):
-            id = data[offset:offset + 15]
+            id = str(data[offset:offset + 15]).rstrip('\0')
             offset += 15
 
             pos_x, pos_y, tick_alive = struct.unpack_from('<III', data, offset)
