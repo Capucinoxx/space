@@ -119,6 +119,7 @@ public:
     res = grid->at(current_pos).step(id());
 
     trail.insert(current_pos);
+    last_direction = d;
 
     return res;
   }
