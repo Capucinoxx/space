@@ -88,11 +88,6 @@ public:
   GameManager& operator=(const GameManager&) = delete;
 
   std::shared_ptr<Player<ROWS, COLS>> register_player(const std::string& name, uint32_t id) {
-    // if (players.contains(id)) {
-
-    // }
-    //   return *players.find(id);
-
     auto it = players.find(id);
     if (it != players.end()) {
       if (it->second->is_connected())
@@ -107,11 +102,6 @@ public:
     players.insert(id, p);
 
     return p;
-
-    // spawn_player(p);
-
-    // players.insert(p->id(), p);
-    // return true;
   }
 
   bool is_running() const noexcept { return running.load(); }
