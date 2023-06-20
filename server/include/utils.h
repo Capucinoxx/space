@@ -8,6 +8,7 @@
 #include <ctime>
 #include <vector>
 #include <optional>
+#include <algorithm>
 
 template<typename T>
 void serialize_value(std::vector<uint8_t>& data, const T& value) {
@@ -18,7 +19,8 @@ void serialize_value(std::vector<uint8_t>& data, const T& value) {
 template<typename T>
 static void serialize_data(std::vector<uint8_t>& data, const T& value, size_t length) {
   const uint8_t* p_value = reinterpret_cast<const uint8_t*>(value.data());
-  data.insert(data.end(), p_value, p_value + length);
+  data.insert(data.end(), p_value, p_value + value.size());
+  std::fill_n(std::back_inserter(data), length - value.size(), 0);
 }
 
 template<std::size_t LENGTH>
