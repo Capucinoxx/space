@@ -69,9 +69,9 @@ class Deserializer {
     };
 
 
-    while (this.offset < data.length) {
+    while (this.offset < data.length) {      
       const [name, color, pos, trail, region] = this.deserialize_player();
-      result.names.push(name);
+      result.names.push(name.trim());
       result.colors.push(color);
       result.positions.push(pos);
       result.trails.push(trail);
