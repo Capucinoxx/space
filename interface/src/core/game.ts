@@ -26,6 +26,13 @@ class Deserializer {
     return value;
   };
 
+  private deserialize_float = (size: number = 8): number => {
+    const bytes = new Uint8Array(this.data!.slice(this.offset, this.offset + size));
+    const value = new Float64Array(bytes.buffer)[0];
+    this.offset += size;
+    return value;
+  }
+
   private deserialize_string = (size: number): string => {
     const bytes = this.data!.slice(this.offset, this.offset + size);
     const str = String.fromCharCode(...bytes);
@@ -35,6 +42,9 @@ class Deserializer {
 
   private deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>] => {
     const id = this.deserialize_string(this.name_size);
+    const color_h = this.deserialize_float();
+    const color_s = this.deserialize_float();
+    const color_l = this.deserialize_float();
     const px = this.deserialize_value<number>();
     const py = this.deserialize_value<number>();
     const frame_alive = this.deserialize_value<number>();
@@ -49,7 +59,9 @@ class Deserializer {
     for (let i = 0; i != region_length; i++)
       region[i] = {x: this.deserialize_value<number>(), y: this.deserialize_value<number>()};
 
-    return [id, new HSL(217, 0.9, 0.61), { x: px, y: py }, trail, region];
+    console.log(color_h, color_s, color_l);
+
+    return [id, new HSL(color_l, color_s, color_h), { x: px, y: py }, trail, region];
   };
 
   public deserialize = (data: Uint8Array): BoardgameData => {
