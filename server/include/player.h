@@ -53,8 +53,8 @@ private:
   std::mutex mu;
 
 public:
-  Player(const std::string& name, uint32_t id, uint32_t frame, std::shared_ptr<Grid<ROWS, COLS>> grid) 
-    : identifier{ id }, name{ name }, last_frame_played{ frame }, grid(std::move(grid)), connected{ true } {
+  Player(const std::string& name, uint32_t id, hsl_color color, uint32_t frame, std::shared_ptr<Grid<ROWS, COLS>> grid) 
+    : identifier{ id }, name{ name }, last_frame_played{ frame }, grid(std::move(grid)), connected{ true }, color{ color } {
     trail.reserve(ROWS * COLS / 2);
     region.reserve(MAX_SIZE * 2);
     last_direction = direction::DOWN;
@@ -246,6 +246,9 @@ public:
   void serialize(std::vector<uint8_t>& data) {
     std::lock_guard<std::mutex> lock(mu);
     serialize_data<std::string>(data, player_name(), NAME_SIZE);
+    auto [h, s, l] = color;
+    std::cout << "size:" << sizeof(hsl_color) << "value: "<< h << " " << s << " " << l << std::endl;
+    serialize_value<hsl_color>(data, color);
     serialize_value<uint32_t>(data, pos().first);
     serialize_value<uint32_t>(data, pos().second);
     serialize_value<uint32_t>(data, frame_alive);
