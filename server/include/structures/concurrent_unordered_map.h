@@ -42,6 +42,11 @@ public:
     std::lock_guard<std::mutex> lock(mu);
     return map.end();
   }
+
+  std::size_t size() const noexcept {
+    std::lock_guard<std::mutex> lock(mu);
+    return map.size();
+  }
 };
 
 #endif //SPACE_CONCURRENT_UNORDERED_MAP_H
