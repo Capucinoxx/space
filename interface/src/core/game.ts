@@ -19,6 +19,7 @@ class Deserializer {
   private readonly name_size: number = 15;
   private offset: number = 0;
   private data: Uint8Array | undefined = undefined;
+  private decoder = new TextDecoder('unicode-1-1-utf-8');
   
   private deserialize_value = <T>(size: number = 4): T => {
     const value = this.data![this.offset] as T;
@@ -34,10 +35,8 @@ class Deserializer {
   }
 
   private deserialize_string = (size: number): string => {
-    const decoder = new TextDecoder('unicode-1-1-utf-8');
-
     const bytes = this.data!.slice(this.offset, this.offset + size);
-    const str = decoder.decode(bytes);
+    const str = this.decoder.decode(bytes);
     this.offset += size;
     return str;
   }
@@ -185,7 +184,6 @@ class BoardGame {
       ctx.fillRect(x, y, cell_size, cell_size);
 
       ctx.fillStyle = light_color;
-      // ctx.fillRect(x + this.shadow_offset, y + this.shadow_offset, cell_size - this.shadow_offset * 2, cell_size - this.shadow_offset * 2);
       ctx.fillRect(x - 1, y - this.shadow_offset, cell_size + 2, cell_size);
     }
   };
