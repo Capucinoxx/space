@@ -5,6 +5,10 @@
 #include <pqxx/pqxx>
 
 #include <sstream>
+#include <vector>
+#include <tuple>
+#include <iostream>
+#include <string>
 
 class PostgresConnector {
 public:
@@ -39,8 +43,25 @@ private:
 
 public:
 
+
+  template<typename T>
+  pqxx::result bulk_insert(const std::string& query, const std::vector<T>& params) {
+    try {
+      pqxx::work w(*connection);
+
+      
+      pqxx::result result = w.exec_params(query, pqxx::prepare::make_dynamic_params(params));
+      w.commit();
+
+      return result;
+    } catch(const std::exception &e) {
+      return pqxx::result();
+    }
+  }
+
+
   template<typename... Args>
-  pqxx::result execute(const std::string& query, Args&&... args) {
+  pqxx::result execute(const std::string& query, Args&&... args) {    
     try {
       pqxx::work w(*connection);
 
