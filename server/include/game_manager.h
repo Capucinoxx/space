@@ -4,14 +4,15 @@
 #include "player.h"
 #include "grid.h"
 #include "utils.h"
+#include "postgres_connector.h"
 #include "structures/concurrent_unordered_map.h"
 
 #include <iostream> 
 #include <thread>
 #include <atomic>
-#include <unordered_map>
-#include <unordered_set>
 #include <random>
+#include <string>
+
 
 template<uint32_t ROWS, uint32_t COLS>
 class Spawn {
@@ -66,6 +67,8 @@ class GameManager {
 public:
   using position = Player<ROWS, COLS>::position;
   using broadcast_fn_type = void (*)(const std::vector<uint8_t>&);
+  using psql_ref = PostgresConnector&;
+  
 
 private:
   std::shared_ptr<Grid<ROWS, COLS>> grid;
@@ -73,6 +76,8 @@ private:
 
   ConcurrentUnorderedMap<uint32_t, std::shared_ptr<Player<ROWS, COLS>>> players{ };
   Spawn<ROWS, COLS> spawn;
+
+  psql_ref postgres;
   
   std::thread th;
   uint32_t frame_count = 0;
@@ -81,7 +86,7 @@ private:
   UniqueIDGenerator<15> uuid_generator;
 
 public:
-  explicit GameManager() : grid(std::make_shared<Grid<ROWS, COLS>>()), spawn(grid) {}
+  explicit GameManager(psql_ref postgres) : grid(std::make_shared<Grid<ROWS, COLS>>()), spawn(grid), postgres(postgres) {}
 
   ~GameManager() = default;
   GameManager(const GameManager&) = delete;
@@ -143,8 +148,6 @@ public:
   }
 
   void spawn_player(std::shared_ptr<Player<ROWS, COLS>> p) {
-    // auto position = std::make_pair(uint32_t(20), uint32_t(20));
-
     p->spawn(spawn());
   }
 
@@ -188,11 +191,31 @@ public:
   }
 
 private:
-  void update_map() {
-    for (auto& p : players)
-      p.second->perform(frame_count);
-    ++frame_count;
+
+void update_map() {
+  std::vector<std::string> arguments;
+  std::string query = "INSERT INTO player_scores (player_id, score) VALUES ";
+  std::size_t i = 0;
+
+  for (auto& p : players) {
+    p.second->perform(frame_count);
+    arguments.emplace_back(std::to_string(p.second->id()));
+    arguments.emplace_back(std::to_string(p.second->score()));
+
+    query += "($" + std::to_string(i * 2 + 1) + ", $" + std::to_string(i * 2 + 2) + ")";
+    if (i != players.size() - 1)
+      query += ", ";
+
+    ++i;
   }
+
+  std::cout << query << std::endl;
+
+  postgres.bulk_insert(query, arguments);
+
+  ++frame_count;
+}
+
 };
 
 #endif //SPACE_MAP_H

@@ -42,6 +42,7 @@ private:
   uint32_t last_frame_played;
   uint32_t frame_alive = 0;
   position current_pos;
+  float64_t p_score;
   direction last_direction;
   std::shared_ptr<Grid<ROWS, COLS>> grid;
   hsl_color color;
@@ -77,11 +78,13 @@ public:
   void set_connection(bool status) noexcept { connected = status; }
   bool is_connected() const noexcept { return connected; }
 
-  double frame_score() const noexcept {
+  boost::float64_t score() const noexcept { return p_score; }
+
+  boost::float64_t frame_score() const noexcept {
     if (frame_alive == 0) return 0.0;
 
     double percentage = static_cast<double>(region.size()) / static_cast<double>(ROWS * COLS) * 100.00;
-    return percentage * percentage / static_cast<double>(frame_alive);
+    return percentage * percentage / static_cast<double>(frame_alive) * 100.00;
   }
 
   void dump_info() {
@@ -125,6 +128,7 @@ public:
     res = grid->at(current_pos).step(id());
 
     trail.insert(current_pos);
+    p_score += frame_score();
 
     return res;
   }
@@ -247,7 +251,6 @@ public:
     std::lock_guard<std::mutex> lock(mu);
     serialize_data<std::string>(data, player_name(), NAME_SIZE);
     auto [h, s, l] = color;
-    std::cout << "size:" << sizeof(hsl_color) << "value: "<< h << " " << s << " " << l << std::endl;
     serialize_value<hsl_color>(data, color);
     serialize_value<uint32_t>(data, pos().first);
     serialize_value<uint32_t>(data, pos().second);
