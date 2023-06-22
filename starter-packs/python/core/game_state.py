@@ -28,6 +28,9 @@ class GameState:
             id = str(data[offset:offset + 15]).rstrip('\0')
             offset += 15
 
+            # skip 24 bytes for the player's color
+            offset += 24
+
             pos_x, pos_y, tick_alive = struct.unpack_from('<III', data, offset)
             offset += 12
 

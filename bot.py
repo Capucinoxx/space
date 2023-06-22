@@ -16,7 +16,7 @@ class Player:
     
     def deserialize(self, data: bytes) -> None:
         self.id = str(data[:self.UUID_SIZE]).rstrip('\0')
-        _ = struct.unpack('<ddd', data[self.UUID_SIZE:self.UUID_SIZE + 24])
+        
         data = data[self.UUID_SIZE + 24:]
 
         self.pos = struct.unpack('<II', data[:8])
@@ -107,7 +107,7 @@ class Path:
         return chr(self.__actions[self.__idx % len(self.__actions)])
 
 
-ws = websocket.create_connection("ws://localhost:8080/game", header=[f"Authorization: 002IUNQLDTXFQAG"])
+ws = websocket.create_connection("ws://localhost:8080/game", header=[f"Authorization: 002JMBUGISAJNUL"])
 
 path = Path()
 
