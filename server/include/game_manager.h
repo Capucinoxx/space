@@ -87,7 +87,7 @@ public:
   GameManager(const GameManager&) = delete;
   GameManager& operator=(const GameManager&) = delete;
 
-  std::shared_ptr<Player<ROWS, COLS>> register_player(const std::string& name, uint32_t id) {
+  std::shared_ptr<Player<ROWS, COLS>> register_player(const std::string& name, uint32_t id, Player<ROWS, COLS>::hsl_color color) {
     auto it = players.find(id);
     if (it != players.end()) {
       if (it->second->is_connected())
@@ -97,7 +97,7 @@ public:
       return it->second;
     }
 
-    auto p = std::make_shared<Player<ROWS, COLS>>(name, id, frame_count, grid);
+    auto p = std::make_shared<Player<ROWS, COLS>>(name, id, color, frame_count, grid);
     spawn_player(p);
     players.insert(id, p);
 

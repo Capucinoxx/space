@@ -19,6 +19,7 @@ class Deserializer {
   private readonly name_size: number = 15;
   private offset: number = 0;
   private data: Uint8Array | undefined = undefined;
+  private decoder = new TextDecoder('unicode-1-1-utf-8');
   
   private deserialize_value = <T>(size: number = 4): T => {
     const value = this.data![this.offset] as T;
@@ -26,15 +27,25 @@ class Deserializer {
     return value;
   };
 
+  private deserialize_float = (size: number = 8): number => {
+    const bytes = new Uint8Array(this.data!.slice(this.offset, this.offset + size));
+    const value = new Float64Array(bytes.buffer)[0];
+    this.offset += size;
+    return value;
+  }
+
   private deserialize_string = (size: number): string => {
     const bytes = this.data!.slice(this.offset, this.offset + size);
-    const str = String.fromCharCode(...bytes);
+    const str = this.decoder.decode(bytes);
     this.offset += size;
     return str;
   }
 
   private deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>] => {
     const id = this.deserialize_string(this.name_size);
+    const color_h = this.deserialize_float();
+    const color_s = this.deserialize_float();
+    const color_l = this.deserialize_float();
     const px = this.deserialize_value<number>();
     const py = this.deserialize_value<number>();
     const frame_alive = this.deserialize_value<number>();
@@ -49,7 +60,7 @@ class Deserializer {
     for (let i = 0; i != region_length; i++)
       region[i] = {x: this.deserialize_value<number>(), y: this.deserialize_value<number>()};
 
-    return [id, new HSL(217, 0.9, 0.61), { x: px, y: py }, trail, region];
+    return [id, new HSL(color_l, color_s, color_h), { x: px, y: py }, trail, region];
   };
 
   public deserialize = (data: Uint8Array): BoardgameData => {
@@ -138,8 +149,17 @@ class BoardGame {
   private render_players = (): void => {
     const { ctx, cell_size } = this.canvas;
 
+    const strEncodeUTF16 = (str: string): string => {
+      var arr = []
+      for (var i = 0; i < str.length; i++) {
+        arr[i] = str.charCodeAt(i)
+      }
+      return String(arr);
+    }
+    
+
     for (let i = 0; i != this.data!.names.length; i++) {
-      const name = this.data!.names[i];
+      const name = this.data!.names[i].replace(/\p{C}/gu, '');
       const hsl = this.data!.colors[i];
       const pos = this.data!.positions[i];
 
@@ -152,7 +172,7 @@ class BoardGame {
       const dark_color = hsl.adjust_luminosity(0.35).to_rgba(1);
       const light_color = hsl.to_rgba(1);
 
-      ctx.fillStyle = color;
+      ctx.fillStyle = dark_color;
       ctx.textAlign = 'center';
       ctx.font = 'bold 12px sans-serif';
 
@@ -164,7 +184,7 @@ class BoardGame {
       ctx.fillRect(x, y, cell_size, cell_size);
 
       ctx.fillStyle = light_color;
-      ctx.fillRect(x + this.shadow_offset, y + this.shadow_offset, cell_size - this.shadow_offset * 2, cell_size - this.shadow_offset * 2);
+      ctx.fillRect(x - 1, y - this.shadow_offset, cell_size + 2, cell_size);
     }
   };
 

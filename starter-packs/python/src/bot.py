@@ -7,6 +7,8 @@ class MyBot:
         self.__name = "MyBot"
 
     def tick(self, state: GameState) -> Action:
-        # programe your bot here
+       print(state.__str__())
+       # program your bot here
+       
 
        return random.choice(list(Direction))
