@@ -34,8 +34,10 @@ class Deserializer {
   }
 
   private deserialize_string = (size: number): string => {
+    const decoder = new TextDecoder('unicode-1-1-utf-8');
+
     const bytes = this.data!.slice(this.offset, this.offset + size);
-    const str = String.fromCharCode(...bytes);
+    const str = decoder.decode(bytes);
     this.offset += size;
     return str;
   }
@@ -58,8 +60,6 @@ class Deserializer {
     const region: Array<Position> = new Array<Position>(region_length);
     for (let i = 0; i != region_length; i++)
       region[i] = {x: this.deserialize_value<number>(), y: this.deserialize_value<number>()};
-
-    console.log(color_h, color_s, color_l);
 
     return [id, new HSL(color_l, color_s, color_h), { x: px, y: py }, trail, region];
   };
@@ -150,8 +150,17 @@ class BoardGame {
   private render_players = (): void => {
     const { ctx, cell_size } = this.canvas;
 
+    const strEncodeUTF16 = (str: string): string => {
+      var arr = []
+      for (var i = 0; i < str.length; i++) {
+        arr[i] = str.charCodeAt(i)
+      }
+      return String(arr);
+    }
+    
+
     for (let i = 0; i != this.data!.names.length; i++) {
-      const name = this.data!.names[i];
+      const name = this.data!.names[i].replace(/\p{C}/gu, '');
       const hsl = this.data!.colors[i];
       const pos = this.data!.positions[i];
 
@@ -164,7 +173,7 @@ class BoardGame {
       const dark_color = hsl.adjust_luminosity(0.35).to_rgba(1);
       const light_color = hsl.to_rgba(1);
 
-      ctx.fillStyle = color;
+      ctx.fillStyle = dark_color;
       ctx.textAlign = 'center';
       ctx.font = 'bold 12px sans-serif';
 
@@ -176,7 +185,8 @@ class BoardGame {
       ctx.fillRect(x, y, cell_size, cell_size);
 
       ctx.fillStyle = light_color;
-      ctx.fillRect(x + this.shadow_offset, y + this.shadow_offset, cell_size - this.shadow_offset * 2, cell_size - this.shadow_offset * 2);
+      // ctx.fillRect(x + this.shadow_offset, y + this.shadow_offset, cell_size - this.shadow_offset * 2, cell_size - this.shadow_offset * 2);
+      ctx.fillRect(x - 1, y - this.shadow_offset, cell_size + 2, cell_size);
     }
   };
 
