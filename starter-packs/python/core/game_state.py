@@ -5,7 +5,7 @@ import struct
 
 @dataclass
 class Player:
-    id: str
+    name: str
     pos: Tuple[int, int]
     alive: int
     trail: List[Tuple[int, int]]
@@ -25,8 +25,11 @@ class GameState:
 
         players = []
         while offset < len(data):
-            id = str(data[offset:offset + 15]).rstrip('\0')
-            offset += 15
+            name_size = struct.unpack_from('<I', data, offset)[0]
+            offset += 4
+
+            name = data[offset:name_size]
+            offset += name_size
 
             # skip 24 bytes for the player's color
             offset += 24
@@ -46,7 +49,7 @@ class GameState:
             region = struct.unpack_from('<' + 'II' * region_length, data, offset)
             offset += region_length * 8
 
-        players.append(Player(id=id, pos=(pos_x, pos_y), 
+        players.append(Player(name=name, pos=(pos_x, pos_y), 
                               alive=tick_alive, 
                               trail=list(zip(trail[::2], trail[1::2])), 
                               region=list(zip(region[::2], region[1::2]))))

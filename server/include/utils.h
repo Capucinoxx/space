@@ -62,4 +62,15 @@ std::optional<std::tuple<double, double, double>> parse_color(const std::string&
   return std::make_tuple(hsl[0], hsl[1], hsl[2]);
 }
 
+std::size_t count_unicode_chars(const std::string& str) {
+  std::size_t count = 0;
+
+  for (std::size_t i = 0; i < str.size(); ++i) {
+    if ((str[i] & 0xC0) != 0x80)
+      ++count;
+  }
+
+  return count;
+}
+
 #endif //SPACE_UTILS_H
