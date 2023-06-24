@@ -37,7 +37,7 @@ private:
         if (name.empty() || color.empty())
             return std::make_pair(http::status::bad_request, "name or color is empty");
 
-        if (ncount_unicode_chars(name) > 15)
+        if (count_unicode_chars(name) > 15)
             return std::make_pair(http::status::bad_request, "name is too long");
 
         auto hsl = parse_color(color);
