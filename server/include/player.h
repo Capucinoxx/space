@@ -247,9 +247,8 @@ public:
 
   void serialize(std::vector<uint8_t>& data) {
     std::lock_guard<std::mutex> lock(mu);
-    seralize_data<uint32_t>(data, player_name().size());
+    serialize_data<uint32_t>(data, player_name().size());
     serialize_data<std::string>(data, player_name(), player_name().size());
-    auto [h, s, l] = color;
     serialize_value<hsl_color>(data, color);
     serialize_value<uint32_t>(data, pos().first);
     serialize_value<uint32_t>(data, pos().second);
