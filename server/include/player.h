@@ -32,8 +32,6 @@ public:
 
   using position = Grid<ROWS, COLS>::position;
 
-  static constexpr std::size_t NAME_SIZE = 15;
-
 private:
   static constexpr uint32_t MAX_SIZE = (ROWS > COLS) ? ROWS : COLS;
 
@@ -249,7 +247,8 @@ public:
 
   void serialize(std::vector<uint8_t>& data) {
     std::lock_guard<std::mutex> lock(mu);
-    serialize_data<std::string>(data, player_name(), NAME_SIZE);
+    seralize_data<uint32_t>(data, player_name().size());
+    serialize_data<std::string>(data, player_name(), player_name().size());
     auto [h, s, l] = color;
     serialize_value<hsl_color>(data, color);
     serialize_value<uint32_t>(data, pos().first);
