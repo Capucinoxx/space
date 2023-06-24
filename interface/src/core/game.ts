@@ -150,17 +150,8 @@ class BoardGame {
   private render_players = (): void => {
     const { ctx, cell_size } = this.canvas;
 
-    const strEncodeUTF16 = (str: string): string => {
-      var arr = []
-      for (var i = 0; i < str.length; i++) {
-        arr[i] = str.charCodeAt(i)
-      }
-      return String(arr);
-    }
-    
-
     for (let i = 0; i != this.data!.names.length; i++) {
-      const name = this.data!.names[i].replace(/\p{C}/gu, '');
+      const name = this.data!.names[i];
       const hsl = this.data!.colors[i];
       const pos = this.data!.positions[i];
 
