@@ -16,7 +16,6 @@ interface BoardgameData {
 }
 
 class Deserializer {
-  private readonly name_size: number = 15;
   private offset: number = 0;
   private data: Uint8Array | undefined = undefined;
   private decoder = new TextDecoder('unicode-1-1-utf-8');
@@ -42,7 +41,9 @@ class Deserializer {
   }
 
   private deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>] => {
-    const id = this.deserialize_string(this.name_size);
+    const name_size = this.deserialize_value<number>();
+
+    const name = this.deserialize_string(name_size);
     const color_h = this.deserialize_float();
     const color_s = this.deserialize_float();
     const color_l = this.deserialize_float();
@@ -60,7 +61,7 @@ class Deserializer {
     for (let i = 0; i != region_length; i++)
       region[i] = {x: this.deserialize_value<number>(), y: this.deserialize_value<number>()};
 
-    return [id, new HSL(color_l, color_s, color_h), { x: px, y: py }, trail, region];
+    return [name, new HSL(color_l, color_s, color_h), { x: px, y: py }, trail, region];
   };
 
   public deserialize = (data: Uint8Array): BoardgameData => {
