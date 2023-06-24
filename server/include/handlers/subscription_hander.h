@@ -3,6 +3,7 @@
 
 #include "network.h"
 #include "postgres_connector.h"
+#include "utils.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -36,7 +37,7 @@ private:
         if (name.empty() || color.empty())
             return std::make_pair(http::status::bad_request, "name or color is empty");
 
-        if (name.length() > 15)
+        if (ncount_unicode_chars(name) > 15)
             return std::make_pair(http::status::bad_request, "name is too long");
 
         auto hsl = parse_color(color);
