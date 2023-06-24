@@ -15,7 +15,10 @@ class Player:
 
     
     def deserialize(self, data: bytes) -> None:
-        self.id = str(data[:self.UUID_SIZE]).rstrip('\0')
+        name_size = struct.unpack('<I', data[:4])[0]
+        data = data[4:]
+
+        self.id = str(data[:name_size]).rstrip('\0')
         
         data = data[self.UUID_SIZE + 24:]
 
