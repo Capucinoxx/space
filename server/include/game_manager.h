@@ -200,7 +200,8 @@ void update_map() {
   std::size_t i = 0;
 
   for (auto& p : players) {
-    p.second->perform(frame_count);
+    auto res = p.second->perform(frame_count);
+    handle_move_result(p.second, res);
     arguments.emplace_back(std::to_string(p.second->id()));
     arguments.emplace_back(std::to_string(p.second->score()));
 
