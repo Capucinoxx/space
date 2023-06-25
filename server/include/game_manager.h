@@ -209,8 +209,6 @@ void update_map() {
     ++i;
   }
 
-  std::cout << query << std::endl;
-
   postgres.bulk_insert(query, arguments);
 
   ++frame_count;
