@@ -63,13 +63,13 @@ public:
   uint32_t id() const noexcept         { return identifier; }
   position pos() const noexcept            { return current_pos; }
 
-  static direction const parse_action(const std::string& data) {
+  direction const parse_action(const std::string& data) {
     switch (static_cast<uint8_t>(data[0])) {
       case 0: return direction::UP;
       case 1: return direction::DOWN;
       case 2: return direction::LEFT;
       case 3: return direction::RIGHT;
-      default: return direction::DOWN;
+      default: return last_direction;
     }
   }
 
@@ -96,6 +96,16 @@ public:
     std::cout << "  - Region size: " << region.size() << std::endl;
     std::cout << "  - Score: " << frame_score() << std::endl;
     std::cout << std::endl;
+  }
+
+  movement_type handle_action(uint32_t frame, const std::string& payload) {
+    if (payload.empty())
+      return perform(frame);
+
+    if (is_teleportation(payload))
+      return movement_type::STEP;
+
+    return perform(frame, parse_action(payload));
   }
 
   movement_type perform(uint32_t frame) {
@@ -288,6 +298,10 @@ private:
 
   bool is_out_of_bound(const position& pos) const noexcept {
     return pos.first >= ROWS || pos.second >= COLS;
+  }
+
+  bool is_teleportation(const std::string& payload) const noexcept {
+    return payload[0] == 0x05 && payload.size() == 9;
   }
 };
 
