@@ -99,11 +99,18 @@ public:
   }
 
   movement_type handle_action(uint32_t frame, const std::string& payload) {
-    if (payload.empty())
+    if (payload.empty()) {
       return perform(frame);
+    }
 
-    if (is_teleportation(payload))
-      return movement_type::STEP;
+    if (is_teleportation(payload)) {
+      auto res = teleport(extract_position(payload));
+
+      if (res == movement_type::IDLE)
+        return perform(frame);
+
+      return res;
+    }
 
     return perform(frame, parse_action(payload));
   }
@@ -296,12 +303,49 @@ private:
     return TileMap::stmt::STEP;
   }
 
+  movement_type teleport(position pos) {
+    if (is_out_of_bound(pos) || !region.contains(pos))
+      return TileMap::stmt::IDLE;
+
+    clear_trail();
+
+    current_pos = pos;
+    return TileMap::stmt::STEP;
+  }
+
   bool is_out_of_bound(const position& pos) const noexcept {
     return pos.first >= ROWS || pos.second >= COLS;
   }
 
   bool is_teleportation(const std::string& payload) const noexcept {
+    bool ok = payload[0] == 0x05 && payload.size() == 9;
+
+    std::cout << (int)payload[0] << " " << payload.size() << "  " << (ok ? "oui" : "non") << std::endl;
+    
     return payload[0] == 0x05 && payload.size() == 9;
+  }
+
+  position extract_position(const std::string& payload) const noexcept {
+    auto pos = std::make_pair(
+      static_cast<uint32_t>(payload[4] << 24 | payload[3] << 16 | payload[2] << 8 | payload[1]),
+      static_cast<uint32_t>(payload[8] << 24 | payload[7] << 16 | payload[6] << 8 | payload[5])
+    );
+
+    if (is_out_of_bound(pos))
+      pos = std::make_pair(
+        static_cast<uint32_t>(payload[1] << 24 | payload[2] << 16 | payload[3] << 8 | payload[4]),
+        static_cast<uint32_t>(payload[5] << 24 | payload[6] << 16 | payload[7] << 8 | payload[8])
+      );
+
+    return pos;
+  }
+
+  void clear_trail() {
+    trail.for_each([this](const position& p) {
+      grid->at(p).reset();
+    });
+
+    trail.clear();
   }
 };
 
