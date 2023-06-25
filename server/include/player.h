@@ -13,6 +13,8 @@
 #include <stack>
 #include <tuple>
 
+#define MAX_KILLS 6
+
 struct PairHash {
     template <typename T1, typename T2>
     std::size_t operator()(const std::pair<T1, T2>& p) const {
@@ -34,6 +36,7 @@ public:
 
 private:
   static constexpr uint32_t MAX_SIZE = (ROWS > COLS) ? ROWS : COLS;
+  static constexpr uint32_t KILL_COEF[MAX_KILLS] = {1, 2, 3, 4, 5, 10};
 
   uint32_t identifier;
   std::string name;
@@ -46,6 +49,7 @@ private:
   hsl_color color;
   bool connected;
 
+  std::size_t n_kills = 0;
 
   ConcurrentUnorderedSet<position, PairHash> trail{ };
   ConcurrentUnorderedSet<position, PairHash> region{ };
@@ -78,11 +82,16 @@ public:
 
   boost::float64_t score() const noexcept { return p_score; }
 
+  void increase_kill() noexcept {
+    if (n_kills < MAX_KILLS)
+      ++n_kills;
+  }
+
   boost::float64_t frame_score() const noexcept {
     if (frame_alive == 0) return 0.0;
 
     double percentage = static_cast<double>(region.size()) / static_cast<double>(ROWS * COLS) * 100.00;
-    return percentage * percentage / static_cast<double>(frame_alive) * 100.00;
+    return percentage * percentage / static_cast<double>(frame_alive) * 100.00 * KILL_COEF[n_kills];
   }
 
   void dump_info() {
@@ -247,19 +256,18 @@ public:
     }
   }
 
+
+
   void death() {  
-    for (auto it = trail.begin(); it != trail.end(); ++it)
-      grid->at(*it).reset();
+    trail.for_each([this](position p) { grid->at(p).reset(); });
+    region.for_each([this](position p) { grid->at(p).reset(); });
 
     trail.clear();
-
-    for (auto it = region.begin(); it != region.end(); ++it)
-      grid->at(*it).reset();
-
     region.clear();
 
     std::lock_guard<std::mutex> lock(mu);
     frame_alive = 0;
+    n_kills = 0;
   }
 
   void serialize(std::vector<uint8_t>& data) {
