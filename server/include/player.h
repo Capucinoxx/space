@@ -255,16 +255,16 @@ public:
     serialize_value<uint32_t>(data, frame_alive);
 
     serialize_value<uint32_t>(data, static_cast<uint32_t>(trail.size()));
-    for (auto it = trail.begin(); it != trail.end(); ++it) {
-      serialize_value<uint32_t>(data, it->first);
-      serialize_value<uint32_t>(data, it->second);
-    }
+    trail.for_each([&data](const position& p) {
+      serialize_value<uint32_t>(data, p.first);
+      serialize_value<uint32_t>(data, p.second);
+    });
 
     serialize_value<uint32_t>(data, static_cast<uint32_t>(region.size()));
-    for (auto it = region.begin(); it != region.end(); ++it) {
-      serialize_value<uint32_t>(data, it->first);
-      serialize_value<uint32_t>(data, it->second);
-    }
+    region.for_each([&data](const position& p) {
+      serialize_value<uint32_t>(data, p.first);
+      serialize_value<uint32_t>(data, p.second);
+    });
   }
 
 private:
