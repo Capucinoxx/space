@@ -158,13 +158,15 @@ public:
         if (it != players.end()) {
           auto victim = it->second;
           std::cout << "--- KILL by " << p->id() << " ---" << std::endl; 
+          
+
           victim->dump_info();
           victim->death();
 
           spawn_player(victim);
 
           if (victim->id() != p->id())
-            std::cout << "is not the same" << std::endl;
+            p->increase_kill();
         }
         break;
       }
