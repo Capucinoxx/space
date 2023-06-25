@@ -9,6 +9,9 @@
 #include <vector>
 #include <optional>
 #include <algorithm>
+#include <chrono>
+#include <iomanip>
+#include <ctime>
 
 template<typename T>
 void serialize_value(std::vector<uint8_t>& data, const T& value) {
@@ -69,6 +72,16 @@ std::size_t count_unicode_chars(const std::string& str) {
   }
 
   return count;
+}
+
+uint64_t parse_string_to_epoch(const std::string& str) {
+  std::tm tm = {};
+  std::istringstream iss(str);
+  iss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+
+  std::chrono::system_clock::time_point timestamp = std::chrono::system_clock::from_time_t(std::mktime(&tm));
+
+  return static_cast<uint64_t>(timestamp.time_since_epoch().count());
 }
 
 #endif //SPACE_UTILS_H
