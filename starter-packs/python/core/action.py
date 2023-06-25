@@ -25,7 +25,7 @@ class Teleport:
     y: int
 
     def serialize(self) -> str:
-        return chr(0x05) + struct.pack('ii', self.x, self.y)
+        return b'\x05' + struct.pack('i', self.x) + struct.pack('i', self.y)
 
 
 @dataclass

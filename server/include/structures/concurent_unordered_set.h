@@ -58,6 +58,14 @@ public:
     std::lock_guard<std::mutex> lock(mu);
     return set.end();
   }
+
+  template<typename F>
+  void for_each(F&& f) {
+    std::lock_guard<std::mutex> lock(mu);
+    for (auto& value : set) {
+      f(value);
+    }
+  }
 };
 
 #endif // SPACE_CONCURENT_UNORDERED_SET_H

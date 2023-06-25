@@ -51,10 +51,8 @@ std::optional<std::tuple<double, double, double>> parse_color(const std::string&
   double value;
 
   while (iss >> value) {
-    std::cout << value << std::endl;
     hsl.push_back(value);
   }
-    
 
   if (hsl.size() != 3)
     return std::nullopt;

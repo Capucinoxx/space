@@ -53,8 +53,7 @@ public:
     if (!game->is_running())
       return;
     
-    typename Player<ROWS, COLS>::direction direction = Player<ROWS, COLS>::parse_action(message);
-    auto res = player->perform(game->frame(), direction);
+    auto res = player->handle_action(game->frame(), message);
 
     game->handle_move_result(player, res);
   }

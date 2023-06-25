@@ -63,13 +63,13 @@ public:
   uint32_t id() const noexcept         { return identifier; }
   position pos() const noexcept            { return current_pos; }
 
-  static direction const parse_action(const std::string& data) {
+  direction const parse_action(const std::string& data) {
     switch (static_cast<uint8_t>(data[0])) {
       case 0: return direction::UP;
       case 1: return direction::DOWN;
       case 2: return direction::LEFT;
       case 3: return direction::RIGHT;
-      default: return direction::DOWN;
+      default: return last_direction;
     }
   }
 
@@ -96,6 +96,23 @@ public:
     std::cout << "  - Region size: " << region.size() << std::endl;
     std::cout << "  - Score: " << frame_score() << std::endl;
     std::cout << std::endl;
+  }
+
+  movement_type handle_action(uint32_t frame, const std::string& payload) {
+    if (payload.empty()) {
+      return perform(frame);
+    }
+
+    if (is_teleportation(payload)) {
+      auto res = teleport(extract_position(payload));
+
+      if (res == movement_type::IDLE)
+        return perform(frame);
+
+      return res;
+    }
+
+    return perform(frame, parse_action(payload));
   }
 
   movement_type perform(uint32_t frame) {
@@ -255,16 +272,16 @@ public:
     serialize_value<uint32_t>(data, frame_alive);
 
     serialize_value<uint32_t>(data, static_cast<uint32_t>(trail.size()));
-    for (auto it = trail.begin(); it != trail.end(); ++it) {
-      serialize_value<uint32_t>(data, it->first);
-      serialize_value<uint32_t>(data, it->second);
-    }
+    trail.for_each([&data](const position& p) {
+      serialize_value<uint32_t>(data, p.first);
+      serialize_value<uint32_t>(data, p.second);
+    });
 
     serialize_value<uint32_t>(data, static_cast<uint32_t>(region.size()));
-    for (auto it = region.begin(); it != region.end(); ++it) {
-      serialize_value<uint32_t>(data, it->first);
-      serialize_value<uint32_t>(data, it->second);
-    }
+    region.for_each([&data](const position& p) {
+      serialize_value<uint32_t>(data, p.first);
+      serialize_value<uint32_t>(data, p.second);
+    });
   }
 
 private:
@@ -286,8 +303,49 @@ private:
     return TileMap::stmt::STEP;
   }
 
+  movement_type teleport(position pos) {
+    if (is_out_of_bound(pos) || !region.contains(pos))
+      return TileMap::stmt::IDLE;
+
+    clear_trail();
+
+    current_pos = pos;
+    return TileMap::stmt::STEP;
+  }
+
   bool is_out_of_bound(const position& pos) const noexcept {
     return pos.first >= ROWS || pos.second >= COLS;
+  }
+
+  bool is_teleportation(const std::string& payload) const noexcept {
+    bool ok = payload[0] == 0x05 && payload.size() == 9;
+
+    std::cout << (int)payload[0] << " " << payload.size() << "  " << (ok ? "oui" : "non") << std::endl;
+    
+    return payload[0] == 0x05 && payload.size() == 9;
+  }
+
+  position extract_position(const std::string& payload) const noexcept {
+    auto pos = std::make_pair(
+      static_cast<uint32_t>(payload[4] << 24 | payload[3] << 16 | payload[2] << 8 | payload[1]),
+      static_cast<uint32_t>(payload[8] << 24 | payload[7] << 16 | payload[6] << 8 | payload[5])
+    );
+
+    if (is_out_of_bound(pos))
+      pos = std::make_pair(
+        static_cast<uint32_t>(payload[1] << 24 | payload[2] << 16 | payload[3] << 8 | payload[4]),
+        static_cast<uint32_t>(payload[5] << 24 | payload[6] << 16 | payload[7] << 8 | payload[8])
+      );
+
+    return pos;
+  }
+
+  void clear_trail() {
+    trail.for_each([this](const position& p) {
+      grid->at(p).reset();
+    });
+
+    trail.clear();
   }
 };
 
