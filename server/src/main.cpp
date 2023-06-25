@@ -4,6 +4,7 @@
 
 #include "handlers/subscription_hander.h"
 #include "handlers/game_handler.h"
+#include "handlers/scoreboard_handler.h"
 #include <atomic>
 
 int main() {
@@ -15,18 +16,16 @@ int main() {
     return 1;
   }
 
-  constexpr std::size_t rows = 30;
-  constexpr std::size_t cols = 40;
+  constexpr std::size_t rows = 200;
+  constexpr std::size_t cols = 60;
 
   Server server(8080);
 
-  auto game = std::make_shared<GameManager<rows, cols>>();
+  auto game = std::make_shared<GameManager<rows, cols>>(postgres);
 
   SubscriptionHandle<rows, cols>(game, postgres)(server);
   GameHandle<rows, cols>(game, postgres)(server);
-
-  // auto game_handler = [&game](){ return std::make_unique<GameHandler<rows, cols>>(game); };
-  // server.add_ws_endpoint("/game", game_handler);
+  ScoreboardHandle<rows, cols>(game, postgres)(server);
 
   auto spectate_handler = [&game](){ return std::make_unique<SpectateHandler>(); };
   server.add_ws_endpoint("/spectate", spectate_handler);
