@@ -17,7 +17,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "game_manager.h"
+#include "game_state.h"
 #include "player.h"
 
 namespace beast = boost::beast;
@@ -84,13 +84,15 @@ private:
   std::map<std::string, http_handler> http_endpoints;
   std::map<std::string, ws_handler>   ws_endpoints;
 
-  std::unordered_set<ws_stream_ptr> ws_connections;
+  std::unordered_set<ws_stream_ptr> ws_connections{};
   std::vector<std::thread> thread_pool;
   std::mutex mu;
 
 public:
   explicit Server(short unsigned int port, std::size_t thread_pool_size = 4)
-    : acceptor(ioc, { tcp::v4(), port }), thread_pool(thread_pool_size) { };
+    : acceptor(ioc, { tcp::v4(), port }), thread_pool(thread_pool_size) {
+      ws_connections.clear();
+    };
 
   void run() {
     start_accept();
@@ -173,8 +175,6 @@ private:
       status = http::status::not_found;
       body = "The resource '" + request.target().to_string() + "' was not found.";
     }
-
-  std::cout << body << std::endl;
 
   http::response<http::string_body> response(status, request.version());
   prepare_http_response(request, response, body);

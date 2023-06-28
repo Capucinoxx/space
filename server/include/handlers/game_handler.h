@@ -8,8 +8,11 @@
 template<uint32_t ROWS, uint32_t COLS>
 class GameHandler : public WebSocketHandler{
 public:
-  using game_ptr = std::shared_ptr<GameManager<ROWS, COLS>>;
   using player_ptr = std::shared_ptr<Player<ROWS, COLS>>;
+  using action_t = std::pair<player_ptr, std::string>;
+
+  using game_ptr = std::shared_ptr<GameState<action_t, ROWS, COLS>>;
+  
   using psql_ref = PostgresConnector&;
 
 private:
@@ -46,16 +49,11 @@ public:
 
   void on_close() {
     if (player != nullptr)
-      game->remove_player(player);
+      game->disconnect_player(player->id());
   }
 
   void on_message(const std::string& message) override {
-    if (!game->is_running())
-      return;
-    
-    auto res = player->handle_action(game->frame(), message);
-
-    game->handle_move_result(player, res);
+    game->push({ player, message });
   }
 
   bool handle_message() override { return true; }
@@ -64,7 +62,10 @@ public:
 template<uint32_t ROWS, uint32_t COLS>
 class GameHandle {
 public:
-  using game_ptr = std::shared_ptr<GameManager<ROWS, COLS>>;
+  using player_ptr = std::shared_ptr<Player<ROWS, COLS>>;
+  using action_t = std::pair<player_ptr, std::string>;
+
+  using game_ptr = std::shared_ptr<GameState<action_t, ROWS, COLS>>;
   using psql_ref = PostgresConnector&;
 
 private:

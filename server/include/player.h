@@ -78,6 +78,8 @@ public:
   }
 
   void set_connection(bool status) noexcept { connected = status; }
+  void connect() noexcept { connected = true; }
+  void disconnect() noexcept { connected = false; }
   bool is_connected() const noexcept { return connected; }
 
   boost::float64_t score() const noexcept { return p_score; }

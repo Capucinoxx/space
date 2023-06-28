@@ -3,6 +3,7 @@
 
 #include "network.h"
 #include "postgres_connector.h"
+#include "player.h"
 #include "utils.h"
 #include <iostream>
 #include <string>
@@ -11,7 +12,10 @@
 template<uint32_t ROWS, uint32_t COLS>
 class SubscriptionHandle {
 public:
-    using game_ptr = std::shared_ptr<GameManager<ROWS, COLS>>;
+    using player_ptr = std::shared_ptr<Player<ROWS, COLS>>;
+    using action_t = std::pair<player_ptr, std::string>;
+
+    using game_ptr = std::shared_ptr<GameState<action_t, ROWS, COLS>>;
     using psql_ref = PostgresConnector&;
 
 private:
