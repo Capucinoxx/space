@@ -16,16 +16,14 @@
 template<uint32_t ROWS, uint32_t COLS>
 class ScoreboardHandle {
 public:
-  using game_ptr = std::shared_ptr<GameManager<ROWS, COLS>>;
   using psql_ref = PostgresConnector&;
 
 private:
-  game_ptr game;
   psql_ref postgres;
 
 public:
-  ScoreboardHandle(game_ptr game, psql_ref postgres) 
-    : game(game), postgres(postgres) {}
+  explicit ScoreboardHandle(psql_ref postgres) 
+    : postgres(postgres) {}
 
   void operator()(Server& server) {
     server.add_http_endpoint("/scoreboard", [&](Server::http_request req) -> std::pair<http::status, std::string> {

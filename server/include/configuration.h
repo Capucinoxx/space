@@ -42,8 +42,6 @@ Config load_config(const std::string& filename) {
       std::string value = trim(line.substr(pos + 1));
 
       config[key] = value;
-
-      std::cout << key << " = " << value << std::endl;
     }
   }
 
