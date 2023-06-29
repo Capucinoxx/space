@@ -189,6 +189,7 @@ private:
 
   void store_scores() {
     std::vector<std::string> arguments;
+    
     std::string query = "INSERT INTO player_scores (player_id, score) VALUES ";
     std::size_t i = 0;
 
@@ -203,7 +204,8 @@ private:
       ++i;
     }
 
-    psql.bulk_insert(query, arguments);
+    if (arguments.size() > 0)
+      psql.bulk_insert(query, arguments);
   }
 };
 
