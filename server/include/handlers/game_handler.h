@@ -29,7 +29,14 @@ public:
     if (token == "")
       return false;
 
-    std::string query = "SELECT id, name, h, s, l FROM player WHERE secret = '" + token + "'";
+    std::string query = R"(
+      SELECT p.id, p.name, p.h, p.s, p.l, ps.score
+      FROM player p
+      LEFT JOIN player_scores ps ON ps.player_id = p.id
+      WHERE p.secret = ')" + token + R"('
+      ORDER BY ps.id DESC
+      LIMIT 1
+    )";
     auto result = postgres.execute(query);
 
     if (result.size() != 1)
@@ -43,7 +50,9 @@ public:
     float64_t s = result[0][3].as<float64_t>(0.0);
     float64_t l = result[0][4].as<float64_t>(0.0);
 
-    player = game->register_player(name, id, { h, s, l });
+    float64_t score = result[0][5].as<float64_t>(0.0);
+
+    player = game->register_player(name, id, { h, s, l }, score);
     return player != nullptr;
   }
 

@@ -90,7 +90,7 @@ public:
 
   ~GameState() = default;
 
-  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color) {
+  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, boost::float64_t score) {
     auto it = players.find(id);
     if (it != players.end()) {
       if (it->second->is_connected())
@@ -100,7 +100,7 @@ public:
       return it->second;
     }
 
-    auto p = std::make_shared<player_t>(name, id, color, frame_count, grid);
+    auto p = std::make_shared<player_t>(name, id, color, score, frame_count, grid);
     p->spawn(spawn());
     players.insert(id, p);
 
@@ -137,8 +137,6 @@ public:
   void play_tick() {
     std::unordered_set<uint32_t> ids;
 
-
-
     actions.for_each([&](const T& action) {
       auto& [player, payload] = action;
       
@@ -153,6 +151,8 @@ public:
         handle_move_result(player.second, res);
       }
     }
+
+    store_scores();
 
     ++frame_count;
   }
@@ -185,6 +185,27 @@ private:
 
     if (victim->id() != murder->id())
       murder->increase_kill();
+  }
+
+  void store_scores() {
+    std::vector<std::string> arguments;
+    
+    std::string query = "INSERT INTO player_scores (player_id, score) VALUES ";
+    std::size_t i = 0;
+
+    for (auto& player : players) {
+      arguments.emplace_back(std::to_string(player.second->id()));
+      arguments.emplace_back(std::to_string(player.second->score()));
+
+      query += "($" + std::to_string(i * 2 + 1) + ", $" + std::to_string(i * 2 + 2) + ")";
+      if (i != players.size() - 1)
+        query += ", ";
+
+      ++i;
+    }
+
+    if (arguments.size() > 0)
+      psql.bulk_insert(query, arguments);
   }
 };
 

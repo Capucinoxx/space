@@ -56,8 +56,8 @@ private:
   std::mutex mu;
 
 public:
-  Player(const std::string& name, uint32_t id, hsl_color color, uint32_t frame, std::shared_ptr<Grid<ROWS, COLS>> grid) 
-    : identifier{ id }, name{ name }, last_frame_played{ frame }, grid(std::move(grid)), connected{ true }, color{ color } {
+  Player(const std::string& name, uint32_t id, hsl_color color, float64_t score, uint32_t frame, std::shared_ptr<Grid<ROWS, COLS>> grid) 
+    : identifier{ id }, name{ name }, p_score{ score }, last_frame_played{ frame }, grid(std::move(grid)), connected{ true }, color{ color } {
     trail.reserve(ROWS * COLS / 2);
     region.reserve(MAX_SIZE * 2);
     last_direction = direction::DOWN;
