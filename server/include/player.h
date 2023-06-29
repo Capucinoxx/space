@@ -213,6 +213,7 @@ public:
       neighbors.push_back(std::make_pair(pos.first, pos.second - 1));
     }
 
+    n_trail_on_border = 0;
     trail.clear();
   }
 
@@ -271,6 +272,7 @@ public:
     std::lock_guard<std::mutex> lock(mu);
     frame_alive = 0;
     n_kills = 0;
+    n_trail_on_border = 0;
   }
 
   void serialize(std::vector<uint8_t>& data) {
@@ -368,6 +370,7 @@ private:
       grid->at(p).reset();
     });
 
+    n_trail_on_border = 0;
     trail.clear();
   }
 };
