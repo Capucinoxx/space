@@ -50,6 +50,7 @@ private:
   bool connected;
 
   std::size_t n_kills = 0;
+  std::size_t n_trail_on_border = 0;
 
   ConcurrentUnorderedSet<position, PairHash> trail{ };
   ConcurrentUnorderedSet<position, PairHash> region{ };
@@ -141,7 +142,7 @@ public:
     ++frame_alive;
 
     auto res = move(d);
-    if (res == movement_type::IDLE)
+    if (res == movement_type::IDLE || res == movement_type::DEATH)
       return res;
 
 
@@ -212,6 +213,7 @@ public:
       neighbors.push_back(std::make_pair(pos.first, pos.second - 1));
     }
 
+    n_trail_on_border = 0;
     trail.clear();
   }
 
@@ -270,6 +272,7 @@ public:
     std::lock_guard<std::mutex> lock(mu);
     frame_alive = 0;
     n_kills = 0;
+    n_trail_on_border = 0;
   }
 
   void serialize(std::vector<uint8_t>& data) {
@@ -309,6 +312,14 @@ private:
       return TileMap::stmt::IDLE;
     }
 
+    if (is_on_border(new_pos)) {
+      ++n_trail_on_border;
+
+      if (n_trail_on_border == MAX_SIZE) {
+        return TileMap::stmt::DEATH;
+      }
+    }
+
     current_pos = new_pos;
     return TileMap::stmt::STEP;
   }
@@ -325,6 +336,10 @@ private:
 
   bool is_out_of_bound(const position& pos) const noexcept {
     return pos.first >= ROWS || pos.second >= COLS;
+  }
+
+  bool is_on_border(const position& pos) const noexcept {
+    return pos.first == 0 || pos.second == 0 || pos.first == ROWS - 1 || pos.second == COLS - 1;
   }
 
   bool is_teleportation(const std::string& payload) const noexcept {
@@ -355,6 +370,7 @@ private:
       grid->at(p).reset();
     });
 
+    n_trail_on_border = 0;
     trail.clear();
   }
 };
