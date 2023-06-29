@@ -54,13 +54,13 @@ class Canvas {
 
     const { rows, cols } = this.current_size;
 
-    const cell_width = Math.floor(this.max_width / cols);
-    const cell_height = Math.floor(this.max_height / rows);
+    const cell_width = Math.floor(this.max_width / rows);
+    const cell_height = Math.floor(this.max_height / cols);
 
     this.cell_width = Math.min(cell_width, cell_height);
 
-    this.canvas.width = this.cell_width * cols;
-    this.canvas.height = this.cell_width * rows;
+    this.canvas.width = this.cell_width * rows;
+    this.canvas.height = this.cell_width * cols;
 
     this.canvas.style.width = `${this.canvas.width}px`;
     this.canvas.style.height = `${this.canvas.height}px`;
