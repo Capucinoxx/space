@@ -69,7 +69,7 @@ class GameState {
                   "T::first_type must be std::shared_ptr<Player>");
 
 public:
-  using psql_ref = PostgresConnector&;
+  using psql_ref = std::shared_ptr<PostgresConnector>;
   using player_t = Player<ROWS, COLS>;
   using player_ptr = std::shared_ptr<player_t>;
 
