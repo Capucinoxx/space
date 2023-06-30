@@ -69,7 +69,7 @@ class GameState {
                   "T::first_type must be std::shared_ptr<Player>");
 
 public:
-  using psql_ref = PostgresConnector&;
+  using psql_ref = std::shared_ptr<PostgresConnector>;
   using player_t = Player<ROWS, COLS>;
   using player_ptr = std::shared_ptr<player_t>;
 
@@ -86,7 +86,7 @@ private:
 
 public:
   explicit GameState(psql_ref psql) 
-    : psql(psql), grid(std::make_shared<Grid<ROWS, COLS>>()), spawn(grid) { }
+    : grid(std::make_shared<Grid<ROWS, COLS>>()), spawn(grid), psql(psql) { }
 
   ~GameState() = default;
 
@@ -205,7 +205,7 @@ private:
     }
 
     if (arguments.size() > 0)
-      psql.bulk_insert(query, arguments);
+      psql->bulk_insert(query, arguments);
   }
 };
 

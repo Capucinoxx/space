@@ -15,13 +15,13 @@ public:
   PostgresConnector(const PostgresConnector&) = delete;
   PostgresConnector& operator=(const PostgresConnector&) = delete;
 
-  static PostgresConnector& get_instance(const Config& cfg) {
-    static PostgresConnector singleton(cfg);
+  static std::shared_ptr<PostgresConnector>& get_instance(const Config& cfg) {
+    static std::shared_ptr<PostgresConnector> singleton(new PostgresConnector(cfg));
     return singleton;
   }
 
 private:
-  static PostgresConnector singleton;
+  static std::shared_ptr<PostgresConnector> singleton;
   std::unique_ptr<pqxx::connection> connection;
 
   PostgresConnector(const Config& cfg) {

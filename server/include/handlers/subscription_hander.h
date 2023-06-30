@@ -16,7 +16,7 @@ public:
     using action_t = std::pair<player_ptr, std::string>;
 
     using game_ptr = std::shared_ptr<GameState<action_t, ROWS, COLS>>;
-    using psql_ref = PostgresConnector&;
+    using psql_ref = std::shared_ptr<PostgresConnector>;
 
 private:
     game_ptr game;
@@ -52,7 +52,7 @@ private:
 
         std::string secret = game->generate_secret();
 
-        auto result = postgres.execute(query, 
+        auto result = postgres->execute(query, 
             name, secret, std::get<0>(*hsl), std::get<1>(*hsl), std::get<2>(*hsl));
         
         return result.affected_rows() == 1 ? 
