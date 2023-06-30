@@ -153,23 +153,16 @@ public:
 
   void handle_move_result(std::shared_ptr<Player<ROWS, COLS>> p, Player<ROWS, COLS>::movement_type movement) {
     switch (movement) {
-      case Player<ROWS, COLS>::movement_type::DEATH: {
-        // auto it = players.find(grid->at(p->pos()).get_value());
-        // if (it != players.end()) {
-        //   kill(p->id(), it->second->id());
-        // }
+      case Player<ROWS, COLS>::movement_type::DEATH:
+        kill(p->id(), p->id());
         break;
-      }
-      case Player<ROWS, COLS>::movement_type::COMPLETE: {
-        // auto kill = grid->fill_region(p);
-        // for (auto it = kill.begin(); it != kill.end(); ++it) {
-        //   kill(p->id(), *it);
-        // }
+      case Player<ROWS, COLS>::movement_type::COMPLETE:
+        grid->fill_region(p);
         break;
-      }
+      
 
       default:
-        break;
+        grid->at(p->pos()).step(p->id());
     }
   }
 
@@ -213,6 +206,8 @@ void update_map() {
 
   for (auto& p : players) {
     auto res = p.second->perform(frame_count);
+
+
     handle_move_result(p.second, res);
     arguments.emplace_back(std::to_string(p.second->id()));
     arguments.emplace_back(std::to_string(p.second->score()));

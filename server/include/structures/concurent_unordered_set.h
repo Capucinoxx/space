@@ -20,9 +20,9 @@ public:
   }
 
   template<typename C>
-  bool insert(C begin, C end) {
+  void insert(C begin, C end) {
     std::lock_guard<std::mutex> lock(mu);
-    return set.insert(begin, end);
+    set.insert(begin, end);
   }
 
   void reserve(size_t size) {

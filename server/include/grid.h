@@ -75,7 +75,7 @@ private:
   }
 
   std::pair<std::unordered_set<uint32_t>, std::vector<position>> flood_fill(uint32_t self_id, const position& pos, std::array<std::array<bool, COLS>, ROWS>& been) {
-    if (is_out_of_bounds(pos) || been[pos.first][pos.second] || grid->at(pos).owner() == self_id)
+    if (is_out_of_bounds(pos) || been[pos.first][pos.second] || at(pos).owner() == self_id)
       return { {}, {} };
 
     bool surrounded = true;
