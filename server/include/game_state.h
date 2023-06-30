@@ -53,7 +53,7 @@ public:
         auto py = pos.second + j;
 
         bool is_out_of_bounds = px >= ROWS || py >= COLS;
-        if (is_out_of_bounds || grid->at({ px, py }).is_trail())
+        if (is_out_of_bounds)
           return true;
       }
     }
@@ -100,7 +100,7 @@ public:
       return it->second;
     }
 
-    auto p = std::make_shared<player_t>(name, id, color, score, frame_count, grid);
+    auto p = std::make_shared<player_t>(name, id, color, score, frame_count);
     p->spawn(spawn());
     players.insert(id, p);
 
@@ -160,19 +160,16 @@ public:
 private:
   void handle_move_result(player_ptr player, player_t::movement_type movement) {
     switch (movement) {
-      case player_t::movement_type::DEATH: {
-        auto it = players.find(grid->at(player->pos()).get_value());
-        if (it != players.end())
-          kill(player, it->second);
-      }
-      break;
+      case player_t::movement_type::DEATH: 
+        // kill(player, player);
+        break;
 
       case player_t::movement_type::COMPLETE:
-        player->fill_region();
+        grid->fill_region(player);
         break;
 
       default:
-        break;
+        grid->at(player->pos()).step(player->id());
     }
   }
 

@@ -9,51 +9,55 @@ public:
   enum stmt { IDLE, DEATH, STEP, COMPLETE };
 
 private:
-  uint8_t value;
+  uint32_t current_owner;
   bool is_step;
   mutable std::mutex mu;
 
 public:
-  TileMap() : value{ 0 }, is_step{ false } { }
+  TileMap() : current_owner{ 0 }, is_step{ false } { }
 
-  stmt step(short id) {
+  stmt step(uint32_t id) noexcept {
     std::lock_guard<std::mutex> lock(mu);
 
-    if (is_step)
+    if (is_step) {
+      current_owner = id;
       return stmt::DEATH;
+    }
 
-    if (value == id)
+    if (current_owner == id)
       return stmt::COMPLETE;
 
     is_step = true;
-    value = id;
+    current_owner = id;
     return stmt::STEP;
   }
 
-  void take(short id) {
+  bool has_someone_else(uint32_t id) const noexcept {
     std::lock_guard<std::mutex> lock(mu);
-    value = id;
+    return current_owner != id && current_owner != 0;
+  }
+
+  std::pair<stmt, uint32_t> take(uint32_t id) noexcept {
+    std::lock_guard<std::mutex> lock(mu);
+    auto statement = stmt::STEP;
+    if (current_owner != id && current_owner != 0)
+      statement = stmt::DEATH;
+
+    auto old_owner = current_owner;
+    current_owner = id;
     is_step = false;
+    return { statement, old_owner };
   }
 
-  bool is_trail() const noexcept {
+  uint32_t owner() const noexcept {
     std::lock_guard<std::mutex> lock(mu);
-    return is_step;
-  }
-
-  void reset() noexcept {
-    std::lock_guard<std::mutex> lock(mu);    
-    clear();
-  }
-
-  uint8_t get_value() const noexcept {
-    std::lock_guard<std::mutex> lock(mu);
-    return value;
+    return current_owner;
   }
 
 private:
   void clear() noexcept {
-    value = 0;
+    std::lock_guard<std::mutex> lock(mu);
+    current_owner = 0;
     is_step = false;
   }
 };

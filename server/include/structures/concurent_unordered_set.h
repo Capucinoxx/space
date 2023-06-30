@@ -19,6 +19,12 @@ public:
     return set.insert(value).second;
   }
 
+  template<typename C>
+  void insert(C begin, C end) {
+    std::lock_guard<std::mutex> lock(mu);
+    set.insert(begin, end);
+  }
+
   void reserve(size_t size) {
     std::lock_guard<std::mutex> lock(mu);
     set.reserve(size);

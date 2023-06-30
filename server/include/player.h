@@ -2,7 +2,6 @@
 #define SPACE_PLAYER_H
 
 #include "tile_map.h"
-#include "grid.h"
 #include "structures/concurent_unordered_set.h"
 #include "utils.h"
 
@@ -32,7 +31,7 @@ public:
   using float64_t = boost::float64_t;
   using hsl_color = std::tuple<float64_t, float64_t, float64_t>;
 
-  using position = Grid<ROWS, COLS>::position;
+  using position = std::pair<uint32_t, uint32_t>;
 
 private:
   static constexpr uint32_t MAX_SIZE = (ROWS > COLS) ? ROWS : COLS;
@@ -41,25 +40,24 @@ private:
   uint32_t identifier;
   std::string name;
   uint32_t last_frame_played;
-  uint32_t frame_alive = 0;
+  uint32_t frame_alive;
   position current_pos;
   float64_t p_score;
   direction last_direction;
-  std::shared_ptr<Grid<ROWS, COLS>> grid;
   hsl_color color;
   bool connected;
 
-  std::size_t n_kills = 0;
-  std::size_t n_trail_on_border = 0;
+  std::size_t n_kills;
+  std::size_t n_trail_on_border;
 
   ConcurrentUnorderedSet<position, PairHash> trail{ };
   ConcurrentUnorderedSet<position, PairHash> region{ };
   std::mutex mu;
 
 public:
-  Player(const std::string& name, uint32_t id, hsl_color color, float64_t score, uint32_t frame, std::shared_ptr<Grid<ROWS, COLS>> grid)
+  Player(const std::string& name, uint32_t id, hsl_color color, float64_t score, uint32_t frame)
     : identifier{ id }, name{ name }, last_frame_played{ frame }, frame_alive{ 0 }, current_pos{}, p_score{ score }, last_direction{ direction::DOWN },
-      grid(std::move(grid)), color{ color }, connected{ true }, n_kills{ 0 }, n_trail_on_border{ 0 } {
+      color{ color }, connected{ true }, n_kills{ 0 }, n_trail_on_border{ 0 } {
     trail.reserve(ROWS * COLS / 2);
     region.reserve(MAX_SIZE * 2);
   }
@@ -77,6 +75,20 @@ public:
       case 3: return direction::RIGHT;
       default: return last_direction;
     }
+  }
+
+
+
+  void append_region(const std::vector<position>& new_region) {
+    std::lock_guard<std::mutex> lock(mu);
+
+    region.insert(new_region.begin(), new_region.end());
+  }
+
+  template<typename F>
+  void for_each_trail(F&& f) {
+    for (auto& pos : trail)
+      f(pos);
   }
 
   void set_connection(bool status) noexcept { connected = status; }
@@ -153,12 +165,10 @@ public:
     if (region.find(current_pos) != region.end())
       return movement_type::COMPLETE;
 
-    res = grid->at(current_pos).step(id());
-
     trail.insert(current_pos);
     p_score += frame_score();
 
-    return res;
+    return movement_type::STEP;
   }
 
   void spawn(position p) {
@@ -168,7 +178,6 @@ public:
         if (is_out_of_bound(pos))
           continue;
 
-        grid->at(pos).step(id());
         region.insert(pos);
       }
     }
@@ -177,95 +186,11 @@ public:
     current_pos = p;
   }
 
-  void fill_region() {
-    std::lock_guard<std::mutex> lock(mu);
-    if (trail.size() == 0)
-      return;
-
-    for (auto& pos : trail) {
-      grid->at(pos).step(id());
-      region.insert(pos);
-    }
-
-    std::array<std::array<bool, COLS>, ROWS> been{};
-    std::vector<position> neighbors{};
-
-    neighbors.push_back(current_pos);
-    while (!neighbors.empty()) {
-      auto pos = neighbors.back();
-      neighbors.pop_back();
-
-      if (is_out_of_bound(pos) || been[pos.first][pos.second] || trail.find(pos) != trail.end())
-        continue;
-
-
-      been[pos.first][pos.second] = true;
-      region.insert(pos);
-      grid->at(pos).take(id());
-
-      flood_fill(std::make_pair(pos.first + 1, pos.second), been);
-      flood_fill(std::make_pair(pos.first - 1, pos.second), been);
-      flood_fill(std::make_pair(pos.first, pos.second + 1), been);
-      flood_fill(std::make_pair(pos.first, pos.second - 1), been);
-      
-      neighbors.push_back(std::make_pair(pos.first + 1, pos.second));
-      neighbors.push_back(std::make_pair(pos.first - 1, pos.second));
-      neighbors.push_back(std::make_pair(pos.first, pos.second + 1));
-      neighbors.push_back(std::make_pair(pos.first, pos.second - 1));
-    }
-
-    n_trail_on_border = 0;
-    trail.clear();
-  }
-
-  void flood_fill(position p, std::array<std::array<bool, COLS>, ROWS>& been) {
-    if (is_out_of_bound(p) || been[p.first][p.second] || trail.find(p) != trail.end() || grid->at(p).get_value() == id())
-      return;
-
-    bool surrounded = true;
-    std::vector<position> neighbors{};
-    neighbors.reserve(MAX_SIZE);
-
-    std::vector<position> filled{};
-    filled.reserve(MAX_SIZE / 2);
-
-    neighbors.push_back(p);
-    while (!neighbors.empty()) {
-      auto pos = neighbors.back();
-      neighbors.pop_back();
-
-      if (is_out_of_bound(pos)) {
-        surrounded = false;
-        continue;
-      }
-
-      if (been[pos.first][pos.second] || trail.find(pos) != trail.end() || grid->at(pos).get_value() == id())
-        continue;
-
-      been[pos.first][pos.second] = true;
-
-      if (surrounded)
-        filled.push_back(pos);
-
-      neighbors.push_back(std::make_pair(pos.first + 1, pos.second));
-      neighbors.push_back(std::make_pair(pos.first - 1, pos.second));
-      neighbors.push_back(std::make_pair(pos.first, pos.second + 1));
-      neighbors.push_back(std::make_pair(pos.first, pos.second - 1));
-    }
-
-    if (surrounded) {
-      for (const auto& pos : filled) {
-        region.insert(pos);
-        grid->at(pos).take(id());
-      }
-    }
-  }
-
-
+  void clear_trail() { trail.clear(); }
 
   void death() {  
-    trail.for_each([this](position p) { grid->at(p).reset(); });
-    region.for_each([this](position p) { grid->at(p).reset(); });
+    // trail.for_each([this](position p) { grid->at(p).reset(); });
+    // region.for_each([this](position p) { grid->at(p).reset(); });
 
     trail.clear();
     region.clear();
@@ -343,11 +268,7 @@ private:
     return pos.first == 0 || pos.second == 0 || pos.first == ROWS - 1 || pos.second == COLS - 1;
   }
 
-  bool is_teleportation(const std::string& payload) const noexcept {
-    bool ok = payload[0] == 0x05 && payload.size() == 9;
-
-    std::cout << (int)payload[0] << " " << payload.size() << "  " << (ok ? "oui" : "non") << std::endl;
-    
+  bool is_teleportation(const std::string& payload) const noexcept {    
     return payload[0] == 0x05 && payload.size() == 9;
   }
 
@@ -364,15 +285,6 @@ private:
       );
 
     return pos;
-  }
-
-  void clear_trail() {
-    trail.for_each([this](const position& p) {
-      grid->at(p).reset();
-    });
-
-    n_trail_on_border = 0;
-    trail.clear();
   }
 };
 
