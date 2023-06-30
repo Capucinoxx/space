@@ -205,7 +205,7 @@ private:
     }
 
     if (arguments.size() > 0)
-      psql.bulk_insert(query, arguments);
+      psql->bulk_insert(query, arguments);
   }
 };
 
