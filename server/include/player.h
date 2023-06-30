@@ -165,8 +165,6 @@ public:
     if (region.find(current_pos) != region.end())
       return movement_type::COMPLETE;
 
-    // res = grid->at(current_pos).step(id());
-
     trail.insert(current_pos);
     p_score += frame_score();
 
@@ -180,7 +178,6 @@ public:
         if (is_out_of_bound(pos))
           continue;
 
-        // grid->at(pos).step(id());
         region.insert(pos);
       }
     }
@@ -188,100 +185,6 @@ public:
     std::lock_guard<std::mutex> lock(mu);
     current_pos = p;
   }
-
-  // void fill_region() {
-  //   std::lock_guard<std::mutex> lock(mu);
-  //   if (trail.size() == 0)
-  //     return;
-
-  //   for (auto& pos : trail) {
-  //     grid->at(pos).step(id());
-  //     region.insert(pos);
-  //   }
-
-  //   std::array<std::array<bool, COLS>, ROWS> been{};
-  //   std::vector<position> neighbors{};
-
-  //   neighbors.push_back(current_pos);
-  //   while (!neighbors.empty()) {
-  //     auto pos = neighbors.back();
-  //     neighbors.pop_back();
-
-  //     if (is_out_of_bound(pos) || been[pos.first][pos.second] || trail.find(pos) != trail.end())
-  //       continue;
-
-
-  //     been[pos.first][pos.second] = true;
-  //     region.insert(pos);
-  //     grid->at(pos).take(id());
-
-  //     flood_fill(std::make_pair(pos.first + 1, pos.second), been, f);
-  //     flood_fill(std::make_pair(pos.first - 1, pos.second), been, f);
-  //     flood_fill(std::make_pair(pos.first, pos.second + 1), been, f);
-  //     flood_fill(std::make_pair(pos.first, pos.second - 1), been, f);
-      
-  //     neighbors.push_back(std::make_pair(pos.first + 1, pos.second));
-  //     neighbors.push_back(std::make_pair(pos.first - 1, pos.second));
-  //     neighbors.push_back(std::make_pair(pos.first, pos.second + 1));
-  //     neighbors.push_back(std::make_pair(pos.first, pos.second - 1));
-  //   }
-
-  //   n_trail_on_border = 0;
-  //   trail.clear();
-  // }
-
-  // template<typename F>
-  // void flood_fill(position p, std::array<std::array<bool, COLS>, ROWS>& been, F&& f) {
-  //   if (is_out_of_bound(p) || been[p.first][p.second] || trail.find(p) != trail.end() || grid->at(p).get_value() == id())
-  //     return;
-
-  //   bool surrounded = true;
-  //   std::vector<position> neighbors{};
-  //   neighbors.reserve(MAX_SIZE);
-
-  //   std::vector<position> filled{};
-  //   filled.reserve(MAX_SIZE / 2);
-
-  //   neighbors.push_back(p);
-  //   while (!neighbors.empty()) {
-  //     auto pos = neighbors.back();
-  //     neighbors.pop_back();
-
-  //     if (is_out_of_bound(pos)) {
-  //       surrounded = false;
-  //       continue;
-  //     }
-
-  //     if (been[pos.first][pos.second] || trail.find(pos) != trail.end() || grid->at(pos).get_value() == id())
-  //       continue;
-
-  //     been[pos.first][pos.second] = true;
-
-  //     if (surrounded)
-  //       filled.push_back(pos);
-
-  //     neighbors.push_back(std::make_pair(pos.first + 1, pos.second));
-  //     neighbors.push_back(std::make_pair(pos.first - 1, pos.second));
-  //     neighbors.push_back(std::make_pair(pos.first, pos.second + 1));
-  //     neighbors.push_back(std::make_pair(pos.first, pos.second - 1));
-  //   }
-
-  //   if (surrounded) {
-  //     for (const auto& pos : filled) {
-  //       region.insert(pos);
-  //       grid->at(pos).take(id());
-  //     }
-  //   }
-  // }
-
-  //       if (grid->at(pos).has_someone_else(id())) {
-  //         f(this->id(), grid->at(pos).get_value());
-  //       }
-
-  //       grid->at(pos).take(id());
-  //     }
-  //   }
-  // }
 
   void clear_trail() { trail.clear(); }
 
