@@ -13,12 +13,16 @@
 #include <string>
 #include <unordered_set>
 #include <thread>
-#include <mutex>
+#include <shared_mutex>
 #include <vector>
 #include <algorithm>
 
 #include "game_state.h"
 #include "player.h"
+
+
+
+std::shared_mutex ws_connections_mu;
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -86,7 +90,6 @@ private:
 
   std::unordered_set<ws_stream_ptr> ws_connections{};
   std::vector<std::thread> thread_pool;
-  std::mutex mu;
 
 public:
   explicit Server(short unsigned int port, std::size_t thread_pool_size = 4)
@@ -123,6 +126,7 @@ public:
   }
 
   void broadcast_websocket_message(const std::vector<uint8_t>& message) {
+    std::shared_lock<std::shared_mutex> lock(ws_connections_mu);
     for (auto& ws : ws_connections) {
       if (ws->is_open()) {
         ws->binary(true);
@@ -208,6 +212,7 @@ private:
       if (it != server.ws_endpoints.end()) {
         handler = it->second();
         if (handler->on_open(ws, request)) {
+          std::unique_lock<std::shared_mutex> lock(ws_connections_mu);
           server.ws_connections.insert(ws);
 
           if (handler->handle_message())
@@ -223,8 +228,11 @@ private:
           handler->on_message(beast::buffers_to_string(buffer.data()));
           buffer.consume(buffer.size());
           handle_websocket_message(ws);
-        } else
+        } else {
+          std::unique_lock<std::shared_mutex> lock(ws_connections_mu);
+          server.ws_connections.erase(ws);
           handler->on_close();
+        }
       });
     }
   };
