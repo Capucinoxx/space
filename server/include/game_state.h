@@ -86,7 +86,7 @@ private:
 
 public:
   explicit GameState(psql_ref psql) 
-    : psql(psql), grid(std::make_shared<Grid<ROWS, COLS>>()), spawn(grid) { }
+    : grid(std::make_shared<Grid<ROWS, COLS>>()), spawn(grid), psql(psql) { }
 
   ~GameState() = default;
 
