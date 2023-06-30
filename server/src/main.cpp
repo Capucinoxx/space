@@ -12,8 +12,9 @@
 int main() {
   Config cfg = load_config(".env");
 
-  PostgresConnector& postgres = PostgresConnector::get_instance(cfg);
-  if (!postgres.connected()) {
+  auto postgres = PostgresConnector::get_instance(cfg);
+
+  if (!postgres->connected()) {
     std::cerr << "Failed to connect to database" << std::endl;
     return 1;
   }

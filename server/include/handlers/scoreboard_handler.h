@@ -16,7 +16,7 @@
 template<uint32_t ROWS, uint32_t COLS>
 class ScoreboardHandle {
 public:
-  using psql_ref = PostgresConnector&;
+  using psql_ref = std::shared_ptr<PostgresConnector>;
 
 private:
   psql_ref postgres;
@@ -40,7 +40,7 @@ private:
       ) SELECT player_id, timestamp, score FROM ranked_scores 
       WHERE row_num = 1)";
 
-    auto result = postgres.execute(query);
+    auto result = postgres->execute(query);
     
 
     if (result.empty())

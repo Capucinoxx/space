@@ -13,7 +13,7 @@ public:
 
   using game_ptr = std::shared_ptr<GameState<action_t, ROWS, COLS>>;
   
-  using psql_ref = PostgresConnector&;
+  using psql_ref = std::shared_ptr<PostgresConnector>;
 
 private:
   game_ptr game;
@@ -37,7 +37,7 @@ public:
       ORDER BY ps.id DESC
       LIMIT 1
     )";
-    auto result = postgres.execute(query);
+    auto result = postgres->execute(query);
 
     if (result.size() != 1)
       return false;
@@ -75,7 +75,7 @@ public:
   using action_t = std::pair<player_ptr, std::string>;
 
   using game_ptr = std::shared_ptr<GameState<action_t, ROWS, COLS>>;
-  using psql_ref = PostgresConnector&;
+  using psql_ref = std::shared_ptr<PostgresConnector>;
 
 private:
   game_ptr game;
@@ -85,7 +85,7 @@ public:
   GameHandle(game_ptr game, psql_ref postgres) : game(game), postgres(postgres) {}
 
   void operator()(Server& server) {
-    server.add_ws_endpoint("/game", [&](){ 
+    server.add_ws_endpoint("/game", [game = game, postgres = postgres](){ 
       return std::make_unique<GameHandler<ROWS, COLS>>(game, postgres); 
     });
   }
