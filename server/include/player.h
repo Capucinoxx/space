@@ -40,24 +40,24 @@ private:
   uint32_t identifier;
   std::string name;
   uint32_t last_frame_played;
-  uint32_t frame_alive = 0;
+  uint32_t frame_alive;
   position current_pos;
   float64_t p_score;
   direction last_direction;
   hsl_color color;
   bool connected;
 
-  std::size_t n_kills = 0;
-  std::size_t n_trail_on_border = 0;
+  std::size_t n_kills;
+  std::size_t n_trail_on_border;
 
   ConcurrentUnorderedSet<position, PairHash> trail{ };
   ConcurrentUnorderedSet<position, PairHash> region{ };
   std::mutex mu;
 
 public:
-  Player(const std::string& name, uint32_t id, hsl_color color, float64_t score, uint32_t frame, std::shared_ptr<Grid<ROWS, COLS>> grid)
+  Player(const std::string& name, uint32_t id, hsl_color color, float64_t score, uint32_t frame)
     : identifier{ id }, name{ name }, last_frame_played{ frame }, frame_alive{ 0 }, current_pos{}, p_score{ score }, last_direction{ direction::DOWN },
-      grid(std::move(grid)), color{ color }, connected{ true }, n_kills{ 0 }, n_trail_on_border{ 0 } {
+      color{ color }, connected{ true }, n_kills{ 0 }, n_trail_on_border{ 0 } {
     trail.reserve(ROWS * COLS / 2);
     region.reserve(MAX_SIZE * 2);
   }
