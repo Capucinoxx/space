@@ -94,6 +94,16 @@ public:
       ws_connections.clear();
     };
 
+  ~Server() {
+    for (const auto& ws : ws_connections)
+      ws->close(websocket::close_code::normal);
+
+    ioc.stop();
+
+    for (auto& th : thread_pool)
+      th.join();
+  }
+
   void run() {
     start_accept();
 
