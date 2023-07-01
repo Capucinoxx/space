@@ -20,11 +20,13 @@ class Deserializer {
   private data: Uint8Array | undefined = undefined;
   private decoder = new TextDecoder('unicode-1-1-utf-8');
   
-  private deserialize_value = <T>(size: number = 4): T => {
-    const value = this.data![this.offset] as T;
+
+  private deserialize_int = (size: number = 4): number => {
+    const bytes = new Uint8Array(this.data!.slice(this.offset, this.offset + size));
+    const value = new Int32Array(bytes.buffer)[0];
     this.offset += size;
     return value;
-  };
+  }
 
   private deserialize_float = (size: number = 8): number => {
     const bytes = new Uint8Array(this.data!.slice(this.offset, this.offset + size));
@@ -34,32 +36,32 @@ class Deserializer {
   }
 
   private deserialize_string = (size: number): string => {
-    const bytes = this.data!.slice(this.offset, this.offset + size);
+    const bytes = new Uint8Array(this.data!.slice(this.offset, this.offset + size));
     const str = this.decoder.decode(bytes);
     this.offset += size;
     return str;
   }
 
   private deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>] => {
-    const name_size = this.deserialize_value<number>();
+    const name_size = this.deserialize_int();
 
     const name = this.deserialize_string(name_size);
     const color_h = this.deserialize_float();
     const color_s = this.deserialize_float();
     const color_l = this.deserialize_float();
-    const px = this.deserialize_value<number>();
-    const py = this.deserialize_value<number>();
-    const frame_alive = this.deserialize_value<number>();
+    const px = this.deserialize_int();
+    const py = this.deserialize_int();
+    const tick_alive = this.deserialize_int();
 
-    const trail_length = this.deserialize_value<number>();
-    const trail: Array<Position> = new Array<Position>(trail_length);
+    const trail_length = this.deserialize_int();
+    const trail: Position[] = new Array<Position>(trail_length);
     for (let i = 0; i != trail_length; i++)
-      trail[i] = {x: this.deserialize_value<number>(), y: this.deserialize_value<number>()};
+      trail[i] = {x: this.deserialize_int(), y: this.deserialize_int()};
 
-    const region_length = this.deserialize_value<number>();
-    const region: Array<Position> = new Array<Position>(region_length);
+    const region_length = this.deserialize_int();
+    const region: Position[] = new Array<Position>(region_length);
     for (let i = 0; i != region_length; i++)
-      region[i] = {x: this.deserialize_value<number>(), y: this.deserialize_value<number>()};
+      region[i] = {x: this.deserialize_int(), y: this.deserialize_int()};
 
     return [name, new HSL(color_l, color_s, color_h), { x: px, y: py }, trail, region];
   };
@@ -69,9 +71,9 @@ class Deserializer {
     this.data = data;
 
     const result: BoardgameData = {
-      rows: this.deserialize_value<number>(),
-      cols: this.deserialize_value<number>(),
-      frame: this.deserialize_value<number>(),
+      rows: this.deserialize_int(),
+      cols: this.deserialize_int(),
+      frame: this.deserialize_int(),
       names: [],
       colors: [],
       positions: [],
@@ -80,15 +82,20 @@ class Deserializer {
       regions_length: []
     };
 
+    const length = data.length;
+    console.log("received data length: " + length);
 
-    while (this.offset < data.length) {      
+    while (this.offset < length) {      
       const [name, color, pos, trail, region] = this.deserialize_player();
+      console.log({name, color, pos, trail, region});
       result.names.push(name.trim());
       result.colors.push(color);
       result.positions.push(pos);
       result.trails.push(trail);
       result.regions.push(region);
       result.regions_length.push(region.length);
+
+      console.log("offset: " + this.offset + " length: " + length);
     }
 
     return result;
