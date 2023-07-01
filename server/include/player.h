@@ -113,7 +113,7 @@ public:
       ++n_kills;
   }
 
-  boost::float64_t frame_score() const noexcept {
+  boost::float64_t frame_score() noexcept {
     if (frame_alive == 0 || last_region_size_ttl == 0) return 0.0;
     
     --last_region_size_ttl;
