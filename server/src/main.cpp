@@ -19,8 +19,8 @@ int main() {
     return 1;
   }
 
-  constexpr std::size_t rows = 200;
-  constexpr std::size_t cols = 60;
+  constexpr std::size_t rows = 100;
+  constexpr std::size_t cols = 100;
 
   Server server(8080);
 
