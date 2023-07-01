@@ -12,15 +12,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Set up c++
-      uses: actions/setup-cxx@v2
-      with:
-        cpp-version: '20'
-
-
     - name: Install dependencies
       run: |
-        apt-get update
+        sudo apt-get update -qq
         apt-get install -y libboost-all-dev libpqxx-dev
 
     - name: Build and test
