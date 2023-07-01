@@ -6,6 +6,12 @@
 #include <optional>
 #include <chrono>
 
+std::ostream& operator<<(std::ostream& os, const std::pair<uint32_t, uint32_t>& pos) {
+  os << "(" << pos.first << ", " << pos.second << ")";
+  return os;
+}
+
+
 class TestManager {
 public:
   TestManager(const TestManager&) = delete;

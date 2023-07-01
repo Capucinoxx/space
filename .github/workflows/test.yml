@@ -1,0 +1,28 @@
+on: [push, pull_request]
+name: CI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y libboost-all-dev libpqxx-dev
+
+    - name: Build and test
+      run: |
+        make -j
+        ./bin/test_server
+
+        if [ $? -ne 0 ]; then
+          echo "Tests failed. Exiting with non-zero status."
+          exit 1
+        fi
