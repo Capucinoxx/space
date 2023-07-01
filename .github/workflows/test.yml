@@ -4,6 +4,9 @@ name: CI
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
 
     steps:
     - name: Checkout
@@ -13,7 +16,7 @@ jobs:
       uses: docker/setup-buildx-action@v2
 
     - name: Build Docker image
-      run: docker build -t test_server  -f server/Dockerfile.test .
+      run: docker build -t test_server  -f Dockerfile.test .
 
     - name: Run tests
       run: docker run test_server
