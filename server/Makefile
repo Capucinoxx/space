@@ -35,7 +35,7 @@ $(SERVER): $(OBJS)
 
 $(TESTS): $(TEST_OBJS)
 	mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(SERVER_FLAGS)
 
 $(SERVER)_objs/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(dir $@)
@@ -43,7 +43,7 @@ $(SERVER)_objs/%.o: $(SRC_DIR)/%.cpp
 
 $(TESTS)_objs/%.o: $(TEST_DIR)/%.cpp
 	mkdir -p $(dir $@)
-	$(CC) $(DEPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(DEPFLAGS) $(CFLAGS) -c $< -o $@ $(SERVER_FLAGS)
 
 $(ANGRY)_objs/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(dir $@)
