@@ -187,6 +187,16 @@ public:
     current_pos = p;
   }
 
+  template<typename F>
+  void for_each_region(F&& f) {
+    region.for_each(f);
+  }
+
+  template<typename F>
+  void for_each_trail(F&& f) {
+    trail.for_each(f);
+  }
+
   void clear_trail() { trail.clear(); }
 
   void death() {  
