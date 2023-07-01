@@ -118,20 +118,6 @@ void run_scenario(const std::string& name, const Scenario& scenario) {
       if (player_region_context.find(uuid) != player_region_context.end())
         assert::equal_unordered(grid_context, player_region_context[uuid]);
 
-      for (const auto& r: player_region_context[uuid]) {
-        std::cout << r.first << ", " << r.second << "   ";
-      }
-      std::cout << "\n";
-      for (const auto& r : grid_region_context[uuid]) {
-        std::cout << r.first << ", " << r.second << "   ";
-      }
-      std::cout << "\n";
-      std::cout << "\n";
-      std::cout << "\n";
-
-
-
-
       player_region_context.erase(uuid);
     }
 
