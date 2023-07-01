@@ -32,7 +32,14 @@ struct Bot {
 
 using action = std::pair<uint32_t, direction>;
 using actions = std::vector<action>;
-using expectation = std::pair<uint32_t, position>;
+
+struct expectation {
+  uint32_t uuid;
+  position pos;
+
+  uint32_t tick_alive;
+};
+// using expectation = std::pair<uint32_t, position>;
 using Expectations = std::vector<expectation>;
 
 using Bots = std::vector<Bot>;
@@ -71,8 +78,10 @@ void run_scenario(const std::string& name, const Scenario& scenario) {
     }
 
     // ------------------ check results
-    for (const auto& [uuid, pos] : scenario.expected_positions) {
+    for (const auto& expectation : scenario.expected_positions) {
+      auto& [uuid, pos, tick_alive] = expectation;
       assert::equal(players[uuid]->pos(), pos);
+      assert::equal(players[uuid]->tick_alive(), tick_alive);
     }
   });
 }

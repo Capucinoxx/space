@@ -15,7 +15,7 @@ int main() {
       actions{ { 1, UP } },
     },
     Expectations{ 
-      expectation{ 1, position{ 10, 13 } } 
+      expectation{ 1, position{ 10, 13 }, 3 } 
     },
   }
   });
