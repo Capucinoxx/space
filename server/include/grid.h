@@ -26,8 +26,11 @@ public:
   std::vector<uint32_t> fill_region(player_ptr p) {
     std::vector<uint32_t> killed{};
 
+    std::size_t tile_coverage = 0;
+
     p->for_each_trail([&](const position& pos) {
       at(pos).take(p->id());
+      ++tile_coverage;
       p->append_region({ pos });
     });
     p->clear_trail();
@@ -47,6 +50,7 @@ public:
 
       been[pos.first][pos.second] = true;
 
+      ++tile_coverage;
       p->append_region({ pos });
 
       auto movements = {
@@ -61,6 +65,7 @@ public:
         auto py = pos.second + movement.second;
 
         auto res = flood_fill(p->id(), { px, py }, been);
+        ++++tile_coverage;
         p->append_region(res.second);
         killed.insert(killed.end(), res.first.begin(), res.first.end());
 
