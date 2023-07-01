@@ -12,11 +12,18 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Set up Docker
-      uses: docker/setup-buildx-action@v2
+    - name: Set up c++
+      uses: actions/setup-cxx@v2
+      with:
+        cpp-version: '20'
 
-    - name: Build Docker image
-      run: docker build -t test_server  -f Dockerfile.test .
 
-    - name: Run tests
-      run: docker run test_server
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y libboost-all-dev libpqxx-dev
+
+    - name: Build and test
+      run: |
+        make
+        ./bin/test_server
