@@ -76,6 +76,7 @@ public:
 private:
   std::shared_ptr<Grid<ROWS, COLS>> grid;
   ConcurrentUnorderedMap<uint32_t, player_ptr> players;
+  ConcurrentUnorderedSet<uint32_t> inactive_players;
   Spawn<ROWS, COLS> spawn;
 
   psql_ref psql;
@@ -107,11 +108,10 @@ public:
     auto p = std::make_shared<player_t>(name, id, color, score, 0);
     p->spawn(spawn_position);
     players.insert(id, p);
+    inactive_players.insert(id);
 
     return p;
   }
-
-
 
   static std::string generate_secret() { return uuid_generator(); }
 
@@ -152,7 +152,7 @@ public:
     });
 
     for (auto& player : players) {
-      if (ids.find(player.first) == ids.end()) {
+      if (ids.find(player.first) == ids.end() && !inactive_players.contains(player.first)) {
         auto res = player.second->perform(frame());
         handle_move_result(player.second, res);
       }
@@ -161,6 +161,7 @@ public:
     if (psql != nullptr)
       store_scores();
 
+    inactive_players.clear();
     ++frame_count;
   }
 
@@ -186,6 +187,8 @@ private:
     victim->death();
 
     victim->spawn(spawn());
+
+    inactive_players.insert(victim->id());
 
     if (victim->id() != murder->id())
       murder->increase_kill();
