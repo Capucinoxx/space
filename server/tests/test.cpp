@@ -21,7 +21,7 @@ int main() {
   });
 
   for (auto& [name, scenario] : scenarios)
-    run_scenario(name, scenario);
+    scenario.run(name);
   
   return 0;
 }

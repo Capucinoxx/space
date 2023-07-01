@@ -35,8 +35,12 @@ struct expectation {
   position pos;
 
   uint32_t tick_alive;
+  // std::vector<double> tick_scores;
+
+  // std::vector<position> trail;
+  // std::vector<position> region;
 };
-// using expectation = std::pair<uint32_t, position>;
+
 using Expectations = std::vector<expectation>;
 
 using Bots = std::vector<Bot>;
@@ -46,42 +50,49 @@ struct Scenario {
   Bots bots;
   Ticks ticks;
   Expectations expected_positions;
-};
 
-void run_scenario(const std::string& name, const Scenario& scenario) {
-  assert::it(name, [&, scenario = scenario]() {
-    // ----------------- sanity check
-    assert::is_false(scenario.bots.empty());
-    std::unordered_map<uint32_t, std::shared_ptr<Player<ROWS, COLS>>> players{};
+  void run(const std::string& name) {
+    assert::it(name, [&](){
+      // ----------------- sanity check
+      assert::is_false(bots.empty());
+      std::unordered_map<uint32_t, std::shared_ptr<Player<ROWS, COLS>>> players{};
 
-    // ----------------- setup game
-    GameState<std::pair<std::shared_ptr<Player<ROWS, COLS>>, std::string>, ROWS, COLS> game(nullptr);
+      // ----------------- setup game
+      GameState<std::pair<std::shared_ptr<Player<ROWS, COLS>>, std::string>, ROWS, COLS> game(nullptr);
 
-    for (uint32_t i = 0; i != scenario.bots.size(); ++i) {
-      auto& bot = scenario.bots[i];
-      auto player = game.register_player("", bot.uuid, { 0.0, 0.0, 0.0 }, 0.0, bot.spawn_pos);
+      for (uint32_t i = 0; i != bots.size(); ++i) {
+        auto& bot = bots[i];
+        auto player = game.register_player("", bot.uuid, { 0.0, 0.0, 0.0 }, 0.0, bot.spawn_pos);
 
-      players.insert({ bot.uuid, player });      
-      assert::equal(player->pos(), bot.spawn_pos);
-    }
-
-    // ----------------- run game
-    for (const auto& tick : scenario.ticks) {
-      for (const auto& [uuid, dir] : tick) {
-        game.push({ players[uuid], std::to_string(dir) });
+        players.insert({ bot.uuid, player });      
+        assert::equal(player->pos(), bot.spawn_pos);
       }
 
-      game.play_tick();
-    }
+      // ----------------- run game
+      for (const auto& tick : scenario.ticks) {
+        for (const auto& [uuid, dir] : tick) {
+          game.push({ players[uuid], std::to_string(dir) });
+        }
 
-    // ------------------ check results
+        game.play_tick();
+      }
+
+      // ----------------- check results
+      assert_scenario_result(game);
+      assert_grid_and_player_has_same_context(game);
+    });
+  }
+
+private:
+  void assert_scenario_result(GameState<std::pair<std::shared_ptr<Player<ROWS, COLS>>, std::string>, ROWS, COLS>& game) {
     for (const auto& expectation : scenario.expected_positions) {
       auto& [uuid, pos, tick_alive] = expectation;
       assert::equal(players[uuid]->pos(), pos);
       assert::equal(players[uuid]->tick_alive(), tick_alive);
     }
+  }
 
-    // ------------------ look if grid has same context as players
+  void assert_grid_and_player_has_same_context(GameState<std::pair<std::shared_ptr<Player<ROWS, COLS>>, std::string>, ROWS, COLS>& game) {
     std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, uint32_t>>> grid_region_context{};
     std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, uint32_t>>> grid_trail_context{};
 
@@ -116,7 +127,7 @@ void run_scenario(const std::string& name, const Scenario& scenario) {
     for (const auto& [uuid, grid_context] : grid_region_context) {
       assert::is_true(player_region_context.find(uuid) != player_region_context.end(), std::to_string(uuid) + " not found in player_region_context");
       if (player_region_context.find(uuid) != player_region_context.end())
-        assert::equal_unordered(grid_context, player_region_context[uuid]);
+        assert::equal_unordered(grid_context, player_region_context[uuid], "grid_region_context and player_region_context are not equal");
 
       player_region_context.erase(uuid);
     }
@@ -124,14 +135,15 @@ void run_scenario(const std::string& name, const Scenario& scenario) {
     for (const auto& [uuid, grid_context] : grid_trail_context) {
       assert::is_true(player_trail_context.find(uuid) != player_trail_context.end(), std::to_string(uuid) + " not found in player_trail_context");
       if (player_trail_context.find(uuid) != player_trail_context.end())
-        assert::equal_unordered(grid_context, player_trail_context[uuid]);
+        assert::equal_unordered(grid_context, player_trail_context[uuid], "grid_trail_context and player_trail_context are not equal");
 
       player_trail_context.erase(uuid);
     }
 
-    assert::is_true(player_region_context.empty());
-    assert::is_true(player_trail_context.empty());
-  });
-}
+    assert::is_true(player_region_context.empty(), "player_region_context is not empty");
+    assert::is_true(player_trail_context.empty(), "player_trail_context is not empty");
+  }
+};
+
 
 #endif // SPACE_TESTS_UTILS_H
