@@ -77,7 +77,7 @@ namespace assert {
     std::sort(copy_lhs.begin(), copy_lhs.end());
     std::sort(copy_rhs.begin(), copy_rhs.end());
 
-    if (lhs.size() != rhs.size() || !std::equal(copy_lhs.begin(), copy_lhs.end(), copy_rhs.begin())) {
+    if (lhs.size() == rhs.size() && std::equal(copy_lhs.begin(), copy_lhs.end(), copy_rhs.begin())) {
       TestManager::get().success();
     } else {
       TestManager::get().failure();
