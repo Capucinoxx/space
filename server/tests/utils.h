@@ -21,20 +21,6 @@ enum direction {
 };
 
 using position = std::pair<uint32_t, uint32_t>;
-std::ostream& operator<<(std::ostream& os, const position& pos) {
-  os << "(" << pos.first << ", " << pos.second << ")";
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const position pos) {
-  os << "(" << pos.first << ", " << pos.second << ")";
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, position pos) {
-  os << "(" << pos.first << ", " << pos.second << ")";
-  return os;
-}
 
 struct Bot {
   uint32_t uuid; // < unique id
