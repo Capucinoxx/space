@@ -179,10 +179,8 @@ public:
     if (trail.find(current_pos) != trail.end())
       return movement_type::DEATH;
 
-    if (region.find(current_pos) != region.end()) {
-      last_region_size = region.size();
+    if (region.find(current_pos) != region.end())
       return movement_type::COMPLETE;
-    }
       
 
     trail.insert(current_pos);
