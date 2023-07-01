@@ -79,7 +79,7 @@ private:
   Spawn<ROWS, COLS> spawn;
 
   psql_ref psql;
-  uint32_t frame_count{ 0 };
+  uint32_t frame_count{ 1 };
   c_queue<T> actions{ };
 
   static UniqueIDGenerator<15> uuid_generator;
@@ -91,6 +91,10 @@ public:
   ~GameState() = default;
 
   player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, boost::float64_t score) {
+    return register_player(name, id, color, score, spawn());
+  }
+
+  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, boost::float64_t score, std::pair<uint32_t, uint32_t> spawn_position) {
     auto it = players.find(id);
     if (it != players.end()) {
       if (it->second->is_connected())
@@ -100,12 +104,14 @@ public:
       return it->second;
     }
 
-    auto p = std::make_shared<player_t>(name, id, color, score, frame_count);
-    p->spawn(spawn());
+    auto p = std::make_shared<player_t>(name, id, color, score, 0);
+    p->spawn(spawn_position);
     players.insert(id, p);
 
     return p;
   }
+
+
 
   static std::string generate_secret() { return uuid_generator(); }
 
@@ -152,7 +158,8 @@ public:
       }
     }
 
-    store_scores();
+    if (psql != nullptr)
+      store_scores();
 
     ++frame_count;
   }
@@ -161,7 +168,7 @@ private:
   void handle_move_result(player_ptr player, player_t::movement_type movement) {
     switch (movement) {
       case player_t::movement_type::DEATH: 
-        // kill(player, player);
+        kill(player, player);
         break;
 
       case player_t::movement_type::COMPLETE:
