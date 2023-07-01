@@ -19,5 +19,10 @@ jobs:
 
     - name: Build and test
       run: |
-        make
+        make -j
         ./bin/test_server
+
+        if [ $? -eq 0 ]; then
+          echo "Tests failed. Exiting with non-zero status."
+          exit 1
+        fi
