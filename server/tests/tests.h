@@ -20,6 +20,7 @@ private:
 public:
   TestManager() = default;
   ~TestManager() {
+    std::cout << std::endl;
     std::cout << "=== TEST RESULTS ===" << std::endl;
     std::cout << "Tests passed: " << passed << std::endl;
     std::cout << "Tests failed: " << failed << std::endl;

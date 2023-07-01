@@ -1,6 +1,8 @@
 #ifndef SPACE_GRID_H
 #define SPACE_GRID_H
 
+#include <memory>
+
 #include "tile_map.h"
 #include "player.h"
 template<uint32_t ROWS, uint32_t COLS>

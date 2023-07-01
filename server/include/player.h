@@ -66,6 +66,7 @@ public:
   std::string player_name() const noexcept { return name; }
   uint32_t id() const noexcept         { return identifier; }
   position pos() const noexcept            { return current_pos; }
+  uint32_t tick_alive() const noexcept { return frame_alive; }
 
   direction const parse_action(const std::string& data) {
     switch (static_cast<uint8_t>(data[0])) {
