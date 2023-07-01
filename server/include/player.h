@@ -47,6 +47,9 @@ private:
   hsl_color color;
   bool connected;
 
+  std::size_t last_region_size = 0;
+  std::size_t last_region_size_ttl = 0;
+
   std::size_t n_kills;
   std::size_t n_trail_on_border;
 
@@ -84,6 +87,13 @@ public:
     region.erase(pos);
   }
 
+  void set_last_region_size(std::size_t size) noexcept {
+    std::lock_guard<std::mutex> lock(mu);
+
+    last_region_size = size;
+    last_region_size_ttl = size;
+  }
+
 
   void append_region(const std::vector<position>& new_region) {
     std::lock_guard<std::mutex> lock(mu);
@@ -104,10 +114,17 @@ public:
   }
 
   boost::float64_t frame_score() const noexcept {
-    if (frame_alive == 0) return 0.0;
+    if (frame_alive == 0 || last_region_size_ttl == 0) return 0.0;
+    
+    --last_region_size_ttl;
 
-    double percentage = static_cast<double>(region.size()) / static_cast<double>(ROWS * COLS) * 100.00;
-    return percentage * percentage / static_cast<double>(frame_alive) * 100.00 * KILL_COEF[n_kills];
+    boost::float64_t last_zone_completed = (last_region_size / static_cast<boost::float64_t>(ROWS * COLS)) * 100.00;
+
+    boost::float64_t score = 100.0 * static_cast<boost::float64_t>(region.size());
+    score *= last_zone_completed * last_zone_completed;
+    score *= ((KILL_COEF[n_kills] * KILL_COEF[n_kills]) / static_cast<boost::float64_t>(frame_alive)) + 1;
+
+    return score;
   }
 
   void dump_info() {
@@ -162,8 +179,11 @@ public:
     if (trail.find(current_pos) != trail.end())
       return movement_type::DEATH;
 
-    if (region.find(current_pos) != region.end())
+    if (region.find(current_pos) != region.end()) {
+      last_region_size = region.size();
       return movement_type::COMPLETE;
+    }
+      
 
     trail.insert(current_pos);
     p_score += frame_score();
