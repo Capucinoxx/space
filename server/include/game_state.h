@@ -219,14 +219,11 @@ private:
           if (victim_id != 0 && victim_id != player->id())
             players.find(victim_id)->second->remove_region(player->pos());
         }
-
-
-        positions.push_back(pos);
+        positions.push_back(p);
       }
     }
 
     player->deplace(pos);
-
     player->append_region(positions);
   }
 
