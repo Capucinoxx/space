@@ -118,6 +118,20 @@ void run_scenario(const std::string& name, const Scenario& scenario) {
       if (player_region_context.find(uuid) != player_region_context.end())
         assert::equal_unordered(grid_context, player_region_context[uuid]);
 
+      for (const auto& r: player_region_context[uuid]) {
+        std::cout << r.first << ", " << r.second << "   ";
+      }
+      std::cout << "\n";
+      for (const auto r : grid_region_context[uuid]) {
+        std::cout << r.first << ", " << r.second << "   ";
+      }
+      std::cout << "\n";
+      std::cout << "\n";
+      std::cout << "\n";
+
+
+
+
       player_region_context.erase(uuid);
     }
 
@@ -125,6 +139,17 @@ void run_scenario(const std::string& name, const Scenario& scenario) {
       assert::is_true(player_trail_context.find(uuid) != player_trail_context.end(), std::to_string(uuid) + " not found in player_trail_context");
       if (player_trail_context.find(uuid) != player_trail_context.end())
         assert::equal_unordered(grid_context, player_trail_context[uuid]);
+
+      for (const auto& r: player_trail_context[uuid]) {
+        std::cout << r.first << ", " << r.second << "   ";
+      }
+      std::cout << "\n";
+      for (const auto r : grid_trail_context[uuid]) {
+        std::cout << r.first << ", " << r.second << "   ";
+      }
+      std::cout << "\n";
+      std::cout << "\n";
+      std::cout << "\n";
 
       player_trail_context.erase(uuid);
     }
