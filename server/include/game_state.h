@@ -181,7 +181,9 @@ private:
         break;
 
       default:
-        grid->at(player->pos()).step(player->id());
+        auto [statement, victim_id] = grid->at(player->pos()).step(player->id());
+        if (victim_id != 0 && victim_id != player->id())
+          players.find(victim_id)->second->remove_region(player->pos());
         break;
     }
   }
@@ -212,7 +214,12 @@ private:
 
         auto [statement, victim_id] = grid->at(p).take(player->id());
         if (statement == TileMap::stmt::DEATH)
-          kill(player, (*players.find(victim_id)).second);
+          kill(player, players.find(victim_id)->second);
+        else if (statement == TileMap::stmt::STEP) {
+          if (victim_id != 0 && victim_id != player->id())
+            players.find(victim_id)->second->remove_region(player->pos());
+        }
+
 
         positions.push_back(pos);
       }

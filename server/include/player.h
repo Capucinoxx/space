@@ -78,6 +78,11 @@ public:
     }
   }
 
+  void remove_region(const position& pos) {
+    std::lock_guard<std::mutex> lock(mu);
+
+    region.erase(pos);
+  }
 
 
   void append_region(const std::vector<position>& new_region) {

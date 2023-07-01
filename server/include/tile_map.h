@@ -16,20 +16,22 @@ private:
 public:
   TileMap() : current_owner{ 0 }, stepping{ false } { }
 
-  stmt step(uint32_t id) noexcept {
+  std::pair<stmt, uint32_t> step(uint32_t id) noexcept {
     std::lock_guard<std::mutex> lock(mu);
+
+    auto old_owner = current_owner;
 
     if (stepping) {
       current_owner = id;
-      return stmt::DEATH;
+      return { stmt::DEATH, old_owner };
     }
 
     if (current_owner == id)
-      return stmt::COMPLETE;
+      return { stmt::COMPLETE, old_owner };
 
     stepping = true;
     current_owner = id;
-    return stmt::STEP;
+    return { stmt::STEP, old_owner };
   }
 
   bool has_someone_else(uint32_t id) const noexcept {
@@ -40,7 +42,7 @@ public:
   std::pair<stmt, uint32_t> take(uint32_t id) noexcept {
     std::lock_guard<std::mutex> lock(mu);
     auto statement = stmt::STEP;
-    if (current_owner != id && current_owner != 0)
+    if (current_owner != id && current_owner != 0 && !stepping)
       statement = stmt::DEATH;
 
     auto old_owner = current_owner;
