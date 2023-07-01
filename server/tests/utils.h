@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <utility>
 
 #include "game_state.h"
 #include "player.h"
@@ -20,7 +21,7 @@ enum direction {
 };
 
 using position = std::pair<uint32_t, uint32_t>;
-std::ostream& operator<<(std::ostream& os, const std::pair<uint32_t, uint32_t>& pos) {
+std::ostream& operator<<(std::ostream& os, const position& pos) {
   os << "(" << pos.first << ", " << pos.second << ")";
   return os;
 }
