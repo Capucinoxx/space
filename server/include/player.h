@@ -190,9 +190,6 @@ public:
   void clear_trail() { trail.clear(); }
 
   void death() {  
-    // trail.for_each([this](position p) { grid->at(p).reset(); });
-    // region.for_each([this](position p) { grid->at(p).reset(); });
-
     trail.clear();
     region.clear();
 
