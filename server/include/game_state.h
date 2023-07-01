@@ -106,7 +106,7 @@ public:
     }
 
     auto p = std::make_shared<player_t>(name, id, color, score, 0);
-    p->spawn(spawn_position);
+    spawn_player(p, spawn_position);
     players.insert(id, p);
     inactive_players.insert(id);
 
@@ -165,6 +165,10 @@ public:
     ++frame_count;
   }
 
+  TileMap& cell(player_t::position pos) const {
+    return grid->at(pos);
+  }
+
 private:
   void handle_move_result(player_ptr player, player_t::movement_type movement) {
     switch (movement) {
@@ -178,6 +182,7 @@ private:
 
       default:
         grid->at(player->pos()).step(player->id());
+        break;
     }
   }
 
@@ -188,13 +193,34 @@ private:
     victim->for_each_region([this](player_t::position p) { grid->at(p).reset(); });
     victim->for_each_trail([this](player_t::position p) { grid->at(p).reset(); });
 
-
-    victim->spawn(spawn());
+    spawn_player(victim, spawn());
 
     inactive_players.insert(victim->id());
 
     if (victim->id() != murder->id())
       murder->increase_kill();
+  }
+
+  void spawn_player(player_ptr player, const std::pair<uint32_t, uint32_t>& pos) {
+    std::vector<std::pair<uint32_t, uint32_t>> positions;
+
+    for (int i = -1; i != 2; ++i) {
+      for (int j = -1; j != 2; ++j) {
+        auto p = std::make_pair(pos.first + i, pos.second + j);
+        if (grid->is_out_of_bounds(p))
+          continue;
+
+        auto [statement, victim_id] = grid->at(p).take(player->id());
+        if (statement == TileMap::stmt::DEATH)
+          kill(player, (*players.find(victim_id)).second);
+
+        positions.push_back(pos);
+      }
+    }
+
+    player->deplace(pos);
+
+    player->append_region(positions);
   }
 
   void store_scores() {
