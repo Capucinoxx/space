@@ -11,11 +11,9 @@ jobs:
 
     - name: Set up Docker
       uses: docker/setup-buildx-action@v2
-      with:
-        dockerfile: ./server/Dockerfile.test
 
     - name: Build Docker image
-      run: docker build -t test_server -f .
+      run: docker build -t test_server  -f server/Dockerfile.test .
 
     - name: Run tests
       run: docker run test_server
