@@ -54,6 +54,11 @@ public:
     return current_owner;
   }
 
+  void reset() noexcept {
+    std::lock_guard<std::mutex> lock(mu);
+    clear();
+  }
+
 private:
   void clear() noexcept {
     std::lock_guard<std::mutex> lock(mu);

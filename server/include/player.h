@@ -86,12 +86,6 @@ public:
     region.insert(new_region.begin(), new_region.end());
   }
 
-  template<typename F>
-  void for_each_trail(F&& f) {
-    for (auto& pos : trail)
-      f(pos);
-  }
-
   void set_connection(bool status) noexcept { connected = status; }
   void connect() noexcept { connected = true; }
   void disconnect() noexcept { connected = false; }

@@ -185,6 +185,9 @@ private:
     std::cout << "DEATH ! " << murder->id() << " KILL " << victim->id() << std::endl;
     victim->dump_info();
     victim->death();
+    victim->for_each_region([this](player_t::position p) { grid->at(p).reset(); });
+    victim->for_each_trail([this](player_t::position p) { grid->at(p).reset(); });
+
 
     victim->spawn(spawn());
 
