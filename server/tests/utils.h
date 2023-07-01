@@ -20,7 +20,7 @@ enum direction {
 };
 
 using position = std::pair<uint32_t, uint32_t>;
-std::ostream& operator<<(std::ostream& os, const position& pos) {
+std::ostream& operator<<(std::ostream& os, const std::pair<uint32_t, uint32_t>& pos) {
   os << "(" << pos.first << ", " << pos.second << ")";
   return os;
 }
