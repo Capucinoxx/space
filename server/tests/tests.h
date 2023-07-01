@@ -4,13 +4,14 @@
 #include <iostream>
 #include <atomic>
 #include <optional>
+#include <unordered_set>
+#include <algorithm>
 #include <chrono>
 
 std::ostream& operator<<(std::ostream& os, const std::pair<uint32_t, uint32_t>& pos) {
   os << "(" << pos.first << ", " << pos.second << ")";
   return os;
 }
-
 
 class TestManager {
 public:
@@ -59,40 +60,56 @@ namespace assert {
   }
 
   template<typename T, typename U>
-  void equal(const T& lhs, const U& rhs) {
+  void equal(const T& lhs, const U& rhs, const std::string& msg = "") {
     if (lhs == rhs) {
       TestManager::get().success();
     } else {
       TestManager::get().failure();
-      std::cerr << "\n\tAssertion failed: " << lhs << " == " << rhs << std::endl;
+      std::cerr << "\n\tAssertion failed: " << lhs << " == " << rhs << " " << msg << std::endl;
     }
   }
 
   template<typename T, typename U>
-  void not_equal(const T& lhs, const U& rhs) {
+  void equal_unordered(const T& lhs, const U& rhs,  const std::string& msg = "") {
+    T copy_lhs = lhs;
+    U copy_rhs = rhs;
+
+    std::sort(copy_lhs.begin(), copy_lhs.end());
+    std::sort(copy_rhs.begin(), copy_rhs.end());
+
+    if (lhs.size() != rhs.size() || !std::equal(copy_lhs.begin(), copy_lhs.end(), copy_rhs.begin())) {
+      TestManager::get().success();
+    } else {
+      TestManager::get().failure();
+      std::cerr << "\n\tAssertion failed: two containers are not equal" << std::endl;
+    }
+  }
+
+  template<typename T, typename U>
+  void not_equal(const T& lhs, const U& rhs,  const std::string& msg = "") {
     if (lhs != rhs) {
       TestManager::get().success();
     } else {
       TestManager::get().failure();
-      std::cerr << "\n\tAssertion failed: " << lhs << " != " << rhs << std::endl;
+      std::cerr << "\n\tAssertion failed: " << lhs << " != " << rhs << " " << msg << std::endl;
     }
   }
 
-  void is_true(const bool& condition) {
+  void is_true(const bool& condition,  const std::string& msg = "") {
     if (condition) {
       TestManager::get().success();
     } else {
       TestManager::get().failure();
-      std::cerr << "\n\tAssertion failed: " << condition << " == true" << std::endl;
+      std::cerr << "\n\tAssertion failed: " << condition << " == true" << " " << msg << std::endl;
     }
   }
 
-  void is_false(const bool& condition) {
+  void is_false(const bool& condition,  const std::string& msg = "") {
     if (!condition) {
       TestManager::get().success();
     } else {
       TestManager::get().failure();
-      std::cerr << "\n\tAssertion failed: " << condition << " == false" << std::endl;
+      std::cerr << "\n\tAssertion failed: " << condition << " == false" << " " << msg << std::endl;
     }
   }
 };

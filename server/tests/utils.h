@@ -59,7 +59,7 @@ void run_scenario(const std::string& name, const Scenario& scenario) {
 
     for (uint32_t i = 0; i != scenario.bots.size(); ++i) {
       auto& bot = scenario.bots[i];
-      auto player = game.register_player("", i, { 0.0, 0.0, 0.0 }, 0.0, bot.spawn_pos);
+      auto player = game.register_player("", bot.uuid, { 0.0, 0.0, 0.0 }, 0.0, bot.spawn_pos);
 
       players.insert({ bot.uuid, player });      
       assert::equal(player->pos(), bot.spawn_pos);
@@ -80,6 +80,57 @@ void run_scenario(const std::string& name, const Scenario& scenario) {
       assert::equal(players[uuid]->pos(), pos);
       assert::equal(players[uuid]->tick_alive(), tick_alive);
     }
+
+    // ------------------ look if grid has same context as players
+    std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, uint32_t>>> grid_region_context{};
+    std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, uint32_t>>> grid_trail_context{};
+
+    std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, uint32_t>>> player_region_context{};
+    std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, uint32_t>>> player_trail_context{};
+
+    for (uint32_t row = 0; row != ROWS; ++row) {
+      for (uint32_t col = 0; col != COLS; ++col) {
+        auto owner = game.cell({row, col}).owner();
+        if (owner == 0)
+          continue;
+
+        if (game.cell({row, col}).is_step()) {
+          grid_trail_context[owner].push_back({row, col});
+        } else {
+          grid_region_context[owner].push_back({row, col});
+        }
+      }
+    }
+
+    for (const auto& [uuid, player] : players) {
+      player->for_each_trail([&](const auto& pos) {
+        player_trail_context[uuid].push_back(pos);
+      });
+
+      player->for_each_region([&](const auto& pos) {
+        player_region_context[uuid].push_back(pos);
+      });
+    }
+
+
+    for (const auto& [uuid, grid_context] : grid_region_context) {
+      assert::is_true(player_region_context.find(uuid) != player_region_context.end(), std::to_string(uuid) + " not found in player_region_context");
+      if (player_region_context.find(uuid) != player_region_context.end())
+        assert::equal_unordered(grid_context, player_region_context[uuid]);
+
+      player_region_context.erase(uuid);
+    }
+
+    for (const auto& [uuid, grid_context] : grid_trail_context) {
+      assert::is_true(player_trail_context.find(uuid) != player_trail_context.end(), std::to_string(uuid) + " not found in player_trail_context");
+      if (player_trail_context.find(uuid) != player_trail_context.end())
+        assert::equal_unordered(grid_context, player_trail_context[uuid]);
+
+      player_trail_context.erase(uuid);
+    }
+
+    assert::is_true(player_region_context.empty());
+    assert::is_true(player_trail_context.empty());
   });
 }
 

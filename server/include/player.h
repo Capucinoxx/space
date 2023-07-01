@@ -86,12 +86,6 @@ public:
     region.insert(new_region.begin(), new_region.end());
   }
 
-  template<typename F>
-  void for_each_trail(F&& f) {
-    for (auto& pos : trail)
-      f(pos);
-  }
-
   void set_connection(bool status) noexcept { connected = status; }
   void connect() noexcept { connected = true; }
   void disconnect() noexcept { connected = false; }
@@ -172,19 +166,20 @@ public:
     return movement_type::STEP;
   }
 
-  void spawn(position p) {
-    for (int i = -1; i != 2; ++i) {
-      for (int j = -1; j != 2; ++j) {
-        auto pos = std::make_pair(p.first + i, p.second + j);
-        if (is_out_of_bound(pos))
-          continue;
-
-        region.insert(pos);
-      }
-    }
-
+  void deplace(const position& p) {
     std::lock_guard<std::mutex> lock(mu);
     current_pos = p;
+  }
+
+
+  template<typename F>
+  void for_each_region(F&& f) {
+    region.for_each(f);
+  }
+
+  template<typename F>
+  void for_each_trail(F&& f) {
+    trail.for_each(f);
   }
 
   void clear_trail() { trail.clear(); }
