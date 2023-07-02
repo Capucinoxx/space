@@ -12,6 +12,8 @@ public:
 
   virtual std::pair<uint32_t, uint32_t> perform(const std::pair<uint32_t, uint32_t>& pos) const noexcept = 0;
   virtual ~Action() = default;
+
+  virtual std::size_t length() const noexcept = 0;
 };
 
 template <uint32_t ROWS, uint32_t COLS>
@@ -19,8 +21,8 @@ class MovementAction : public Action<ROWS, COLS> {
 public:
   enum direction { UP, DOWN, LEFT, RIGHT };
 
-  MovementAction(uint8_t data) {
-    switch (data) {
+  MovementAction(const std::string& data) {
+    switch (static_cast<uint8_t>(data[0])) {
       case (uint8_t)0: dir = direction::UP; break;
       case (uint8_t)1: dir = direction::DOWN; break;
       case (uint8_t)2: dir = direction::LEFT; break;
@@ -28,6 +30,8 @@ public:
       default: dir = direction::DOWN; break;
     }
   }
+
+  std::size_t length() const noexcept { return 1; }
 
   std::pair<uint32_t, uint32_t> perform(const std::pair<uint32_t, uint32_t>& pos) const noexcept {
     auto new_pos = pos;
@@ -68,6 +72,8 @@ public:
     return { x, y };
   }
 
+  std::size_t length() const noexcept { return 9; }
+
 private:
   uint32_t x;
   uint32_t y;
@@ -75,7 +81,7 @@ private:
   bool is_valid = true;
 
   bool is_valid_payload(const std::string& data) {
-    return data.size() == 9 && data[0] == 0x05;
+    return data.size() >= length() && data[0] == 0x05;
   }
 
   void extract_position(const std::string& payload) {
@@ -87,11 +93,27 @@ private:
 template<uint32_t ROWS, uint32_t COLS>
 class PatternAction : public Action<ROWS, COLS> {
 public:
-  PatternAction(const std::string& data) {}
+  PatternAction(const std::string& data) {
+    std::size_t count = 0;
+    std::size_t offset = length();
+
+    while (offset < data.size() || count < 5) {
+      auto action = RetrieveAction<ROWS, COLS>{}(data.substr(offset));
+      offset += action->length();
+      actions.push_back(std::move(action));
+      ++count;
+    }
+  }
 
   std::pair<uint32_t, uint32_t> perform(const std::pair<uint32_t, uint32_t>& pos) const noexcept {
     return pos;
   }
+
+  std::size_t length() const noexcept { return 1; }
+
+private:
+  std::size_t length() const noexcept { return 1; }
+  std::vector<Action<ROWS, COLS>> actions{ };
 };
 
 template <uint32_t ROWS, uint32_t COLS>
@@ -100,12 +122,14 @@ public:
   std::pair<uint32_t, uint32_t> perform(const std::pair<uint32_t, uint32_t>& pos) const noexcept {
     return pos;
   }
+
+  std::size_t length() const noexcept { return 1; }
 };
 
 
 template <uint32_t ROWS, uint32_t COLS>
 struct RetrieveAction {
-  std::unique_ptr<Action<ROWS, COLS>> operator()(const std::string& data, const std::pair<uint32_t, uint32_t>& pos) const noexcept {
+  std::unique_ptr<Action<ROWS, COLS>> operator()(const std::string& data) const noexcept {
     if (data.empty()) 
       return std::make_unique<UndefinedAction<ROWS, COLS>>();
 
@@ -114,6 +138,9 @@ struct RetrieveAction {
 
     if (data[0] == 0x05)
       return std::make_unique<TeleportAction<ROWS, COLS>>(data);
+
+    if (data[0] == 0x07)
+      return std::make_unique<PatternAction<ROWS, COLS>>(data);
 
     return std::make_unique<UndefinedAction<ROWS, COLS>>();
   }
