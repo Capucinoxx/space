@@ -74,16 +74,6 @@ public:
   position pos() const noexcept            { return current_pos; }
   uint32_t tick_alive() const noexcept { return frame_alive; }
 
-  direction const parse_action(const std::string& data) {
-    switch (static_cast<uint8_t>(data[0])) {
-      case (uint8_t)0: return direction::UP;
-      case (uint8_t)1: return direction::DOWN;
-      case (uint8_t)2: return direction::LEFT;
-      case (uint8_t)3: return direction::RIGHT;
-      default: return direction::DOWN;
-    }
-  }
-
   void remove_region(const position& pos) {
     std::lock_guard<std::mutex> lock(mu);
 
