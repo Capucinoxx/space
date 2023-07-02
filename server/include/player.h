@@ -55,7 +55,7 @@ private:
   std::size_t n_kills;
   std::size_t n_trail_on_border;
 
-  std::vector<std::shared_ptr<Action<ROWS, COLS>>> deconnected_actions{};
+  std::vector<std::shared_ptr<Action<ROWS, COLS>>> deconnected_actions{ std::make_shared<MovementAction<ROWS, COLS>>(std::to_string('\x01')) };
   std::size_t deconnected_action_index = 0;
 
   ConcurrentUnorderedSet<position, PairHash> trail{ };
@@ -122,6 +122,8 @@ public:
     return score;
   }
 
+  void increase_frame_alive() noexcept { ++frame_alive; }
+
   void dump_info() {
     std::cout << "Player: " << name << std::endl;
     std::cout << "  - ID: " << identifier << std::endl;
@@ -135,42 +137,9 @@ public:
     std::cout << std::endl;
   }
 
-  movement_type play_deconnected_action(uint32_t frame) {
-    if (frame <= last_frame_played)
+  movement_type move(const position& new_pos) {
+    if (new_pos == current_pos)
       return movement_type::IDLE;
-
-    last_frame_played = frame;
-    ++frame_alive;
-
-    return play(deconnected_actions[deconnected_action_index++]);
-  }
-
-
-  movement_type handle_action(uint32_t frame, const std::string& payload) {
-    if (frame <= last_frame_played)
-      return movement_type::IDLE;
-
-    deconnected_action_index = 0;
-    last_frame_played = frame;
-    ++frame_alive;
-
-    auto action = RetrieveAction<ROWS, COLS>()(payload);
-    return play(action);
-  }
-
-  movement_type play(std::shared_ptr<Action<ROWS, COLS>> action) {
-    if (auto pattern_action = std::dynamic_pointer_cast<PatternAction<ROWS, COLS>>(action)) {
-      deconnected_actions = pattern_action->get_actions();
-      return movement_type::IDLE;
-    }
-
-    auto new_pos = action->perform(current_pos);
-
-    if (new_pos == pos()) {
-      std::cout << "IDLE" << std::endl;
-      return movement_type::IDLE;
-    }
-
 
     current_pos = new_pos;
 
@@ -180,16 +149,27 @@ public:
     if (region.find(new_pos) != region.end()) 
       return movement_type::COMPLETE;
 
-    
-    trail.insert(new_pos);   
-    p_score += frame_score(); 
-
+    trail.insert(new_pos);
     return movement_type::STEP;
   }
+
+  std::shared_ptr<Action<ROWS, COLS>> next_disconnected_action() {
+    return deconnected_actions[deconnected_action_index++ % deconnected_actions.size()];
+  }
+
+  bool can_play(uint32_t frame) noexcept { 
+    bool ok = frame > last_frame_played; 
+    last_frame_played = frame;
+    return ok;
+  }
+
 
   void deplace(const position& p) {
     std::lock_guard<std::mutex> lock(mu);
     current_pos = p;
+    
+    if (!region.contains(p))
+      trail.insert(p);
   }
 
 

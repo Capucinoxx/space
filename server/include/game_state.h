@@ -7,6 +7,7 @@
 #include "postgres_connector.h"
 #include "structures/concurrent_unordered_map.h"
 #include "structures/concurrent_queue.h"
+#include "action.h"
 
 #include <thread>
 #include <atomic>
@@ -38,7 +39,7 @@ public:
 
     int retry = 0;
 
-    while (position_is_valid({ x, y }) && retry++ < 10) {
+    while (!position_is_valid({ x, y }) && retry++ < 10) {
       x = dist_x(gen);
       y = dist_y(gen);
     }
@@ -52,13 +53,12 @@ public:
         auto px = pos.first + i;
         auto py = pos.second + j;
 
-        bool is_out_of_bounds = px >= ROWS || py >= COLS;
-        if (is_out_of_bounds)
-          return true;
+        if (grid->is_invalid_pos({ px, py }))
+          return false;
       }
     }
 
-    return false;
+    return true;
   }
 };
 
@@ -108,17 +108,14 @@ public:
     auto p = std::make_shared<player_t>(name, id, color, score, 0);
     spawn_player(p, spawn_position);
     players.insert(id, p);
-    inactive_players.insert(id);
+
+    // inactive_players.insert(id);
 
     return p;
   }
 
   static std::string generate_secret() { return uuid_generator(); }
-
-  void push(T&& action) {
-    actions.push(std::move(action));
-  }
-
+  void push(T&& action) { actions.push(std::move(action)); }
   uint32_t frame() const noexcept { return frame_count; }
 
   void disconnect_player(uint32_t id) {
@@ -133,6 +130,7 @@ public:
     serialize_value<uint32_t>(data, ROWS);
     serialize_value<uint32_t>(data, COLS);
     serialize_value<uint32_t>(data, frame());
+    grid->serialize(data);
 
     for (const auto& player : players)
       player.second->serialize(data);
@@ -140,21 +138,20 @@ public:
     return data;
   }
 
-  void play_tick() {
-    std::unordered_set<uint32_t> ids;
+  void tick() {
+    std::unordered_set<uint32_t> ids{};
 
-    actions.for_each([&](const T& action) {
-      auto& [player, payload] = action;
-      
-      auto res = player->handle_action(frame(), payload);
-      handle_move_result(player, res);
+    actions.for_each([this, &ids](const T& tick_action) {
+      auto& [player, payload] = tick_action;
       ids.insert(player->id());
+      play_tick(tick_action); 
     });
 
     for (auto& player : players) {
-      if (ids.find(player.first) == ids.end() && !inactive_players.contains(player.first)) {
-        auto res = player.second->play_deconnected_action(frame());
-        handle_move_result(player.second, res);
+      if (!inactive_players.contains(player.first)) {
+        player.second->increase_frame_alive();
+        if (ids.find(player.first) == ids.end())
+          play_tick(std::make_pair(player.second, std::string{}));
       }
     }
 
@@ -163,6 +160,64 @@ public:
 
     inactive_players.clear();
     ++frame_count;
+  }
+
+  void play_tick(const T& tick_action) {
+    auto& [player, payload] = tick_action;
+    if (!player->can_play(frame())) {
+      return;
+    }
+
+    std::shared_ptr<Action<ROWS, COLS>> action;
+
+    if (payload.empty()) {
+      action = player->next_disconnected_action();
+    } else {
+      action = RetrieveAction<ROWS, COLS>()(payload);
+    }
+
+    auto old_pos = player->pos();
+    auto new_pos = action->perform(old_pos);
+
+    if (grid->is_invalid_pos(new_pos)) {
+      return;
+    }
+
+    switch (player->move(new_pos)) {
+      case player_t::movement_type::DEATH:
+        kill(player, player);
+        return;
+
+      case player_t::movement_type::COMPLETE:
+        grid->fill_region(player);
+        break;
+
+      default: 
+        break;
+    }
+
+    auto [statement, victim_id] = grid->at(new_pos).step(player->id());
+    switch (statement) {
+      case player_t::movement_type::DEATH:
+        kill(player, players.find(victim_id)->second);
+        break;
+
+      case player_t::movement_type::COMPLETE:
+        grid->fill_region(player);
+        break;
+
+      case player_t::movement_type::STEP:
+        if (victim_id != 0 && victim_id != player->id())
+          players.find(victim_id)->second->remove_region(player->pos());
+        
+        player->deplace(new_pos);
+        break;
+
+      default:
+        break;
+    }
+
+    
   }
 
   TileMap& cell(player_t::position pos) const {
@@ -179,6 +234,8 @@ private:
       case player_t::movement_type::COMPLETE:
         grid->fill_region(player);
         break;
+
+      case player_t::movement_type::STEP:
 
       default:
         auto [statement, victim_id] = grid->at(player->pos()).step(player->id());
@@ -216,7 +273,7 @@ private:
     for (int i = -1; i != 2; ++i) {
       for (int j = -1; j != 2; ++j) {
         auto p = std::make_pair(pos.first + i, pos.second + j);
-        if (grid->is_out_of_bounds(p))
+        if (grid->is_invalid_pos(p))
           continue;
 
         auto [statement, victim_id] = grid->at(p).take(player->id());
@@ -230,8 +287,8 @@ private:
       }
     }
 
-    player->deplace(pos);
     player->append_region(positions);
+    player->deplace(pos);
   }
 
   void store_scores() {

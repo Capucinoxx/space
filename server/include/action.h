@@ -34,6 +34,7 @@ public:
     }
   }
 
+  direction get_direction() const noexcept { return dir; }
   std::size_t length() const noexcept { return 1; }
 
   std::pair<uint32_t, uint32_t> perform(const std::pair<uint32_t, uint32_t>& pos) const noexcept {
@@ -45,9 +46,6 @@ public:
       case LEFT:  --new_pos.first; break;
       case RIGHT: ++new_pos.first; break;
     }
-
-    if (new_pos.first >= ROWS || new_pos.second >= COLS)
-      return pos;
 
     return new_pos;
   }

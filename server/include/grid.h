@@ -5,6 +5,8 @@
 
 #include "tile_map.h"
 #include "player.h"
+#include "utils.h"
+
 template<uint32_t ROWS, uint32_t COLS>
 class Grid {
 public:
@@ -14,6 +16,7 @@ public:
 private:
   std::array<std::array<TileMap, COLS>, ROWS> grid;
 
+  std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash> inacessible_areas;
 
 public:
   Grid() = default;
@@ -21,7 +24,15 @@ public:
   TileMap& at(const position& pos) {
     return grid[pos.first][pos.second];
   }
-  
+
+  void serialize(std::vector<uint8_t>& buffer) {
+    serialize_value<uint32_t>(buffer, inacessible_areas.size());
+    for (auto& inacessible_tile : inacessible_areas) {
+      serialize_value<uint32_t>(buffer, inacessible_tile.first);
+      serialize_value<uint32_t>(buffer, inacessible_tile.second);
+    }
+  }
+
 
   std::vector<uint32_t> fill_region(player_ptr p) {
     std::vector<uint32_t> killed{};
@@ -45,7 +56,7 @@ public:
       auto pos = neighbors.back();
       neighbors.pop_back();
 
-      if (is_out_of_bounds(pos) || been[pos.first][pos.second] || grid[pos.first][pos.second].owner() == p->id())
+      if (is_invalid_pos(pos) || been[pos.first][pos.second] || grid[pos.first][pos.second].owner() == p->id())
         continue;
 
       been[pos.first][pos.second] = true;
@@ -76,15 +87,15 @@ public:
     return killed;
   }
 
-    bool is_out_of_bounds(const position& pos) const noexcept {
-    return pos.first >= ROWS || pos.second >= COLS;
+    bool is_invalid_pos(const position& pos) const noexcept {
+    return pos.first >= ROWS || pos.second >= COLS || inacessible_areas.find(pos) != inacessible_areas.end();
   }
 
 private:
 
 
   std::pair<std::unordered_set<uint32_t>, std::vector<position>> flood_fill(uint32_t self_id, const position& pos, std::array<std::array<bool, COLS>, ROWS>& been) {
-    if (is_out_of_bounds(pos) || been[pos.first][pos.second] || at(pos).owner() == self_id)
+    if (is_invalid_pos(pos) || been[pos.first][pos.second] || at(pos).owner() == self_id)
       return { {}, {} };
 
     bool surrounded = true;
@@ -99,7 +110,7 @@ private:
       auto pos = neighbors.back();
       neighbors.pop_back();
 
-      if (is_out_of_bounds(pos)) {
+      if (is_invalid_pos(pos)) {
         surrounded = false;
         continue;
       }

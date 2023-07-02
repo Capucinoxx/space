@@ -13,6 +13,8 @@ interface BoardgameData {
   trails: Array<Array<Position>>;
   regions: Array<Array<Position>>;
   regions_length: Array<number>;
+
+  inacessible_tile: Array<Position>;
 }
 
 class Deserializer {
@@ -79,8 +81,13 @@ class Deserializer {
       positions: [],
       trails: [],
       regions: [],
-      regions_length: []
+      regions_length: [],
+      inacessible_tile: []
     };
+
+    const inacessible_tile_length = this.deserialize_int();
+    for (let i = 0; i != inacessible_tile_length; i++)
+      result.inacessible_tile.push({x: this.deserialize_int(), y: this.deserialize_int()});
 
     const length = data.length;
     console.log("received data length: " + length);

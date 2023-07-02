@@ -90,7 +90,7 @@ public:
           game.push({ players[uuid], direction_to_str(dir) });
         }
 
-        game.play_tick();
+        game.tick();
 
         for (const auto& bot : bots) {
           auto& player = players[bot.uuid];
