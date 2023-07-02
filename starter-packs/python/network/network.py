@@ -12,6 +12,8 @@ class Socket:
         self.__ws = None
         self.__queue = asyncio.Queue[GameState](maxsize=1)
 
+        self.__bot = MyBot()
+
     async def __connect(self):
         extra_headers = { 'Authorization': self.__secret }
         async with websockets.connect(self.__url, extra_headers=extra_headers) as self.__ws:
@@ -28,7 +30,7 @@ class Socket:
     async def __process_queue(self):
         while True:
             state = await self.__queue.get()
-            action = MyBot().tick(state)
+            action = self.__bot.tick(state)
             print(f"Sending {action.serialize()}")
             await self.__ws.send(action.serialize())
 
