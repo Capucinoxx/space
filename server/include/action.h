@@ -95,10 +95,11 @@ template<uint32_t ROWS, uint32_t COLS>
 class PatternAction : public Action<ROWS, COLS> {
 public:
   PatternAction(const std::string& data) {
+    std::cout << "PAttern action" << std::endl;
     std::size_t count = 0;
     std::size_t offset = length();
 
-    while (offset < data.size() || count < 5) {
+    while (offset < data.size() && count < 5) {
       auto action = RetrieveAction<ROWS, COLS>{}(data.substr(offset));
       offset += action->length();
       actions.push_back(std::move(action));
@@ -134,6 +135,8 @@ struct RetrieveAction {
   std::shared_ptr<Action<ROWS, COLS>> operator()(const std::string& data) const noexcept {
     if (data.empty()) 
       return std::make_shared<UndefinedAction<ROWS, COLS>>();
+
+    std::cout << "Retrieve action: " << static_cast<uint8_t>(data[0]) << std::endl;
 
     if (data[0] <= 0x03)
       return std::make_shared<MovementAction<ROWS, COLS>>(data);

@@ -174,6 +174,11 @@ public:
       action = player->next_disconnected_action();
     } else {
       action = RetrieveAction<ROWS, COLS>()(payload);
+
+      if (auto pattern_action = std::dynamic_pointer_cast<PatternAction<ROWS, COLS>>(action)) {
+        player->update_pattern(pattern_action->get_actions());
+        return;
+      }
     }
 
     auto old_pos = player->pos();
