@@ -91,7 +91,7 @@ namespace assert {
       TestManager::get().success();
     } else {
       TestManager::get().failure();
-      std::cerr << "\n\tAssertion failed: two containers are not equal" << std::endl;
+      std::cerr << "\n\tAssertion failed: two containers are not equal" << " " << msg << std::endl;
       
       std::cerr << "\tLHS: ";
       for (const auto& e : lhs)

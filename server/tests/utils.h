@@ -13,12 +13,12 @@
 
 enum { ROWS = 300, COLS = 400 }; 
 
-enum direction {
-  UP = '\0',
-  DOWN = '\x01',
-  LEFT = '\x02',
-  RIGHT = '\x03'
-};
+enum direction { UP, DOWN, LEFT, RIGHT };
+
+std::string direction_to_str(direction d) {
+  char bytes[] = { d };
+  return std::string(bytes, bytes + sizeof(bytes));
+}
 
 using position = std::pair<uint32_t, uint32_t>;
 using id = uint32_t;
@@ -87,7 +87,7 @@ public:
       // ----------------- run game
       for (const auto& tick : ticks) {
         for (const auto& [uuid, dir] : tick) {
-          game.push({ players[uuid], std::to_string(dir) });
+          game.push({ players[uuid], direction_to_str(dir) });
         }
 
         game.play_tick();

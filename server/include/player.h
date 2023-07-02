@@ -73,11 +73,11 @@ public:
 
   direction const parse_action(const std::string& data) {
     switch (static_cast<uint8_t>(data[0])) {
-      case 0: return direction::UP;
-      case 1: return direction::DOWN;
-      case 2: return direction::LEFT;
-      case 3: return direction::RIGHT;
-      default: return last_direction;
+      case (uint8_t)0: return direction::UP;
+      case (uint8_t)1: return direction::DOWN;
+      case (uint8_t)2: return direction::LEFT;
+      case (uint8_t)3: return direction::RIGHT;
+      default: return direction::DOWN;
     }
   }
 
@@ -175,11 +175,10 @@ public:
     if (res == movement_type::IDLE || res == movement_type::DEATH)
       return res;
 
-
     if (trail.find(current_pos) != trail.end())
       return movement_type::DEATH;
 
-    if (region.find(current_pos) != region.end())
+    if (region.find(current_pos) != region.end()) 
       return movement_type::COMPLETE;
       
 
@@ -275,6 +274,7 @@ private:
     }
 
     current_pos = new_pos;
+
     return TileMap::stmt::STEP;
   }
 

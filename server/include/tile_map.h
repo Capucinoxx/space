@@ -21,8 +21,9 @@ public:
 
     auto old_owner = current_owner;
 
-    if (stepping) {
+    if (stepping || (current_owner != id && current_owner != 0)) {
       current_owner = id;
+      stepping = true;
       return { stmt::DEATH, old_owner };
     }
 
@@ -61,14 +62,15 @@ public:
     return stepping;
   }
 
-  void reset() noexcept {
-    std::lock_guard<std::mutex> lock(mu);
-    clear();
+  void reset(uint32_t id) noexcept {
+    if (current_owner == id)
+      clear();
   }
 
 private:
   void clear() noexcept {
     std::lock_guard<std::mutex> lock(mu);
+
     current_owner = 0;
     stepping = false;
   }
