@@ -5,6 +5,8 @@
 
 #include "tile_map.h"
 #include "player.h"
+#include "utils.h"
+
 template<uint32_t ROWS, uint32_t COLS>
 class Grid {
 public:
@@ -14,7 +16,7 @@ public:
 private:
   std::array<std::array<TileMap, COLS>, ROWS> grid;
 
-  std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash> inacessible_areas{};
+  std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash> inacessible_areas;
 
 public:
   Grid() = default;
@@ -26,8 +28,8 @@ public:
   void serialize(std::vector<uint8_t>& buffer) {
     serialize_value<uint32_t>(buffer, inacessible_areas.size());
     for (auto& inacessible_tile : inacessible_areas) {
-      inacessible_areas(buffer, inacessible_tile.first);
-      inacessible_areas(buffer, inacessible_tile.second);
+      serialize_value<uint32_t>(buffer, inacessible_tile.first);
+      serialize_value<uint32_t>(buffer, inacessible_tile.second);
     }
   }
 

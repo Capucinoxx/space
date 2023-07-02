@@ -57,7 +57,7 @@ public:
 
 private:
   void tick() {
-    state->play_tick();
+    state->tick();
   }
 };
 
