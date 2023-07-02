@@ -4,6 +4,7 @@
 #include "tile_map.h"
 #include "structures/concurent_unordered_set.h"
 #include "utils.h"
+#include "action.h"
 
 #include <boost/cstdfloat.hpp> 
 #include <vector>
@@ -52,6 +53,8 @@ private:
 
   std::size_t n_kills;
   std::size_t n_trail_on_border;
+
+  std::vector<Action<ROWS, COLS>> deconnected_actions{};
 
   ConcurrentUnorderedSet<position, PairHash> trail{ };
   ConcurrentUnorderedSet<position, PairHash> region{ };
@@ -141,49 +144,31 @@ public:
   }
 
   movement_type handle_action(uint32_t frame, const std::string& payload) {
-    if (payload.empty()) {
-      return perform(frame);
-    }
-
-    if (is_teleportation(payload)) {
-      auto res = teleport(extract_position(payload));
-
-      if (res == movement_type::IDLE)
-        return perform(frame);
-
-      return res;
-    }
-
-    return perform(frame, parse_action(payload));
-  }
-
-  movement_type perform(uint32_t frame) {
-    return perform(frame, last_direction);
-  }
-
-  movement_type perform(uint32_t frame, direction d) {
-    std::lock_guard<std::mutex> lock(mu);
     if (frame <= last_frame_played)
       return movement_type::IDLE;
 
     last_frame_played = frame;
-    last_direction = d;
-
     ++frame_alive;
 
-    auto res = move(d);
-    if (res == movement_type::IDLE || res == movement_type::DEATH)
-      return res;
+    auto new_pos = RetrieveAction<ROWS, COLS>()(payload, current_pos);
 
-    if (trail.find(current_pos) != trail.end())
+    if (new_pos == pos()) {
+      std::cout << "IDLE" << std::endl;
+      return movement_type::IDLE;
+    }
+
+
+    current_pos = new_pos;
+
+    if (trail.find(new_pos) != trail.end())
       return movement_type::DEATH;
 
-    if (region.find(current_pos) != region.end()) 
+    if (region.find(new_pos) != region.end()) 
       return movement_type::COMPLETE;
-      
 
-    trail.insert(current_pos);
-    p_score += frame_score();
+    
+    trail.insert(new_pos);   
+    p_score += frame_score(); 
 
     return movement_type::STEP;
   }
@@ -251,33 +236,6 @@ public:
   }
 
 private:
-  movement_type move(direction d) noexcept {
-    auto new_pos = current_pos;
-
-    switch (d) {
-      case UP:    --new_pos.second; break;
-      case DOWN:  ++new_pos.second; break;
-      case LEFT:  --new_pos.first; break;
-      case RIGHT: ++new_pos.first; break;
-    }
-
-    if (is_out_of_bound(new_pos)) {
-      return TileMap::stmt::IDLE;
-    }
-
-    if (is_on_border(new_pos)) {
-      ++n_trail_on_border;
-
-      if (n_trail_on_border == MAX_SIZE) {
-        return TileMap::stmt::DEATH;
-      }
-    }
-
-    current_pos = new_pos;
-
-    return TileMap::stmt::STEP;
-  }
-
   movement_type teleport(position pos) {
     if (is_out_of_bound(pos) || !region.contains(pos))
       return TileMap::stmt::IDLE;
@@ -294,25 +252,6 @@ private:
 
   bool is_on_border(const position& pos) const noexcept {
     return pos.first == 0 || pos.second == 0 || pos.first == ROWS - 1 || pos.second == COLS - 1;
-  }
-
-  bool is_teleportation(const std::string& payload) const noexcept {    
-    return payload[0] == 0x05 && payload.size() == 9;
-  }
-
-  position extract_position(const std::string& payload) const noexcept {
-    auto pos = std::make_pair(
-      static_cast<uint32_t>(payload[4] << 24 | payload[3] << 16 | payload[2] << 8 | payload[1]),
-      static_cast<uint32_t>(payload[8] << 24 | payload[7] << 16 | payload[6] << 8 | payload[5])
-    );
-
-    if (is_out_of_bound(pos))
-      pos = std::make_pair(
-        static_cast<uint32_t>(payload[1] << 24 | payload[2] << 16 | payload[3] << 8 | payload[4]),
-        static_cast<uint32_t>(payload[5] << 24 | payload[6] << 16 | payload[7] << 8 | payload[8])
-      );
-
-    return pos;
   }
 };
 
