@@ -84,4 +84,9 @@ uint64_t parse_string_to_epoch(const std::string& str) {
   return static_cast<uint64_t>(timestamp.time_since_epoch().count());
 }
 
+template<typename Base, typename Derived>
+bool is_instance_of(const Derived*) {
+    return std::is_base_of<Base, Derived>::value;
+}
+
 #endif //SPACE_UTILS_H

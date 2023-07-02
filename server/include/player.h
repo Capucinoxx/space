@@ -12,16 +12,17 @@
 #include <mutex>
 #include <stack>
 #include <tuple>
+#include <memory>
 
 #define MAX_KILLS 6
 
 struct PairHash {
-    template <typename T1, typename T2>
-    std::size_t operator()(const std::pair<T1, T2>& p) const {
-        auto h1 = std::hash<T1>{}(p.first);
-        auto h2 = std::hash<T2>{}(p.second);
-        return h1 ^ h2;
-    }
+  template <typename T1, typename T2>
+  std::size_t operator()(const std::pair<T1, T2>& p) const {
+    auto h1 = std::hash<T1>{}(p.first);
+    auto h2 = std::hash<T2>{}(p.second);
+    return h1 ^ h2;
+  }
 };
 
 template<uint32_t ROWS, uint32_t COLS>
@@ -54,7 +55,8 @@ private:
   std::size_t n_kills;
   std::size_t n_trail_on_border;
 
-  std::vector<Action<ROWS, COLS>> deconnected_actions{};
+  std::vector<std::shared_ptr<Action<ROWS, COLS>>> deconnected_actions{};
+  std::size_t deconnected_action_index = 0;
 
   ConcurrentUnorderedSet<position, PairHash> trail{ };
   ConcurrentUnorderedSet<position, PairHash> region{ };
@@ -133,14 +135,35 @@ public:
     std::cout << std::endl;
   }
 
-  movement_type handle_action(uint32_t frame, const std::string& payload) {
+  movement_type play_deconnected_action(uint32_t frame) {
     if (frame <= last_frame_played)
       return movement_type::IDLE;
 
     last_frame_played = frame;
     ++frame_alive;
 
-    auto action = RetrieveAction<ROWS, COLS>()(payload, current_pos);
+    return play(deconnected_actions[deconnected_action_index++]);
+  }
+
+
+  movement_type handle_action(uint32_t frame, const std::string& payload) {
+    if (frame <= last_frame_played)
+      return movement_type::IDLE;
+
+    deconnected_action_index = 0;
+    last_frame_played = frame;
+    ++frame_alive;
+
+    auto action = RetrieveAction<ROWS, COLS>()(payload);
+    return play(action);
+  }
+
+  movement_type play(std::shared_ptr<Action<ROWS, COLS>> action) {
+    if (auto pattern_action = std::dynamic_pointer_cast<PatternAction<ROWS, COLS>>(action)) {
+      deconnected_actions = pattern_action->get_actions();
+      return movement_type::IDLE;
+    }
+
     auto new_pos = action->perform(current_pos);
 
     if (new_pos == pos()) {

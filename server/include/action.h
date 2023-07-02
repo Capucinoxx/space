@@ -6,6 +6,9 @@
 #include <memory>
 
 template <uint32_t ROWS, uint32_t COLS>
+struct RetrieveAction;
+
+template <uint32_t ROWS, uint32_t COLS>
 class Action {
 public:
   Action() = default;
@@ -109,11 +112,12 @@ public:
     return pos;
   }
 
+  std::vector<std::shared_ptr<Action<ROWS, COLS>>>& get_actions() noexcept { return actions; }
+
   std::size_t length() const noexcept { return 1; }
 
 private:
-  std::size_t length() const noexcept { return 1; }
-  std::vector<Action<ROWS, COLS>> actions{ };
+  std::vector<std::shared_ptr<Action<ROWS, COLS>>> actions{ };
 };
 
 template <uint32_t ROWS, uint32_t COLS>
@@ -129,20 +133,20 @@ public:
 
 template <uint32_t ROWS, uint32_t COLS>
 struct RetrieveAction {
-  std::unique_ptr<Action<ROWS, COLS>> operator()(const std::string& data) const noexcept {
+  std::shared_ptr<Action<ROWS, COLS>> operator()(const std::string& data) const noexcept {
     if (data.empty()) 
-      return std::make_unique<UndefinedAction<ROWS, COLS>>();
+      return std::make_shared<UndefinedAction<ROWS, COLS>>();
 
     if (data[0] <= 0x03)
-      return std::make_unique<MovementAction<ROWS, COLS>>(data[0]);
+      return std::make_shared<MovementAction<ROWS, COLS>>(data);
 
     if (data[0] == 0x05)
-      return std::make_unique<TeleportAction<ROWS, COLS>>(data);
+      return std::make_shared<TeleportAction<ROWS, COLS>>(data);
 
     if (data[0] == 0x07)
-      return std::make_unique<PatternAction<ROWS, COLS>>(data);
+      return std::make_shared<PatternAction<ROWS, COLS>>(data);
 
-    return std::make_unique<UndefinedAction<ROWS, COLS>>();
+    return std::make_shared<UndefinedAction<ROWS, COLS>>();
   }
 };
 
