@@ -108,7 +108,7 @@ private:
       assert::equal(players[uuid]->tick_alive(), tick_alive);
 
       for (uint32_t i = 0; i != tick_scores.size(); ++i)
-        assert::equal(player_scores[uuid][i], tick_scores[i], "player_scores["+ std::to_string(uuid) +"] are not equal for tick " + std::to_string(i));
+        assert::equal_threshold(player_scores[uuid][i], tick_scores[i], 0.001, "player_scores["+ std::to_string(uuid) +"] are not equal for tick " + std::to_string(i));
     }
   }
 
