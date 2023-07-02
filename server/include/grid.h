@@ -22,7 +22,15 @@ public:
   TileMap& at(const position& pos) {
     return grid[pos.first][pos.second];
   }
-  
+
+  void serialize(std::vector<uint8_t>& buffer) {
+    serialize_value<uint32_t>(buffer, inacessible_areas.size());
+    for (auto& inacessible_tile : inacessible_areas) {
+      inacessible_areas(buffer, inacessible_tile.first);
+      inacessible_areas(buffer, inacessible_tile.second);
+    }
+  }
+
 
   std::vector<uint32_t> fill_region(player_ptr p) {
     std::vector<uint32_t> killed{};

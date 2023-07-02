@@ -132,6 +132,7 @@ public:
     serialize_value<uint32_t>(data, ROWS);
     serialize_value<uint32_t>(data, COLS);
     serialize_value<uint32_t>(data, frame());
+    grid->serialize(data);
 
     for (const auto& player : players)
       player.second->serialize(data);
