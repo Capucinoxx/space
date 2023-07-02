@@ -21,9 +21,11 @@ enum direction {
 };
 
 using position = std::pair<uint32_t, uint32_t>;
+using id = uint32_t;
+using alive = uint32_t;
 
 struct Bot {
-  uint32_t uuid; // < unique id
+  id uuid; // < unique id
   position spawn_pos;
 };
 
@@ -31,16 +33,18 @@ using action = std::pair<uint32_t, direction>;
 using actions = std::vector<action>;
 
 using scores = std::vector<double>;
+using trail_pos = std::vector<position>;
+using region_pos = std::vector<position>;
 
 struct expectation {
   uint32_t uuid;
   position pos;
 
-  uint32_t tick_alive;
+  alive tick_alive;
   scores tick_scores;
 
-  // std::vector<position> trail;
-  // std::vector<position> region;
+  trail_pos trail;
+  region_pos region;
 };
 
 using Expectations = std::vector<expectation>;
@@ -103,12 +107,15 @@ public:
 private:
   void assert_scenario_result(game_state& game, players_map players, std::unordered_map<uint32_t, std::vector<double>> player_scores) {
     for (const auto& expectation : expected_positions) {
-      auto& [uuid, pos, tick_alive, tick_scores] = expectation;
-      assert::equal(players[uuid]->pos(), pos);
-      assert::equal(players[uuid]->tick_alive(), tick_alive);
+      // auto& [uuid, pos, tick_alive, tick_scores, trail, region] = expectation;
+      assert::equal(players[expectation.uuid]->pos(), expectation.pos);
+      assert::equal(players[expectation.uuid]->tick_alive(), expectation.tick_alive);
 
-      for (uint32_t i = 0; i != tick_scores.size(); ++i)
-        assert::equal_threshold(player_scores[uuid][i], tick_scores[i], 0.001, "player_scores["+ std::to_string(uuid) +"] are not equal for tick " + std::to_string(i));
+      for (uint32_t i = 0; i != expectation.tick_scores.size(); ++i)
+        assert::equal_threshold(player_scores[expectation.uuid][i], expectation.tick_scores[i], 0.001, "player_scores["+ std::to_string(expectation.uuid) +"] are not equal for tick " + std::to_string(i));
+
+      assert::equal_unordered(players[expectation.uuid]->get_trail(), expectation.trail, "player_trail["+ std::to_string(expectation.uuid) +"] are not equal");
+      assert::equal_unordered(players[expectation.uuid]->get_region(), expectation.region, "player_region["+ std::to_string(expectation.uuid) +"] are not equal");
     }
   }
 
