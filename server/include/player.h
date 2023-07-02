@@ -200,6 +200,18 @@ public:
     region.for_each(f);
   }
 
+  std::vector<position> get_region() {
+    std::lock_guard<std::mutex> lock(mu);
+    
+    return std::vector<position>(region.get().begin(), region.get().end());
+  }
+
+  std::vector<position> get_trail() {
+    std::lock_guard<std::mutex> lock(mu);
+    
+    return std::vector<position>(trail.get().begin(), trail.get().end());
+  }
+
   template<typename F>
   void for_each_trail(F&& f) {
     trail.for_each(f);

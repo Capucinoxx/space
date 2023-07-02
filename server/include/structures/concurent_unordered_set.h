@@ -19,6 +19,11 @@ public:
     return set.insert(value).second;
   }
 
+  std::unordered_set<T, Hash>& get() {
+    std::lock_guard<std::mutex> lock(mu);
+    return set;
+  }
+
   template<typename C>
   void insert(C begin, C end) {
     std::lock_guard<std::mutex> lock(mu);
