@@ -70,6 +70,16 @@ namespace assert {
   }
 
   template<typename T, typename U>
+  void equal_threshold(const T& lhs, const U& rhs, double epsilon, const std::string& msg = "") {
+    if (std::abs(lhs - rhs) < epsilon) {
+      TestManager::get().success();
+    } else {
+      TestManager::get().failure();
+      std::cerr << "\n\tAssertion failed: " << lhs << " == " << rhs << " " << msg << std::endl;
+    }
+  }
+
+  template<typename T, typename U>
   void equal_unordered(const T& lhs, const U& rhs,  const std::string& msg = "") {
     T copy_lhs = lhs;
     U copy_rhs = rhs;
@@ -81,7 +91,16 @@ namespace assert {
       TestManager::get().success();
     } else {
       TestManager::get().failure();
-      std::cerr << "\n\tAssertion failed: two containers are not equal" << std::endl;
+      std::cerr << "\n\tAssertion failed: two containers are not equal" << " " << msg << std::endl;
+      
+      std::cerr << "\tLHS: ";
+      for (const auto& e : lhs)
+        std::cerr << e << " ";
+
+      std::cerr << "\n\tRHS: ";
+      for (const auto& e : rhs)
+        std::cerr << e << " ";
+      std::cerr << std::endl;
     }
   }
 

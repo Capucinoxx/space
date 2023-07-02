@@ -184,16 +184,23 @@ private:
         auto [statement, victim_id] = grid->at(player->pos()).step(player->id());
         if (victim_id != 0 && victim_id != player->id())
           players.find(victim_id)->second->remove_region(player->pos());
+
+        if (statement == TileMap::stmt::DEATH)
+          kill(player, players.find(victim_id)->second);
+
+        
         break;
     }
   }
 
   void kill(player_ptr murder, player_ptr victim) {
-    std::cout << "DEATH ! " << murder->id() << " KILL " << victim->id() << std::endl;
     victim->dump_info();
+
+    auto victim_id = victim->id();
+    
+    victim->for_each_region([grid = grid, victim_id](player_t::position p) { grid->at(p).reset(victim_id); });
+    victim->for_each_trail([grid = grid, victim_id](player_t::position p) { grid->at(p).reset(victim_id); });
     victim->death();
-    victim->for_each_region([this](player_t::position p) { grid->at(p).reset(); });
-    victim->for_each_trail([this](player_t::position p) { grid->at(p).reset(); });
 
     spawn_player(victim, spawn());
 
