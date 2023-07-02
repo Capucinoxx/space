@@ -109,7 +109,7 @@ public:
     spawn_player(p, spawn_position);
     players.insert(id, p);
 
-    inactive_players.insert(id);
+    // inactive_players.insert(id);
 
     return p;
   }
@@ -148,8 +148,10 @@ public:
     });
 
     for (auto& player : players) {
-      if ((ids.find(player.first) == ids.end()) && !inactive_players.contains(player.first)) {
-        play_tick(std::make_pair(player.second, std::string{}));
+      if (!inactive_players.contains(player.first)) {
+        player.second->increase_frame_alive();
+        if (ids.find(player.first) == ids.end())
+          play_tick(std::make_pair(player.second, std::string{}));
       }
     }
 
