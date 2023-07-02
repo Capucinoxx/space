@@ -38,7 +38,7 @@ public:
 
     int retry = 0;
 
-    while (position_is_valid({ x, y }) && retry++ < 10) {
+    while (!position_is_valid({ x, y }) && retry++ < 10) {
       x = dist_x(gen);
       y = dist_y(gen);
     }
@@ -52,13 +52,12 @@ public:
         auto px = pos.first + i;
         auto py = pos.second + j;
 
-        bool is_out_of_bounds = px >= ROWS || py >= COLS;
-        if (is_out_of_bounds)
-          return true;
+        if (grid->is_invalid_pos({ px, py }))
+          return false;
       }
     }
 
-    return false;
+    return true;
   }
 };
 
@@ -216,7 +215,7 @@ private:
     for (int i = -1; i != 2; ++i) {
       for (int j = -1; j != 2; ++j) {
         auto p = std::make_pair(pos.first + i, pos.second + j);
-        if (grid->is_out_of_bounds(p))
+        if (grid->is_invalid_pos(p))
           continue;
 
         auto [statement, victim_id] = grid->at(p).take(player->id());
