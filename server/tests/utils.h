@@ -30,12 +30,14 @@ struct Bot {
 using action = std::pair<uint32_t, direction>;
 using actions = std::vector<action>;
 
+using scores = std::vector<double>;
+
 struct expectation {
   uint32_t uuid;
   position pos;
 
   uint32_t tick_alive;
-  // std::vector<double> tick_scores;
+  scores tick_scores;
 
   // std::vector<position> trail;
   // std::vector<position> region;
@@ -51,14 +53,24 @@ struct Scenario {
   Ticks ticks;
   Expectations expected_positions;
 
+public:
+  using players_map = std::unordered_map<uint32_t, std::shared_ptr<Player<ROWS, COLS>>>;
+  using game_state = GameState<std::pair<std::shared_ptr<Player<ROWS, COLS>>, std::string>, ROWS, COLS>;
+
+
   void run(const std::string& name) {
     assert::it(name, [&](){
       // ----------------- sanity check
       assert::is_false(bots.empty());
-      std::unordered_map<uint32_t, std::shared_ptr<Player<ROWS, COLS>>> players{};
+      players_map players{};
 
       // ----------------- setup game
-      GameState<std::pair<std::shared_ptr<Player<ROWS, COLS>>, std::string>, ROWS, COLS> game(nullptr);
+      game_state game(nullptr);
+      std::unordered_map<uint32_t, std::vector<double>> player_scores{};
+      
+      for (uint32_t i = 0; i != bots.size(); ++i) {
+        player_scores.insert({ bots[i].uuid, {} });
+      }
 
       for (uint32_t i = 0; i != bots.size(); ++i) {
         auto& bot = bots[i];
@@ -69,30 +81,38 @@ struct Scenario {
       }
 
       // ----------------- run game
-      for (const auto& tick : scenario.ticks) {
+      for (const auto& tick : ticks) {
         for (const auto& [uuid, dir] : tick) {
           game.push({ players[uuid], std::to_string(dir) });
         }
 
         game.play_tick();
+
+        for (const auto& bot : bots) {
+          auto& player = players[bot.uuid];
+          player_scores[bot.uuid].push_back(player->score());
+        }
       }
 
       // ----------------- check results
-      assert_scenario_result(game);
-      assert_grid_and_player_has_same_context(game);
+      assert_scenario_result(game, players, player_scores);
+      assert_grid_and_player_has_same_context(game, players);
     });
   }
 
 private:
-  void assert_scenario_result(GameState<std::pair<std::shared_ptr<Player<ROWS, COLS>>, std::string>, ROWS, COLS>& game) {
-    for (const auto& expectation : scenario.expected_positions) {
-      auto& [uuid, pos, tick_alive] = expectation;
+  void assert_scenario_result(game_state& game, players_map players, std::unordered_map<uint32_t, std::vector<double>> player_scores) {
+    for (const auto& expectation : expected_positions) {
+      auto& [uuid, pos, tick_alive, tick_scores] = expectation;
       assert::equal(players[uuid]->pos(), pos);
       assert::equal(players[uuid]->tick_alive(), tick_alive);
+
+      for (uint32_t i = 0; i != tick_scores.size(); ++i)
+        assert::equal(player_scores[uuid][i], tick_scores[i], "player_scores["+ std::to_string(uuid) +"] are not equal for tick " + std::to_string(i));
     }
   }
 
-  void assert_grid_and_player_has_same_context(GameState<std::pair<std::shared_ptr<Player<ROWS, COLS>>, std::string>, ROWS, COLS>& game) {
+  void assert_grid_and_player_has_same_context(game_state& game,  players_map players) {
     std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, uint32_t>>> grid_region_context{};
     std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, uint32_t>>> grid_trail_context{};
 
