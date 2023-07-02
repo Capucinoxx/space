@@ -1,6 +1,6 @@
 from enum import IntEnum
 from dataclasses import dataclass
-from typing import Union
+from typing import List, Union
 
 import struct
 
@@ -13,8 +13,8 @@ class Direction(IntEnum):
     LEFT = 2
     RIGHT = 3
 
-    def serialize(self) -> str:
-        return chr(self.value)
+    def serialize(self) -> bytes:
+        return bytes([self.value])
 
 @dataclass
 class Teleport:
@@ -24,13 +24,20 @@ class Teleport:
     x: int
     y: int
 
-    def serialize(self) -> str:
-        return b'\x05' + struct.pack('i', self.x) + struct.pack('i', self.y)
+    def serialize(self) -> bytes:
+        return b'\x05' + struct.pack('ii', self.x, self.y)
 
+@dataclass
+class Pattern:
+    actions: List[Union[Teleport, Direction]]
+
+    def serialize(self) -> bytes:
+        serialized_actions = b''.join([action.serialize() for action in self.actions])
+        return b'\x07' + serialized_actions
 
 @dataclass
 class Action:
-    action_type: Union[Teleport, Direction]
+    action_type: Union[Teleport, Direction, Pattern]
 
-    def serialize(self) -> str:
+    def serialize(self) -> bytes:
         return self.action_type.serialize()
