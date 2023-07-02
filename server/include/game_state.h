@@ -153,7 +153,7 @@ public:
 
     for (auto& player : players) {
       if (ids.find(player.first) == ids.end() && !inactive_players.contains(player.first)) {
-        auto res = player.second->perform(frame());
+        auto res = player.second->play_deconnected_action(frame());
         handle_move_result(player.second, res);
       }
     }
