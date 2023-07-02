@@ -150,7 +150,8 @@ public:
     last_frame_played = frame;
     ++frame_alive;
 
-    auto new_pos = RetrieveAction<ROWS, COLS>()(payload, current_pos);
+    auto action = RetrieveAction<ROWS, COLS>()(payload, current_pos);
+    auto new_pos = action->perform(current_pos);
 
     if (new_pos == pos()) {
       std::cout << "IDLE" << std::endl;

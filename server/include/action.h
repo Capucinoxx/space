@@ -8,6 +8,8 @@
 template <uint32_t ROWS, uint32_t COLS>
 class Action {
 public:
+  Action() = default;
+
   virtual std::pair<uint32_t, uint32_t> perform(const std::pair<uint32_t, uint32_t>& pos) const noexcept = 0;
   virtual ~Action() = default;
 };
@@ -82,6 +84,16 @@ private:
   }
 };
 
+template<uint32_t ROWS, uint32_t COLS>
+class PatternAction : public Action<ROWS, COLS> {
+public:
+  PatternAction(const std::string& data) {}
+
+  std::pair<uint32_t, uint32_t> perform(const std::pair<uint32_t, uint32_t>& pos) const noexcept {
+    return pos;
+  }
+};
+
 template <uint32_t ROWS, uint32_t COLS>
 class UndefinedAction : public Action<ROWS, COLS> {
 public:
@@ -93,17 +105,17 @@ public:
 
 template <uint32_t ROWS, uint32_t COLS>
 struct RetrieveAction {
-  std::pair<uint32_t, uint32_t> operator()(const std::string& data, const std::pair<uint32_t, uint32_t>& pos) const noexcept {
+  std::unique_ptr<Action<ROWS, COLS>> operator()(const std::string& data, const std::pair<uint32_t, uint32_t>& pos) const noexcept {
     if (data.empty()) 
-      return UndefinedAction<ROWS, COLS>().perform(pos);
+      return std::make_unique<UndefinedAction<ROWS, COLS>>();
 
     if (data[0] <= 0x03)
-      return MovementAction<ROWS, COLS>(data[0]).perform(pos);
+      return std::make_unique<MovementAction<ROWS, COLS>>(data[0]);
 
     if (data[0] == 0x05)
-      return TeleportAction<ROWS, COLS>(data).perform(pos);
+      return std::make_unique<TeleportAction<ROWS, COLS>>(data);
 
-    return UndefinedAction<ROWS, COLS>().perform(pos);
+    return std::make_unique<UndefinedAction<ROWS, COLS>>();
   }
 };
 
