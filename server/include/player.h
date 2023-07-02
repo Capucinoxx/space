@@ -89,6 +89,11 @@ public:
     last_region_size_ttl = size;
   }
 
+  void update_pattern(const std::vector<std::shared_ptr<Action<ROWS, COLS>>>& new_pattern) {
+    std::lock_guard<std::mutex> lock(mu);
+
+    deconnected_actions = new_pattern;
+  }
 
   void append_region(const std::vector<position>& new_region) {
     std::lock_guard<std::mutex> lock(mu);
