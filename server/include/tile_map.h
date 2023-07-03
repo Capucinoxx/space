@@ -21,7 +21,7 @@ public:
 
     auto old_owner = current_owner;
 
-    if (stepping || (current_owner != id && current_owner != 0)) {
+    if (stepping && current_owner != id && current_owner != 0) {
       current_owner = id;
       stepping = true;
       return { stmt::DEATH, old_owner };
