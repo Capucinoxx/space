@@ -34,8 +34,8 @@ canvas {
 .sidebar-container {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
+  padding-right: 4px;
 
   padding-bottom: 48px;
   padding-top: 32px;
@@ -85,6 +85,12 @@ canvas {
   grid-template-columns: repeat(auto-fill, minmax(297px, 1fr));
   grid-gap: 24px;
   align-items: stretch;
+}
+
+.grid-item {
+  display: flex;
+  justify-items: center;
+  align-items: center;
 }
 
 @media only screen and (max-width: 600px) {
@@ -155,6 +161,7 @@ canvas {
   margin-top: 15px;
   max-height: 100%;
   overflow: auto;
+  
 }
 
 .score {
