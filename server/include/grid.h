@@ -34,8 +34,8 @@ public:
     }
   }
 
-  std::vector<uint32_t> fill_region(player_ptr p) {
-    std::vector<uint32_t> killed{};
+  std::unordered_set<uint32_t> fill_region(player_ptr p) {
+    std::unordered_set<uint32_t> killed{};
     std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash> trail{};
 
     std::size_t tile_coverage = 0;
@@ -90,7 +90,7 @@ public:
         }
 
         p->append_region(res.second);
-        killed.insert(killed.end(), res.first.begin(), res.first.end());
+        killed.insert(res.first.begin(), res.first.end());
 
         neighbors.push_back({ px, py });
       }
@@ -119,17 +119,13 @@ private:
       auto pos = neighbors.back();
       neighbors.pop_back();
 
-      if (is_invalid_pos(pos)) {
-        std::cout << "invalid pos " << pos.first << " " << pos.second << std::endl;
+      if (is_invalid_pos(pos))
         return { {}, {} };
-      }
 
       if (been[pos.first][pos.second] || at(pos).owner() == self_id)
         continue;
 
       been[pos.first][pos.second] = true;
-
-      
       filled.push_back(pos);
 
       neighbors.push_back({ pos.first + 1, pos.second });
@@ -140,11 +136,10 @@ private:
 
     std::unordered_set<uint32_t> killed{};
 
-      for (auto& pos : filled) {
-        auto [statement, old_owner] = grid[pos.first][pos.second].take(self_id);
-        if (statement == TileMap::stmt::DEATH)
-          killed.insert(old_owner);
-      }
+    for (auto& pos : filled) {
+      auto [statement, old_owner] = grid[pos.first][pos.second].take(self_id);
+      if (statement == TileMap::stmt::DEATH)
+        killed.insert(old_owner);
     }
 
     return { killed, filled };
