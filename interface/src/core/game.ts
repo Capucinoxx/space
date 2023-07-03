@@ -90,19 +90,14 @@ class Deserializer {
       result.inacessible_tile.push({x: this.deserialize_int(), y: this.deserialize_int()});
 
     const length = data.length;
-    console.log("received data length: " + length);
-
     while (this.offset < length) {      
       const [name, color, pos, trail, region] = this.deserialize_player();
-      console.log({name, color, pos, trail, region});
       result.names.push(name.trim());
       result.colors.push(color);
       result.positions.push(pos);
       result.trails.push(trail);
       result.regions.push(region);
       result.regions_length.push(region.length);
-
-      console.log("offset: " + this.offset + " length: " + length);
     }
 
     return result;
@@ -155,7 +150,7 @@ class BoardGame {
     const { ctx, cell_size } = this.canvas;
 
     for (let i = 0; i != this.data!.trails.length; i++) {
-      ctx.fillStyle = this.data!.colors[i].adjust_luminosity(0.74).to_rgba(0.95);
+      ctx.fillStyle = this.data!.colors[i].adjust_luminosity(0.74).to_rgba(0.8);
 
       this.data!.trails[i].forEach(pos => ctx.fillRect(pos.x * cell_size, pos.y * cell_size, cell_size, cell_size));
     }
