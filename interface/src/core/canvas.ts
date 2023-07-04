@@ -23,14 +23,14 @@ class Canvas {
     this.canvas = canvas;
     this.canvas_ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-    this.max_width = window.innerWidth * 0.8;
-    this.max_height = window.innerHeight;
+    this.max_width = this.canvas.parentElement!.clientWidth;
+    this.max_height = this.canvas.parentElement!.clientHeight - 150;
 
     this.render();
 
     window.addEventListener('resize', () => {
-      this.max_width = window.innerWidth * 0.8;
-      this.max_height = window.innerHeight;
+      this.max_width = this.canvas.parentElement!.clientWidth;
+      this.max_height = this.canvas.parentElement!.clientHeight - 150;
       this.render();
     });
   }
