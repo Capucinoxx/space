@@ -112,12 +112,14 @@ class BoardGame {
 
   private canvas: Canvas;
   private scoreboard: HTMLElement;
+  private vancant_tile: HTMLElement;
 
   private data: BoardgameData | undefined = undefined;
 
-  constructor(canvas: Canvas, scoreboard: HTMLElement) {
+  constructor(canvas: Canvas, scoreboard: HTMLElement, vancant_tile: HTMLElement) {
     this.canvas = canvas;
     this.scoreboard = scoreboard;
+    this.vancant_tile = vancant_tile;
   }
 
   public render(message: ArrayBuffer): void {
@@ -192,10 +194,13 @@ class BoardGame {
   private render_scoreboard = (sorted_idx: Array<number>): void => {
     const { names, colors } = this.data!;
 
+    let occupied_tiles = 0;
+
     this.scoreboard.replaceChildren(...sorted_idx.reduce((scores, idx): Array<HTMLElement> => {
       const name = names[idx];
       const color = colors[idx];
       const score = this.data!.regions_length[idx] / (this.data!.rows * this.data!.cols) * 100;
+      occupied_tiles += this.data!.regions_length[idx];
 
       const div = document.createElement('div');
       div.classList.add('score');
@@ -213,6 +218,8 @@ class BoardGame {
 
       return [...scores, div];
     }, [] as Array<HTMLElement>));
+
+    this.vancant_tile.textContent = `${(100 - occupied_tiles / (this.data!.rows * this.data!.cols) * 100).toFixed(2)}%`;
   };
 };
 

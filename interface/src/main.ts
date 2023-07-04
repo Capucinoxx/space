@@ -33,8 +33,9 @@ register_form.onsubmit = (e: SubmitEvent) => {
 // ==================================================
 const board = document.getElementById('game-canvas') as HTMLCanvasElement;
 const scoreboard = document.getElementById('scores') as HTMLElement;
+const vacant_tile = document.getElementById('vacant-tile') as HTMLElement;
 
 const canvas = new Canvas(board);
-const game = new BoardGame(canvas, scoreboard);
+const game = new BoardGame(canvas, scoreboard, vacant_tile);
 const ws = new WebsocketService('ws://localhost:8080/spectate');
 ws.subscribe((data: ArrayBuffer) => game.render(data));
