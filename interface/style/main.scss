@@ -25,6 +25,7 @@ canvas {
   display: grid;
   grid-template-rows: 150px auto;
   gap: 10px;
+  justify-content: center;
 }
 
 .jdis-header {
