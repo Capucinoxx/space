@@ -76,6 +76,12 @@ public:
   position pos() const noexcept            { return current_pos; }
   uint32_t tick_alive() const noexcept { return frame_alive; }
 
+  void clear() {
+    last_frame_played = 0;
+    region.clear();
+    region.clear();
+  }
+
   void remove_region(const position& pos) {
     std::lock_guard<std::mutex> lock(mu);
 

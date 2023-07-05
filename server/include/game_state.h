@@ -220,13 +220,19 @@ public:
 
       default:
         break;
-    }
-
-    
+    }   
   }
 
   TileMap& cell(player_t::position pos) const {
     return grid->at(pos);
+  }
+
+  void clear() {
+    grid->clear();
+    for (auto& player : players)
+      player.second->clear();
+
+    inactive_players.clear();
   }
 
 private:

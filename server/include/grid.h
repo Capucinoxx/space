@@ -22,6 +22,12 @@ private:
 public:
   Grid() = default;
 
+  void clear() {
+    for (auto& row : grid)
+      for (auto& tile : row)
+        tile.clear();
+  }
+
   TileMap& at(const position& pos) {
     return grid[pos.first][pos.second];
   }
