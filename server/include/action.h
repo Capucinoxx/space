@@ -94,11 +94,13 @@ private:
 template<uint32_t ROWS, uint32_t COLS>
 class PatternAction : public Action<ROWS, COLS> {
 public:
+  static constexpr uint32_t MAX_ACTIONS = 20;
+
   PatternAction(const std::string& data) {
     std::size_t count = 0;
     std::size_t offset = length();
 
-    while (offset < data.size() && count < 5) {
+    while (offset < data.size() && count < MAX_ACTIONS) {
       auto action = RetrieveAction<ROWS, COLS>{}(data.substr(offset));
       offset += action->length();
       actions.push_back(std::move(action));
