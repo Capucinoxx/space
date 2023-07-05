@@ -16,11 +16,10 @@
 #include <shared_mutex>
 #include <vector>
 #include <algorithm>
+#include <variant>
 
 #include "game_state.h"
 #include "player.h"
-
-
 
 std::shared_mutex ws_connections_mu;
 
@@ -28,6 +27,41 @@ namespace beast = boost::beast;
 namespace http = beast::http;
 namespace websocket = beast::websocket;
 namespace net = boost::asio;
+
+beast::string_view mime_type(beast::string_view path) {
+  using beast::iequals;
+  auto const ext = [&path]{
+    auto const pos = path.rfind(".");
+    if(pos == beast::string_view::npos)
+      return beast::string_view{};
+    return path.substr(pos);
+  }();
+  
+  if(iequals(ext, ".js"))   return "application/javascript";
+  if(iequals(ext, ".html")) return "text/html";
+  if(iequals(ext, ".css"))  return "text/css";
+  if(iequals(ext, ".txt"))  return "text/plain";
+  if(iequals(ext, ".png"))  return "image/png";
+  if(iequals(ext, ".jpeg")) return "image/jpeg";
+  if(iequals(ext, ".jpg"))  return "image/jpeg";
+  if(iequals(ext, ".gif"))  return "image/gif";
+  if(iequals(ext, ".svg"))  return "image/svg+xml";
+  return "application/text";
+}
+
+std::string path_cat(beast::string_view base, beast::string_view path) {
+  if (base.empty())
+    return std::string(path);
+  
+  std::string result(base);
+
+  char constexpr path_separator = '/';
+  if (result.back() == path_separator)
+    result.resize(result.size() - 1);
+  result.append(path.data(), path.size());
+  return result;
+}
+
 
 bool is_post(http::request<http::string_body>& req) noexcept { return req.method() == http::verb::post; }
 bool is_get(http::request<http::string_body>& req) noexcept  { return req.method() == http::verb::get; }
@@ -184,17 +218,16 @@ private:
         auto resp = it->second(request);
         status = resp.first;
         body = resp.second;
-      } else {
-        status = http::status::not_found;
-        body = "The resource '" + request.target().to_string() + "' was not found.";
-      }
 
-      http::response<http::string_body> response(status, request.version());
+        http::response<http::string_body> response(status, request.version());
       prepare_http_response(request, response, body);
 
       beast::error_code ec;
       http::write(socket, std::move(response), ec);
       socket.shutdown(tcp::socket::shutdown_send, ec);
+      } else {
+        handle_http_request();
+      }
     }
 
     void upgrade_websocket() {
@@ -204,6 +237,84 @@ private:
         if (!ec)
           handle_websocket_upgrade(ws);
       });
+    }
+
+    void handle_http_request() {
+      std::cout << "Handle http request" << std::endl;
+      auto const bad_request = [this](beast::string_view why) {
+        http::response<http::string_body> res{ http::status::bad_request, request.version() };
+        res.set(http::field::server, "Space");
+        res.set(http::field::content_type, "text/html");
+        res.keep_alive(request.keep_alive());
+        res.body() = std::string(why);
+        res.prepare_payload();
+        return res;
+      };
+
+      auto const not_found = [this](beast::string_view target) {
+        http::response<http::string_body> res{ http::status::not_found, request.version() };
+        res.set(http::field::server, "Space");
+        res.set(http::field::content_type, "text/html");
+        res.keep_alive(request.keep_alive());
+        res.body() = "The resource '" + std::string(target) + "' was not found.";
+        res.prepare_payload();
+        return res;
+      };
+
+      auto const server_error = [this](beast::string_view what) {
+        http::response<http::string_body> res{ http::status::internal_server_error, request.version() };
+        res.set(http::field::server, "Space");
+        res.set(http::field::content_type, "text/html");
+        res.keep_alive(request.keep_alive());
+        res.body() = "An error occurred: '" + std::string(what) + "'";
+        res.prepare_payload();
+        return res;
+      };
+
+      auto const write = [this](auto&& response) {
+        beast::error_code ec;
+        http::write(socket, response, ec);
+        socket.shutdown(tcp::socket::shutdown_send, ec);
+      };
+
+      if (request.method() != http::verb::get && request.method() != http::verb::head)
+        return write(bad_request("Unknown HTTP-method"));
+
+      if (request.target().empty() || request.target()[0] != '/' || request.target().find("..") != beast::string_view::npos)
+        return write(bad_request("Illegal request-target"));
+
+      std::string path = path_cat("dist", request.target());
+
+      if (request.target().back() == '/')
+        path.append("index.html");
+
+      beast::error_code ec;
+      http::file_body::value_type body;
+      body.open(path.c_str(), beast::file_mode::scan, ec);
+
+      if (ec == beast::errc::no_such_file_or_directory)
+        return write(not_found(request.target()));
+
+      if (ec)
+        return write(server_error(ec.message()));
+
+      auto const size = body.size();
+
+      if (request.method() == http::verb::head) {
+        http::response<http::empty_body> res{ http::status::ok, request.version() };
+        res.set(http::field::server, "Space");
+        res.set(http::field::content_type, mime_type(path));
+        res.content_length(size);
+        res.keep_alive(request.keep_alive());
+        return write(res);
+      }
+
+      http::response<http::file_body> res{ std::piecewise_construct, std::make_tuple(std::move(body)), std::make_tuple(http::status::ok, request.version()) };
+      res.set(http::field::server, "Space");
+      res.set(http::field::content_type, mime_type(path));
+      res.content_length(size);
+      res.keep_alive(request.keep_alive());
+      return write(res);
     }
 
     void handle_websocket_upgrade(ws_stream_ptr ws) {
