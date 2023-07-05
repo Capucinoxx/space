@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build-ts": "tsc",
-    "build-sass": "sass",
+    "build-sass": "sass .:/dist/style",
     "watch-ts": "tsc --watch",
     "watch-scss": "sass style:dist --watch",
     "watch-http": "es-dev-server --app-index index.html --node-resolve --watch --open",

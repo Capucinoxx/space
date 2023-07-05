@@ -2,8 +2,7 @@ version: '3.4'
 
 services:
   server:
-    build:
-      context: ./server
+    build: .
     ports:
       - 8080:8080
     depends_on:
