@@ -95,7 +95,6 @@ template<uint32_t ROWS, uint32_t COLS>
 class PatternAction : public Action<ROWS, COLS> {
 public:
   PatternAction(const std::string& data) {
-    std::cout << "PAttern action" << std::endl;
     std::size_t count = 0;
     std::size_t offset = length();
 
