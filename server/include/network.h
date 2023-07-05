@@ -240,7 +240,6 @@ private:
     }
 
     void handle_http_request() {
-      std::cout << "Handle http request" << std::endl;
       auto const bad_request = [this](beast::string_view why) {
         http::response<http::string_body> res{ http::status::bad_request, request.version() };
         res.set(http::field::server, "Space");
@@ -283,7 +282,7 @@ private:
       if (request.target().empty() || request.target()[0] != '/' || request.target().find("..") != beast::string_view::npos)
         return write(bad_request("Illegal request-target"));
 
-      std::string path = path_cat("dist", request.target());
+      std::string path = path_cat("interface", request.target());
 
       if (request.target().back() == '/')
         path.append("index.html");
