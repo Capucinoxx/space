@@ -171,32 +171,31 @@ private:
     }
 
     void handle_request() {
-  if (websocket::is_upgrade(request)) {
-    upgrade_websocket();
-    return;
-  }
+      if (websocket::is_upgrade(request)) {
+        upgrade_websocket();
+        return;
+      }
 
- 
-  http::status status;
-  std::string body;  
+      http::status status;
+      std::string body;  
 
-  auto it = server.http_endpoints.find(request.target().to_string());
-    if (it != server.http_endpoints.end()) {
-      auto resp = it->second(request);
-      status = resp.first;
-      body = resp.second;
-    } else {
-      status = http::status::not_found;
-      body = "The resource '" + request.target().to_string() + "' was not found.";
+      auto it = server.http_endpoints.find(request.target().to_string());
+      if (it != server.http_endpoints.end()) {
+        auto resp = it->second(request);
+        status = resp.first;
+        body = resp.second;
+      } else {
+        status = http::status::not_found;
+        body = "The resource '" + request.target().to_string() + "' was not found.";
+      }
+
+      http::response<http::string_body> response(status, request.version());
+      prepare_http_response(request, response, body);
+
+      beast::error_code ec;
+      http::write(socket, std::move(response), ec);
+      socket.shutdown(tcp::socket::shutdown_send, ec);
     }
-
-  http::response<http::string_body> response(status, request.version());
-  prepare_http_response(request, response, body);
-
-  beast::error_code ec;
-  http::write(socket, std::move(response), ec);
-  socket.shutdown(tcp::socket::shutdown_send, ec);
-}
 
     void upgrade_websocket() {
       auto ws = std::make_shared<websocket::stream<tcp::socket>>(std::move(socket));
