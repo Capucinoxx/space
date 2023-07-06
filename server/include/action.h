@@ -102,6 +102,10 @@ public:
 
     while (offset < data.size() && count < MAX_ACTIONS) {
       auto action = RetrieveAction<ROWS, COLS>{}(data.substr(offset));
+      if (auto pattern = dynamic_cast<PatternAction<ROWS, COLS>*>(action.get()); pattern != nullptr) {
+        actions.clear();
+        return;
+      }
       offset += action->length();
       actions.push_back(std::move(action));
       ++count;
