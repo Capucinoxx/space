@@ -1,64 +1,54 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-
-  <title>JDIS Games 2023</title>
-  <meta name="description" content="">
-  <meta name="author" content="">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JIS Games 2023</title>
 
   <link rel="stylesheet" href="dist/main.css">
 </head>
-
 <body>
   <div id='container'>
     <section class='game-container'>
-        <div class='jdis-header'></div>
+      <!-- games tabs -->
+      <div class='games-tabs'>
         <nav id='game-nav'>
           <ul>
-            <li class='active'><div data-channel='ranked'>RANK</div></li>
-            <li><div data-channel='unranked'>UNRANK</div></li>
+            <li class='active'>
+              <div data-channel='ranked'>RANK</div>
+            </li>
+            <li>
+              <div data-channel='unranked'>UNRANK</div>
+            </li>
           </ul>
         </nav>
-        <canvas id='game-canvas'></canvas>
-    </section>
-
-    <section class='sidebar-container'>
-      <div id='scores'>
-
       </div>
-      <div id='vacant-tile'></div>
-      <div>
-        <button class='btn btn-primary' id='register-modal-open'>Inscription</button>
+
+      <!-- game canvas -->
+      <canvas id='game-canvas'></canvas>
+    </section>
+    <section class='navbar-container'>
+      <!-- logo compétition -->
+      <div class='jdis-header__container'>
+        <img src='assets/jdis-header.png' alt='JDIS Games 2023' class='jdis-header__logo'>
+      </div>
+
+      <!-- map possession table -->
+      <div id='posessions'>
+        <div class='posession' style='color: #F86969'>
+          <span>Joueur 1</span>
+          <span>0</span>
+        </div>
+      </div>
+
+      <!-- non occupied tiles -->
+      <div class='vacant-tile__container'>
+        Tuiles vacantes
+        <div id='vacant-tile'></div>
       </div>
     </section>
   </div>
 
-  <section class='modal' id='register-modal'>
-    <div class='card'>
-      <button id='register-modal-close'>x</button>
-      <div class='card-title'>Inscription d'agent</div>
-      <form class='grid'>
-        <div class='form-group'>
-          <label form='name'>Nom d'équipe</label>
-          <input type='text' name='name' id='name' maxlength='15' class='form-control'>
-        </div>
-
-        <div class='form-group'>
-          <label form='name'>Couleur</label>
-          <input type='color' name='color' id='color' class='form-control'>
-        </div>
-
-        <div class='flex flex-end full'>
-          <button class='btn btn-primary'>Je m'enregistre</button>
-        </div>
-      </form>
-    </div>
-  </section>
-
   <script type="module" src="dist/main.js"></script>
 </body>
-
 </html>
