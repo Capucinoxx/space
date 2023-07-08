@@ -223,4 +223,69 @@ class BoardGame {
   };
 };
 
-export { BoardGame }
+class Game {
+  private pos: number = 0;
+  private width: number = 0;
+  private active_channel_element: HTMLElement | undefined = undefined;
+  private line: HTMLElement | undefined = undefined;
+
+  constructor(container: HTMLElement) {
+    this.add_line(container);
+    this.get_default_channel(container);
+    this.add_event_listener(container);
+  }
+
+  private add_line = (container: HTMLElement): void => {
+    this.line = document.createElement('div');
+    this.line.classList.add('line');
+    container.appendChild(this.line);
+  };
+
+  private get_default_channel(container: HTMLElement): HTMLElement | undefined {
+    const active = (container.querySelector('.active') as HTMLElement | undefined);
+    if (active === undefined)
+      return undefined;
+    
+    this.pos = active.offsetLeft;
+    this.width = active.offsetWidth;
+    this.line!.style.left = `${this.pos}px`;
+    this.line!.style.width = `${this.width}px`;
+
+    return active;
+  }
+
+  private add_event_listener = (container: HTMLElement): void => {
+    const channels = container.querySelectorAll('ul li div');
+    channels.forEach((channel: Element) => {
+      channel.addEventListener('click', this.handle_tab_change);
+    });
+  };
+
+  private handle_tab_change = (e: Event): void => {
+    e.preventDefault();
+
+    const target = e.target as HTMLElement;
+    const parent = target.parentNode as HTMLElement;
+
+    if (!parent.classList.contains('active')) {
+      const position = parent.offsetWidth;
+      const width = target.offsetWidth;
+
+      if (position >= this.pos) {
+        this.animate_line(position - this.pos + width, position);
+      } else {
+        this.animate_line(this.pos - position + this.width, position);
+      }
+    }
+
+    const channel = target.dataset.channel;
+    console.log(channel);
+  };
+
+  private animate_line(width: number, pos: number) {
+    this.line!.style.width = `${width}px`;
+    this.line!.style.left = `${pos}px`;
+  }
+};
+
+export { BoardGame, Game };
