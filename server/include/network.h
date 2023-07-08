@@ -12,14 +12,17 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <unordered_map>
 #include <thread>
 #include <shared_mutex>
 #include <vector>
 #include <algorithm>
 #include <variant>
+#include <string_view>
 
 #include "game_state.h"
 #include "player.h"
+#include "utils.h"
 
 std::shared_mutex ws_connections_mu;
 
@@ -122,8 +125,9 @@ private:
   std::map<std::string, http_handler> http_endpoints;
   std::map<std::string, ws_handler>   ws_endpoints;
 
-  std::unordered_set<ws_stream_ptr> ws_connections{};
+  std::unordered_map<std::string, std::unordered_set<ws_stream_ptr>> ws_connections{};
   std::vector<std::thread> thread_pool;
+
 
 public:
   explicit Server(short unsigned int port, std::size_t thread_pool_size = 4)
@@ -132,8 +136,9 @@ public:
     };
 
   ~Server() {
-    for (const auto& ws : ws_connections)
-      ws->close(websocket::close_code::normal);
+    for (auto& connections : ws_connections)
+      for (auto& ws : connections.second)
+        ws->close(websocket::close_code::normal);
 
     ioc.stop();
 
@@ -159,9 +164,14 @@ public:
     ws_endpoints[path] = handler;
   }
 
-  void broadcast_websocket_message(const std::vector<uint8_t>& message) {
+  void broadcast_websocket_message(const std::string& channel, const std::vector<uint8_t>& message) {
     std::shared_lock<std::shared_mutex> lock(ws_connections_mu);
-    for (auto& ws : ws_connections) {
+
+    auto it = ws_connections.find(channel);
+    if (it == ws_connections.end())
+      return;
+
+    for (auto& ws : it->second) {
       if (ws->is_open()) {
         ws->binary(true);
         ws->async_write(net::buffer(message), [](beast::error_code ec, std::size_t) {});
@@ -321,25 +331,32 @@ private:
       if (it != server.ws_endpoints.end()) {
         handler = it->second();
         if (handler->on_open(ws, request)) {
+          auto channel = std::string(retrieve_channel(request.target().to_string()));
+
           std::unique_lock<std::shared_mutex> lock(ws_connections_mu);
-          server.ws_connections.insert(ws);
+          if (server.ws_connections.find(channel) == server.ws_connections.end())
+            server.ws_connections[channel] = std::unordered_set<ws_stream_ptr>();
+
+          std::cout << "New connection on channel " << channel << std::endl;
+
+          server.ws_connections[channel].insert(ws);
 
           if (handler->handle_message())
-            handle_websocket_message(ws);
+            handle_websocket_message(channel, ws);
         }
       } else
         ws->async_close(websocket::close_code::normal, [](beast::error_code ec) {});
     }
 
-    void handle_websocket_message(ws_stream_ptr ws) {
-      ws->async_read(buffer, [this, ws, self = shared_from_this()](beast::error_code ec, std::size_t) {
+    void handle_websocket_message(const std::string& channel, ws_stream_ptr ws) {
+      ws->async_read(buffer, [this, channel, ws, self = shared_from_this()](beast::error_code ec, std::size_t) {
         if (!ec) {
           handler->on_message(beast::buffers_to_string(buffer.data()));
           buffer.consume(buffer.size());
-          handle_websocket_message(ws);
+          handle_websocket_message(channel, ws);
         } else {
           std::unique_lock<std::shared_mutex> lock(ws_connections_mu);
-          server.ws_connections.erase(ws);
+          server.ws_connections[channel].erase(ws);
           handler->on_close();
         }
       });

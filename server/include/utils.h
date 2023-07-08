@@ -12,6 +12,7 @@
 #include <chrono>
 #include <iomanip>
 #include <ctime>
+#include <string_view>
 
 template<typename T>
 void serialize_value(std::vector<uint8_t>& data, const T& value) {
@@ -72,6 +73,18 @@ std::size_t count_unicode_chars(const std::string& str) {
   }
 
   return count;
+}
+
+std::string_view retrieve_channel(const std::string& str) {
+  std::size_t start = str.find_first_of('/');
+  if (start == std::string::npos)
+    return std::string_view();
+
+  std::size_t end = str.find_first_of('/', start + 1);
+  if (end == std::string::npos)
+    return std::string_view();
+
+  return std::string_view(str.data() + start + 1, end - start - 1);
 }
 
 uint64_t parse_string_to_epoch(const std::string& str) {

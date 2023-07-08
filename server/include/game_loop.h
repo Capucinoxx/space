@@ -23,16 +23,16 @@ public:
     : state(std::move(state)) { }
 
   template<typename Callback>
-  void start(Callback* object, void (Callback::*callback)(const std::vector<uint8_t>&)) { 
+  void start(Callback* object, void (Callback::*callback)(const std::string&, const std::vector<uint8_t>&), const std::string& channel) { 
     if (is_running())
       return;
 
     running.store(true);
 
-    th = std::thread([object, callback, this]() {
+    th = std::thread([object, callback, channel, this]() {
       while (is_running()) {
         auto data = state->serialize();
-        (object->*callback)(data);
+        (object->*callback)(channel, data);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(TICK));
 
