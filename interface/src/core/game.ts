@@ -203,9 +203,8 @@ class BoardGame {
       occupied_tiles += this.data!.regions_length[idx];
 
       const div = document.createElement('div');
-      div.classList.add('score');
+      div.classList.add('posession');
       div.style.color = color.to_rgba(1);
-      div.style.textShadow = `0 0 ${this.shadow_offset}px ${color.adjust_luminosity(0.5).to_rgba(1)}`;
       
       const span_name = document.createElement('span');
       span_name.innerText = name;
@@ -219,7 +218,7 @@ class BoardGame {
       return [...scores, div];
     }, [] as Array<HTMLElement>));
 
-    this.vancant_tile.textContent = `${(100 - occupied_tiles / (this.data!.rows * this.data!.cols) * 100).toFixed(2)}%`;
+    this.vancant_tile.textContent = `${(this.data!.rows * this.data!.cols) - occupied_tiles}`;
   };
 };
 
