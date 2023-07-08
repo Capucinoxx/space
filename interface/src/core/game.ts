@@ -231,7 +231,7 @@ class Game {
 
   constructor(container: HTMLElement) {
     this.add_line(container);
-    this.get_default_channel(container);
+    this.active_channel_element = this.get_default_channel(container);
     this.add_event_listener(container);
   }
 
@@ -268,23 +268,40 @@ class Game {
     const parent = target.parentNode as HTMLElement;
 
     if (!parent.classList.contains('active')) {
-      const position = parent.offsetWidth;
-      const width = target.offsetWidth;
+      this.active_channel_element!.classList.remove('active');
+      parent.classList.add('active');
+      this.active_channel_element = parent;
 
-      if (position >= this.pos) {
-        this.animate_line(position - this.pos + width, position);
-      } else {
-        this.animate_line(this.pos - position + this.width, position);
-      }
+      this.animate_line(target);
+
+      const channel = target.dataset.channel;
     }
-
-    const channel = target.dataset.channel;
-    console.log(channel);
   };
 
-  private animate_line(width: number, pos: number) {
-    this.line!.style.width = `${width}px`;
-    this.line!.style.left = `${pos}px`;
+  private animate_line(target: HTMLElement): void {
+    const position = target.offsetLeft;
+    const width = target.offsetWidth;
+
+    this.line!.style.width = this.width + 'px';
+    this.line!.style.left = this.pos + 'px';
+
+    this.line!.style.transition = 'none';
+    void this.line!.offsetWidth;
+
+    this.line!.style.transition = 'width 300ms ease, left 300ms ease';
+
+    this.line!.style.width = width + 'px';
+    this.line!.style.left = position + 'px';
+
+    target.classList.add('active');
+
+    const transitionEndHandler = () => {
+      this.line!.removeEventListener('transitionend', transitionEndHandler);
+    };
+    this.line!.addEventListener('transitionend', transitionEndHandler);
+    
+    this.pos = position;
+    this.width = width;
   }
 };
 
