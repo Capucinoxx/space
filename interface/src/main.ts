@@ -32,7 +32,7 @@ import { Canvas } from './core/canvas';
 // Game management
 // ==================================================
 const board = document.getElementById('game-canvas') as HTMLCanvasElement;
-const scoreboard = document.getElementById('scores') as HTMLElement;
+const scoreboard = document.getElementById('posessions') as HTMLElement;
 const vacant_tile = document.getElementById('vacant-tile') as HTMLElement;
 
 const canvas = new Canvas(board);
