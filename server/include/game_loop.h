@@ -6,7 +6,7 @@
 #include <type_traits>
 #include <utility>
 
-template<typename T, std::size_t TICK, std::size_t ROWS, std::size_t COLS>
+template<typename T, std::size_t TICK, std::size_t MAX_TICK, std::size_t ROWS, std::size_t COLS>
 class GameLoop {
   static_assert(std::is_same<T, std::pair<typename T::first_type, typename T::second_type>>::value, "T must be a pair");
   static_assert(std::is_same<typename T::first_type, std::shared_ptr<Player<ROWS, COLS>>>::value,
