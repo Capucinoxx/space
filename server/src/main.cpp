@@ -9,42 +9,54 @@
 #include "handlers/scoreboard_handler.h"
 #include <atomic>
 
+constexpr std::size_t rows = 100;
+constexpr std::size_t cols = 100;
+constexpr std::size_t tick = 100;
+
+using player_ptr = std::shared_ptr<Player<rows, cols>>;
+using action_t = std::pair<player_ptr, std::string>;
+
+using game_loop_ptr = std::shared_ptr<GameLoop<action_t, tick, rows, cols>>;
+
+game_loop_ptr create_game(const std::string& endpoint, Server& server, std::shared_ptr<PostgresConnector> postgres) {
+  auto game_state = std::make_shared<GameState<action_t, rows, cols>>(postgres);
+  auto game_loop = std::make_shared<GameLoop<action_t, tick, rows, cols>>(game_state);
+
+  GameHandle<rows, cols>(game_state, postgres)(server, endpoint);
+
+  auto spectate_handler = [&game_loop](){ return std::make_unique<SpectateHandler>(); };
+  server.add_ws_endpoint(endpoint + "/spectate", spectate_handler);
+
+  return game_loop;
+}
+
+
 int main() {
   Config cfg = load_config(".env");
 
   auto postgres = PostgresConnector::get_instance(cfg);
-
   if (!postgres->connected()) {
     std::cerr << "Failed to connect to database" << std::endl;
     return 1;
   }
 
-  constexpr std::size_t rows = 100;
-  constexpr std::size_t cols = 100;
-
   Server server(8080);
 
+  auto ranked = create_game("/ranked", server, postgres);
+  auto unranked = create_game("/unranked", server, postgres);
 
-  using player_ptr = std::shared_ptr<Player<rows, cols>>;
-  using action_t = std::pair<player_ptr, std::string>;
-
-  auto game_state = std::make_shared<GameState<action_t, rows, cols>>(postgres);
-  auto game_loop = std::make_shared<GameLoop<action_t, 100, rows, cols>>(game_state);
-
-  SubscriptionHandle<rows, cols>(game_state, postgres)(server);
-  GameHandle<rows, cols>(game_state, postgres)(server);
+  (SubscriptionHandle<action_t, rows, cols>(postgres))(server);
   (ScoreboardHandle<rows, cols>(postgres))(server);
 
-  auto spectate_handler = [&game_loop](){ return std::make_unique<SpectateHandler>(); };
-  server.add_ws_endpoint("/spectate", spectate_handler);
-
   server.add_http_endpoint("/start_game", [&](Server::http_request req) -> std::pair<http::status, std::string> {
-    game_loop->start(&server, &Server::broadcast_websocket_message);
+    ranked->start(&server, &Server::broadcast_websocket_message, "ranked");
+    unranked->start(&server, &Server::broadcast_websocket_message, "unranked");
     return std::make_pair(http::status::ok, "Game started");
   });
 
   server.add_http_endpoint("/stop_game", [&](Server::http_request req) -> std::pair<http::status, std::string> {
-    game_loop->stop();
+    ranked->stop();
+    unranked->stop();
     return std::make_pair(http::status::ok, "Game stopped");
   }); 
 

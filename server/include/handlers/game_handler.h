@@ -84,8 +84,8 @@ private:
 public:
   GameHandle(game_ptr game, psql_ref postgres) : game(game), postgres(postgres) {}
 
-  void operator()(Server& server) {
-    server.add_ws_endpoint("/game", [game = game, postgres = postgres](){ 
+  void operator()(Server& server, const std::string& path) {
+    server.add_ws_endpoint(path + "/game", [game = game, postgres = postgres](){ 
       return std::make_unique<GameHandler<ROWS, COLS>>(game, postgres); 
     });
   }
