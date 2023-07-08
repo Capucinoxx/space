@@ -1,4 +1,4 @@
-import { BoardGame } from './core/game'
+import { BoardGame, Game } from './core/game'
 import { WebsocketService } from './service/websocket';
 import { HSL } from './core/color';
 import { send } from './service/api';
@@ -37,5 +37,13 @@ const vacant_tile = document.getElementById('vacant-tile') as HTMLElement;
 
 const canvas = new Canvas(board);
 const game = new BoardGame(canvas, scoreboard, vacant_tile);
-const ws = new WebsocketService('ws://localhost:8080/spectate');
+const game_nav = document.getElementById('game-nav') as HTMLElement;
+
+const ws = new WebsocketService();
+
+new Game(game_nav, (channel: string) => {
+    ws.connect(`ws://localhost:8080/${channel}/spectate`);
+});
 ws.subscribe((data: ArrayBuffer) => game.render(data));
+
+
