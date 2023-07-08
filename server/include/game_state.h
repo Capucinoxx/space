@@ -233,6 +233,7 @@ public:
       player.second->clear();
 
     inactive_players.clear();
+    frame_count = 1;
   }
 
 private:

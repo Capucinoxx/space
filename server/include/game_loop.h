@@ -31,6 +31,9 @@ public:
 
     th = std::thread([object, callback, channel, this]() {
       while (is_running()) {
+        if (state->frame() == MAX_TICK + 1)
+          restart_state();
+
         auto data = state->serialize();
         (object->*callback)(channel, data);
 
@@ -58,6 +61,10 @@ public:
 private:
   void tick() {
     state->tick();
+  }
+
+  void restart_state() {
+    state->clear();
   }
 };
 
