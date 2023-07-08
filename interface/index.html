@@ -25,7 +25,9 @@
       </div>
 
       <!-- game canvas -->
-      <canvas id='game-canvas'></canvas>
+      <div class='game-canvas__container'>
+        <canvas id='game-canvas'></canvas>
+      </div>
     </section>
     <section class='navbar-container'>
       <!-- logo compétition -->
@@ -34,12 +36,7 @@
       </div>
 
       <!-- map possession table -->
-      <div id='posessions'>
-        <div class='posession' style='color: #F86969'>
-          <span>Joueur 1</span>
-          <span>0</span>
-        </div>
-      </div>
+      <div id='posessions'></div>
 
       <!-- non occupied tiles -->
       <div class='vacant-tile__container'>
@@ -48,6 +45,8 @@
       </div>
     </section>
   </div>
+
+  <img src='assets/logo.png' alt='JDIS Games 2023' class='logo' />
 
   <script type="module" src="dist/main.js"></script>
 </body>
