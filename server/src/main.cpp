@@ -21,6 +21,7 @@ int main() {
 
   constexpr std::size_t rows = 100;
   constexpr std::size_t cols = 100;
+  constexpr std::size_t tick = 100;
 
   Server server(8080);
 
@@ -29,10 +30,10 @@ int main() {
   using action_t = std::pair<player_ptr, std::string>;
 
   auto game_state = std::make_shared<GameState<action_t, rows, cols>>(postgres);
-  auto game_loop = std::make_shared<GameLoop<action_t, 100, rows, cols>>(game_state);
+  auto game_loop = std::make_shared<GameLoop<action_t, tick, rows, cols>>(game_state);
 
   SubscriptionHandle<rows, cols>(game_state, postgres)(server);
-  GameHandle<rows, cols>(game_state, postgres)(server);
+  GameHandle<rows, cols>(game_state, postgres)(server, "/ranked");
   (ScoreboardHandle<rows, cols>(postgres))(server);
 
   auto spectate_handler = [&game_loop](){ return std::make_unique<SpectateHandler>(); };
