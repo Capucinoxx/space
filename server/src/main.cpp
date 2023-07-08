@@ -12,15 +12,16 @@
 constexpr std::size_t rows = 100;
 constexpr std::size_t cols = 100;
 constexpr std::size_t tick = 100;
+constexpr std::size_t max_tick = 1000;
 
 using player_ptr = std::shared_ptr<Player<rows, cols>>;
 using action_t = std::pair<player_ptr, std::string>;
 
-using game_loop_ptr = std::shared_ptr<GameLoop<action_t, tick, rows, cols>>;
+using game_loop_ptr = std::shared_ptr<GameLoop<action_t, tick, max_tick, rows, cols>>;
 
 game_loop_ptr create_game(const std::string& endpoint, Server& server, std::shared_ptr<PostgresConnector> postgres) {
   auto game_state = std::make_shared<GameState<action_t, rows, cols>>(postgres);
-  auto game_loop = std::make_shared<GameLoop<action_t, tick, rows, cols>>(game_state);
+  auto game_loop = std::make_shared<GameLoop<action_t, tick, max_tick, rows, cols>>(game_state);
 
   GameHandle<rows, cols>(game_state, postgres)(server, endpoint);
 

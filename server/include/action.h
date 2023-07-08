@@ -141,8 +141,6 @@ struct RetrieveAction {
     if (data.empty()) 
       return std::make_shared<UndefinedAction<ROWS, COLS>>();
 
-    std::cout << "Retrieve action: " << static_cast<uint8_t>(data[0]) << std::endl;
-
     if (data[0] <= 0x03)
       return std::make_shared<MovementAction<ROWS, COLS>>(data);
 

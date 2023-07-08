@@ -67,7 +67,6 @@ public:
       clear();
   }
 
-private:
   void clear() noexcept {
     std::lock_guard<std::mutex> lock(mu);
 
