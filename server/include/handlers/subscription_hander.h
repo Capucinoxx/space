@@ -9,21 +9,19 @@
 #include <string>
 #include <sstream>
 
-template<uint32_t ROWS, uint32_t COLS>
+template<typename T, uint32_t ROWS, uint32_t COLS>
 class SubscriptionHandle {
 public:
     using player_ptr = std::shared_ptr<Player<ROWS, COLS>>;
     using action_t = std::pair<player_ptr, std::string>;
 
-    using game_ptr = std::shared_ptr<GameState<action_t, ROWS, COLS>>;
     using psql_ref = std::shared_ptr<PostgresConnector>;
 
 private:
-    game_ptr game;
     psql_ref postgres;
 
 public:
-    SubscriptionHandle(game_ptr game, psql_ref postgres) : game(game), postgres(postgres) {}
+    SubscriptionHandle(psql_ref postgres) : postgres(postgres) {}
 
     void operator()(Server& server) {
         server.add_http_endpoint("/subscribe", [&](Server::http_request req) -> std::pair<http::status, std::string> {
@@ -50,7 +48,7 @@ private:
 
         std::string query = "INSERT INTO player (name, secret, h, s, l) VALUES ($1, $2, $3, $4, $5)";
 
-        std::string secret = game->generate_secret();
+        std::string secret = GameState<T, ROWS, COLS>::generate_secret();
 
         auto result = postgres->execute(query, 
             name, secret, std::get<0>(*hsl), std::get<1>(*hsl), std::get<2>(*hsl));

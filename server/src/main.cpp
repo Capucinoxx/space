@@ -45,9 +45,8 @@ int main() {
   auto ranked = create_game("/ranked", server, postgres);
   auto unranked = create_game("/unranked", server, postgres);
 
-  // SubscriptionHandle<rows, cols>(game_state, postgres)(server);
-  
-  // (ScoreboardHandle<rows, cols>(postgres))(server);
+  (SubscriptionHandle<action_t, rows, cols>(postgres))(server);
+  (ScoreboardHandle<rows, cols>(postgres))(server);
 
   server.add_http_endpoint("/start_game", [&](Server::http_request req) -> std::pair<http::status, std::string> {
     ranked->start(&server, &Server::broadcast_websocket_message, "ranked");
