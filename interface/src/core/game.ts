@@ -228,10 +228,14 @@ class Game {
   private width: number = 0;
   private active_channel_element: HTMLElement | undefined = undefined;
   private line: HTMLElement | undefined = undefined;
+  private cb: (channel: string) => void;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, cb: (channel: string) => void) {
+    this.cb = cb;
     this.add_line(container);
     this.active_channel_element = this.get_default_channel(container);
+
+    console.log(this.active_channel_element);
     this.add_event_listener(container);
   }
 
@@ -250,6 +254,8 @@ class Game {
     this.width = active.offsetWidth;
     this.line!.style.left = `${this.pos}px`;
     this.line!.style.width = `${this.width}px`;
+
+    this.cb(active.querySelector('div')?.dataset.channel!);
 
     return active;
   }
@@ -275,6 +281,8 @@ class Game {
       this.animate_line(target);
 
       const channel = target.dataset.channel;
+      if (channel !== undefined)
+        this.cb(channel);
     }
   };
 

@@ -37,11 +37,13 @@ const vacant_tile = document.getElementById('vacant-tile') as HTMLElement;
 
 const canvas = new Canvas(board);
 const game = new BoardGame(canvas, scoreboard, vacant_tile);
-const ws = new WebsocketService('ws://localhost:8080/ranked/spectate');
-ws.subscribe((data: ArrayBuffer) => game.render(data));
-
-// handle game navigation
-// ==================================================
 const game_nav = document.getElementById('game-nav') as HTMLElement;
 
-new Game(game_nav);
+const ws = new WebsocketService();
+
+new Game(game_nav, (channel: string) => {
+    ws.connect(`ws://localhost:8080/${channel}/spectate`);
+});
+ws.subscribe((data: ArrayBuffer) => game.render(data));
+
+
