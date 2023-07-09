@@ -142,6 +142,34 @@ int main() {
   }
   }});
 
+  scenarios.insert({ "kill player on spawn", { 
+    Spawns{ position{ 5, 5 }, position{ 6, 6 }, position{ 10, 10 } },
+    Bots{ Bot{ id{ 1 }, position{ 5, 5 } }, Bot{ id{ 2 }, position{ 6, 6 } } },
+    Ticks{},
+    Expectations{
+      expectation{
+        id{ 1 },
+        position{ 10 ,10 },
+        alive{ 1 },
+        scores{},
+        trail_pos{},
+        region_pos{ position{ 9, 9 }, position{ 9, 10 }, position{ 9, 11 },
+                    position{ 10, 9 }, position{ 10, 10 }, position{ 10, 11 },
+                    position{ 11, 9 }, position{ 11, 10 }, position{ 11, 11 } }
+      },
+      expectation{
+        id{ 2 },
+        position{ 6, 6 },
+        alive{ 0 },
+        scores{},
+        trail_pos{},
+        region_pos{ position{ 5, 5 }, position{ 5, 6 }, position{ 5, 7 },
+                    position{ 6, 5 }, position{ 6, 6 }, position{ 6, 7 },
+                    position{ 7, 5 }, position{ 7, 6 }, position{ 7, 7 } }
+      }
+    }
+  }});
+
   for (auto& [name, scenario] : scenarios)
     scenario.run(name);
   
