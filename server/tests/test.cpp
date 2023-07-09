@@ -170,6 +170,41 @@ int main() {
     }
   }});
 
+  scenarios.insert({ "kill player spawn on trail", {
+    Spawns{ position{ 1, 1 }, position{ 1, 5 }, position{ 4, 1 }, position{ 14, 14 } },
+    Bots{ Bot{ id{ 1 }, position{ 1, 1 } }, Bot{ id{ 2 }, position{ 1, 5 } } },
+    Ticks{
+      actions{ { id{ 1 }, RIGHT }, { id{ 2 }, RIGHT } },
+      actions{ { id{ 1 }, RIGHT }, { id{ 2 }, RIGHT } },
+      actions{ { id{ 1 }, RIGHT }, { id{ 2 }, RIGHT } },
+      actions{ { id{ 1 }, RIGHT }, { id{ 2 }, RIGHT } },
+      actions{ { id{ 1 }, RIGHT }, { id{ 2 }, RIGHT } },
+      actions{ { id{ 1 }, RIGHT }, { id{ 2 }, LEFT  } }
+    },
+    Expectations{
+      expectation{
+        id{ 1 },
+        position{ 14, 14 },
+        alive{ 0 },
+        scores{ 0, 0, 0, 0, 0, 0 },
+        trail_pos{},
+        region_pos{ position{ 13, 13 }, position{ 13, 14 }, position{ 13, 15 },
+                    position{ 14, 13 }, position{ 14, 14 }, position{ 14, 15 },
+                    position{ 15, 13 }, position{ 15, 14 }, position{ 15, 15 } }
+      },
+      expectation{
+        id{ 2 },
+        position{ 4, 1 },
+        alive{ 1 },
+        scores{ 0, 0, 0, 0, 0, 0 },
+        trail_pos{},
+        region_pos{ position{ 3, 0 }, position{ 3, 1 }, position{ 3, 2 },
+                    position{ 4, 0 }, position{ 4, 1 }, position{ 4, 2 },
+                    position{ 5, 0 }, position{ 5, 1 }, position{ 5, 2 } }
+      }
+    }
+  }});
+
   for (auto& [name, scenario] : scenarios)
     scenario.run(name);
   
