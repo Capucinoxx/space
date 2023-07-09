@@ -83,11 +83,14 @@ private:
   uint32_t frame_count{ 1 };
   c_queue<T> actions{ };
 
+  bool score_insert;
+
   static UniqueIDGenerator<15> uuid_generator;
 
+
 public:
-  explicit GameState(psql_ref psql) 
-    : grid(std::make_shared<Grid<ROWS, COLS>>()), spawn(grid), psql(psql) { }
+  explicit GameState(psql_ref psql, bool score_insert) 
+    : grid(std::make_shared<Grid<ROWS, COLS>>()), spawn(grid), psql(psql), score_insert(score_insert) { }
 
   ~GameState() = default;
 
@@ -155,7 +158,7 @@ public:
       }
     }
 
-    if (psql != nullptr)
+    if (psql != nullptr && score_insert)
       store_scores();
 
     inactive_players.clear();

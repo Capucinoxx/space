@@ -69,7 +69,7 @@ public:
       players_map players{};
 
       // ----------------- setup game
-      game_state game(nullptr);
+      game_state game(nullptr, false);
       std::unordered_map<uint32_t, std::vector<double>> player_scores{};
       
       for (uint32_t i = 0; i != bots.size(); ++i) {
