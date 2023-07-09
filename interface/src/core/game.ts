@@ -1,7 +1,7 @@
-import { HSL } from './color';
-import { Position } from './position';
-import { get_index_array_sorted_by_values } from './util';
-import { Canvas } from './canvas';
+import { HSL } from './color.js';
+import { Position } from './position.js';
+import { get_index_array_sorted_by_values } from './util.js';
+import { Canvas } from './canvas.js';
 
 interface BoardgameData {
   rows: number;

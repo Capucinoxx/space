@@ -1,8 +1,8 @@
-import { BoardGame, Game } from './core/game'
-import { WebsocketService } from './service/websocket';
-import { HSL } from './core/color';
-import { send } from './service/api';
-import { Canvas } from './core/canvas';
+import { BoardGame, Game } from './core/game.js'
+import { WebsocketService } from './service/websocket.js';
+import { HSL } from './core/color.js';
+import { send } from './service/api.js';
+import { Canvas } from './core/canvas.js';
 
 // handle register modal events
 // ==================================================
