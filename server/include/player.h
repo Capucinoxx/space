@@ -240,17 +240,11 @@ public:
     });
   }
 
-private:
-  movement_type teleport(position pos) {
-    if (is_out_of_bound(pos) || !region.contains(pos))
-      return TileMap::stmt::IDLE;
-
-    clear_trail();
-
-    current_pos = pos;
-    return TileMap::stmt::STEP;
+  bool can_teleport(const position& pos) const noexcept {
+    return region.contains(pos);
   }
 
+private:
   bool is_out_of_bound(const position& pos) const noexcept {
     return pos.first >= ROWS || pos.second >= COLS;
   }

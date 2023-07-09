@@ -22,11 +22,12 @@ class Teleport {
   }
   
   serialize() {
-    const buffer = new Uint8Array(9);
-    buffer[0] = 5;
-    new DataView(buffer.buffer, 1, 4).setInt32(0, this.x, true);
-    new DataView(buffer.buffer, 5, 4).setInt32(0, this.y, true);
-    return buffer;
+    const buffer = new ArrayBuffer(9);
+    const data_view = new DataView(buffer);
+    data_view.setUint8(0, 5, true);
+    data_view.setUint32(1, this.x, true);
+    data_view.setUint32(5, this.y, true);
+    return new Uint8Array(buffer);
   }
 }
   
