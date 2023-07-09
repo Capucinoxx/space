@@ -27,8 +27,7 @@ int main() {
                     position{ 11, 9 }, position{ 11, 10 }, position{ 11, 11 } }
       }, 
     },
-  }
-  });
+  }});
 
   scenarios.insert({ "kill at the same tick, without score", {
     Spawns{ position{ 3, 3 }, position{ 5, 7 } },
@@ -50,7 +49,7 @@ int main() {
                     position{ 6, 6 }, position{ 6, 7 }, position{ 6, 8 } }
       },
     }
-  } });
+  }});
 
   for (auto& [name, scenario] : scenarios)
     scenario.run(name);
