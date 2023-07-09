@@ -51,8 +51,24 @@ using Expectations = std::vector<expectation>;
 
 using Bots = std::vector<Bot>;
 using Ticks = std::vector<actions>;
+using Spawns = std::vector<position>;
+
+template<uint32_t ROWS, uint32_t COLS>
+class AdjacentSpawn : public Spawner<ROWS, COLS> {
+private:
+  std::vector<position> spawns;
+  std::size_t index = 0;
+
+public:
+  AdjacentSpawn(std::vector<position> spawns) : spawns(std::move(spawns)) {}
+
+  std::pair<uint32_t, uint32_t> operator()() override {
+    return spawns[index++ % spawns.size()];
+  }
+};
 
 struct Scenario {
+  Spawns spawns;
   Bots bots;
   Ticks ticks;
   Expectations expected_positions;
@@ -69,7 +85,8 @@ public:
       players_map players{};
 
       // ----------------- setup game
-      game_state game(nullptr, false);
+      AdjacentSpawn<ROWS, COLS> spawn(spawns);
+      game_state game(nullptr, &spawn, false);
       std::unordered_map<uint32_t, std::vector<double>> player_scores{};
       
       for (uint32_t i = 0; i != bots.size(); ++i) {
@@ -78,7 +95,7 @@ public:
 
       for (uint32_t i = 0; i != bots.size(); ++i) {
         auto& bot = bots[i];
-        auto player = game.register_player("", bot.uuid, { 0.0, 0.0, 0.0 }, 0.0, bot.spawn_pos);
+        auto player = game.register_player("", bot.uuid, { 0.0, 0.0, 0.0 }, 0.0);
 
         players.insert({ bot.uuid, player });      
         assert::equal(player->pos(), bot.spawn_pos);
