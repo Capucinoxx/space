@@ -240,6 +240,10 @@ public:
     });
   }
 
+  bool can_teleport(const position& pos) const noexcept {
+    return region.contains(pos);
+  }
+
 private:
   movement_type teleport(position pos) {
     if (is_out_of_bound(pos) || !region.contains(pos))

@@ -179,13 +179,26 @@ public:
         player->update_pattern(pattern_action->get_actions());
         return;
       }
+
+      
     }
 
     auto old_pos = player->pos();
     auto new_pos = action->perform(old_pos);
 
-    if (grid->is_invalid_pos(new_pos)) {
+    if (grid->is_invalid_pos(new_pos))
       return;
+
+    if (auto teleport_action = std::dynamic_pointer_cast<TeleportAction<ROWS, COLS>>(action)) {
+      if (!player->can_teleport(new_pos))
+        return;
+
+      player->for_each_trail([grid = grid, player_id = player->id()](player_t::position p) { 
+        grid->at(p).reset(player_id); });
+
+      
+
+      player->clear_trail();
     }
 
     switch (player->move(new_pos)) {
