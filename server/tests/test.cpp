@@ -8,6 +8,7 @@ int main() {
   std::unordered_map<std::string, Scenario> scenarios;
 
   scenarios.insert({ "dummy test", {
+    Spawns{ position{ 10, 10 } },
     Bots{ Bot{ id{ 1 }, position{ 10, 10 } } },
     Ticks{
       actions{ { id{ 1 }, UP } },
@@ -30,6 +31,7 @@ int main() {
   });
 
   scenarios.insert({ "kill at the same tick, without score", {
+    Spawns{ position{ 3, 3 }, position{ 5, 7 } },
     Bots{ Bot{ id{ 1 }, position{ 3, 3 } }, Bot{ id{ 2 }, position{ 5, 7 } } },
     Ticks{
       actions{ { id{ 1 }, DOWN }, { id{ 2 }, UP } },
