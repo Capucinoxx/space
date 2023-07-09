@@ -6,6 +6,10 @@ class Player {
     this.trail = trail;
     this.region = region;
   }
+
+  toString() {
+    return `Player(name=${this.name}, pos=${this.pos}, alive=${this.alive}, trail=${this.trail}, region=${this.region})`;
+  }
 }
 
 class GameState {
@@ -74,7 +78,7 @@ class GameState {
   }
 
   toString() {
-    return `GameState(frame=${this.frame}, rows=${this.rows}, cols=${this.cols}, players=${this.players})`;
+    return `GameState(frame=${this.frame}, rows=${this.rows}, cols=${this.cols}, players=${this.players.map(p => p.toString())})`;
   }
 }
 
