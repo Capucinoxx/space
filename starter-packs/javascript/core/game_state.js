@@ -9,7 +9,8 @@ class Player {
 }
 
 class GameState {
-  constructor(rows, cols, players, inaccessibleTiles) {
+  constructor(frame, rows, cols, players, inaccessibleTiles) {
+    this.frame = frame;
     this.rows = rows;
     this.cols = cols;
     this.players = players;
@@ -29,10 +30,10 @@ class GameState {
       const [x, y] = new Uint32Array(data.slice(offset, offset + 8));
       inacessibleTiles.push([x, y]);
       offset += 8;
-    }
+    }    
 
     const players = [];
-    while (offset < data.length) {
+    while (offset < data.byteLength) {
       const nameSize = new Uint32Array(data.slice(offset, offset + 4))[0];
       offset += 4;
 
@@ -64,14 +65,16 @@ class GameState {
         offset += 8;
       }
 
+      console.log(`Player ${name} at (${posX}, ${posY})`);
+
       players.push(new Player(name, [posX, posY], tickAlive, trail, region));
     }
 
-    return new GameState(rows, cols, players, inacessibleTiles);
+    return new GameState(frame, rows, cols, players, inacessibleTiles);
   }
 
   toString() {
-    return `GameState(rows=${this.rows}, cols=${this.cols}, players=${this.players})`;
+    return `GameState(frame=${this.frame}, rows=${this.rows}, cols=${this.cols}, players=${this.players})`;
   }
 }
 
