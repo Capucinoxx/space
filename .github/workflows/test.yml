@@ -22,7 +22,9 @@ jobs:
         make -j
         ./bin/test_server
 
-        if [ $? -ne 0 ]; then
-          echo "Tests failed. Exiting with non-zero status."
+        failed_tests=$(grep -oP 'Tests failed: \K\d+' <<< "$(< /dev/stdin)")
+
+        if [ "$failed_tests" != "0" ]; then
+          echo "Tests failed: $failed_tests. Exiting with non-zero status."
           exit 1
         fi
