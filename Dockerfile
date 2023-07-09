@@ -32,16 +32,18 @@ RUN yarn install && \
     yarn build-ts && \
     yarn build-sass
 
-RUN mkdir -p /app/dist && \
-    cp -r dist/* /app/dist
+RUN cp -r /app/interface/dist/style/* /app/interface/dist && \
+    rm -rf /app/interface/dist/style
 
 FROM gcc:latest
 
 COPY --from=server /usr/local/include/boost /usr/local/include/boost
 COPY --from=server /usr/local/lib /usr/local/lib
 
-COPY --from=server /app /app
-COPY --from=interface /app/dist /app/interface/dist
+COPY --from=server /app/bin/server /app/bin/server
+COPY .env /app/.env
+COPY --from=interface /app/interface/dist /app/interface/dist
+COPY --from=interface /app/interface/assets /app/interface/assets
 
 COPY interface/index.html /app/interface/index.html
 
