@@ -24,9 +24,9 @@ class Teleport {
   serialize() {
     const buffer = new ArrayBuffer(9);
     const data_view = new DataView(buffer);
-    data_view.setUint8(0, 5);
-    data_view.setUint32(1, this.x);
-    data_view.setUint32(5, this.y);
+    data_view.setUint8(0, 5, true);
+    data_view.setUint32(1, this.x, true);
+    data_view.setUint32(5, this.y, true);
     return new Uint8Array(buffer);
   }
 }
