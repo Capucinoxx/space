@@ -27,7 +27,6 @@ class Socket {
 
     ws.on('message', async (message) => {
       const state = GameState.deserialize(message);
-      console.log(state.toString());
       try {
         this.queue.push(state);
         if (!this.isProcessing) {
