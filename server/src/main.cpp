@@ -19,8 +19,8 @@ using action_t = std::pair<player_ptr, std::string>;
 
 using game_loop_ptr = std::shared_ptr<GameLoop<action_t, tick, max_tick, rows, cols>>;
 
-game_loop_ptr create_game(const std::string& endpoint, Server& server, std::shared_ptr<PostgresConnector> postgres) {
-  auto game_state = std::make_shared<GameState<action_t, rows, cols>>(postgres);
+game_loop_ptr create_game(const std::string& endpoint, Server& server, std::shared_ptr<PostgresConnector> postgres, bool with_score_insertion) {
+  auto game_state = std::make_shared<GameState<action_t, rows, cols>>(postgres, with_score_insertion);
   auto game_loop = std::make_shared<GameLoop<action_t, tick, max_tick, rows, cols>>(game_state);
 
   GameHandle<rows, cols>(game_state, postgres)(server, endpoint);
@@ -43,8 +43,8 @@ int main() {
 
   Server server(8080);
 
-  auto ranked = create_game("/ranked", server, postgres);
-  auto unranked = create_game("/unranked", server, postgres);
+  auto ranked = create_game("/ranked", server, postgres, true);
+  auto unranked = create_game("/unranked", server, postgres, false);
 
   (SubscriptionHandle<action_t, rows, cols>(postgres))(server);
   (ScoreboardHandle<rows, cols>(postgres))(server);
