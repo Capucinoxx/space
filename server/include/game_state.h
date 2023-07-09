@@ -16,9 +16,17 @@
 #include <utility>
 #include <unordered_map>
 #include <unordered_set>
+#include <optional>
 
 template<uint32_t ROWS, uint32_t COLS>
-class Spawn {
+class Spawner {
+  public:
+    virtual std::pair<uint32_t, uint32_t> operator()() = 0;
+    virtual ~Spawner() = default;
+};
+
+template<uint32_t ROWS, uint32_t COLS>
+class Spawn : public Spawner<ROWS, COLS> {
 private:
   std::shared_ptr<Grid<ROWS, COLS>> grid;
 
@@ -33,7 +41,7 @@ public:
     dist_y = std::uniform_int_distribution<uint32_t>(0, COLS - 1);
   }
 
-  std::pair<uint32_t, uint32_t> operator()() {
+  std::pair<uint32_t, uint32_t> operator()() override {
     uint32_t x = dist_x(gen);
     uint32_t y = dist_y(gen);
 
@@ -77,9 +85,9 @@ private:
   std::shared_ptr<Grid<ROWS, COLS>> grid;
   ConcurrentUnorderedMap<uint32_t, player_ptr> players;
   ConcurrentUnorderedSet<uint32_t> inactive_players;
-  Spawn<ROWS, COLS> spawn;
-
+  
   psql_ref psql;
+  Spawner<ROWS, COLS>* spawn;
   uint32_t frame_count{ 1 };
   c_queue<T> actions{ };
 
@@ -90,12 +98,15 @@ private:
 
 public:
   explicit GameState(psql_ref psql, bool score_insert) 
-    : grid(std::make_shared<Grid<ROWS, COLS>>()), spawn(grid), psql(psql), score_insert(score_insert) { }
+    : grid(std::make_shared<Grid<ROWS, COLS>>()), psql(psql), spawn(new Spawn<ROWS, COLS>(grid)), score_insert(score_insert) {}
+
+  explicit GameState(psql_ref psql, Spawner<ROWS, COLS>* spawn, bool score_insert) 
+    : grid(std::make_shared<Grid<ROWS, COLS>>()), psql(psql), spawn(spawn), score_insert(score_insert) {}
 
   ~GameState() = default;
 
   player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, boost::float64_t score) {
-    return register_player(name, id, color, score, spawn());
+    return register_player(name, id, color, score, (*spawn)());
   }
 
   player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, boost::float64_t score, std::pair<uint32_t, uint32_t> spawn_position) {
@@ -287,7 +298,7 @@ private:
     victim->for_each_trail([grid = grid, victim_id](player_t::position p) { grid->at(p).reset(victim_id); });
     victim->death();
 
-    spawn_player(victim, spawn());
+    spawn_player(victim, (*spawn)());
 
     inactive_players.insert(victim->id());
 
