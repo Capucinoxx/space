@@ -105,7 +105,6 @@ class Deserializer {
 }
 
 class BoardGame {
-  private readonly name_size: number = 15;
   private readonly shadow_offset: number = 3;
 
   private deserializer: Deserializer = new Deserializer();
@@ -226,6 +225,10 @@ class BoardGame {
 
     this.vancant_tile.textContent = `${(this.data!.rows * this.data!.cols) - occupied_tiles}`;
   };
+
+  private render_frame = (frame: number): void => {
+
+  }
 };
 
 class Game {
