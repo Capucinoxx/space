@@ -184,7 +184,13 @@ class BoardGame {
 
       // --- render cube
       ctx.fillStyle = dark_color;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
       ctx.fillRect(x, y, cell_size, cell_size);
+
+      ctx.shadowColor = 'transparent';
 
       ctx.fillStyle = light_color;
       ctx.fillRect(x - 1, y - this.shadow_offset, cell_size + 2, cell_size);
