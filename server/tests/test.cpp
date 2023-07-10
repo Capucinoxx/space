@@ -150,7 +150,7 @@ int main() {
       expectation{
         id{ 1 },
         position{ 10 ,10 },
-        alive{ 1 },
+        alive{ 0 },
         scores{},
         trail_pos{},
         region_pos{ position{ 9, 9 }, position{ 9, 10 }, position{ 9, 11 },
@@ -195,7 +195,7 @@ int main() {
       expectation{
         id{ 2 },
         position{ 4, 1 },
-        alive{ 1 },
+        alive{ 0 },
         scores{ 0, 0, 0, 0, 0, 0 },
         trail_pos{},
         region_pos{ position{ 3, 0 }, position{ 3, 1 }, position{ 3, 2 },
@@ -213,7 +213,7 @@ int main() {
       expectation{
         id{ 1 },
         position{ 2, 2 },
-        alive{ 1 },
+        alive{ 0 },
         scores{},
         trail_pos{},
         region_pos{ position{ 1, 1 }, position{ 1, 2 }, position{ 1, 3 },
@@ -222,7 +222,7 @@ int main() {
       expectation{
         id{ 2 },
         position{ 4, 2 },
-        alive{ 1 },
+        alive{ 0 },
         scores{},
         trail_pos{},
         region_pos{ position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 },
