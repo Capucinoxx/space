@@ -365,6 +365,19 @@ private:
 };
 
 
+class AdminMiddleware {
+public:
+  std::string admin_password;
+
+  explicit AdminMiddleware(const std::string& admin_password) : admin_password(admin_password) {}
+
+  bool operator()(Server::http_request req) {
+    std::string password = req[http::field::authorization].to_string();
+    return password == admin_password;
+  }
+};
+
+
 class SpectateHandler : public WebSocketHandler {
 public:
   bool on_open(ws_stream_ptr ws, http_request req) override { return true; }
