@@ -20,7 +20,7 @@ jobs:
     - name: Build and test
       run: |
         make -j
-        result=$(./bin/test_server | tee /dev/tty | tail -n 1)
+        result=$(./bin/test_server 2>&1 | tee /dev/stderr | tail -n 1)
         tests_failed=$(echo "$result" | rev | cut -d' ' -f1 | rev)
         if [ "$tests_failed" -ne 0 ]; then
           exit 1
