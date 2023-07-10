@@ -153,17 +153,26 @@ body, html {
   font-size: 10px;
 }
 
-.vacant-tile__container {
+.game-stats {
   margin-top: 40px;
   margin-bottom: 80px;
 
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+
+  gap: 16px;
+
+  & > * {
+    display: flex;
   align-items: center;
   justify-content: space-between;
 
   color: var(--green);
   font-size: 16px;
   font-weight: 900;
+  }
 }
 
 .logo {
