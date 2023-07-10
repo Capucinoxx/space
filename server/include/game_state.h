@@ -237,9 +237,7 @@ private:
         if (grid->is_invalid_pos(p))
           continue;
 
-
         positions.push_back(p);
-        // handle_take_statement(player, p);
 
         auto [statement, victim_id] = grid->at(p).take(player->id());
         if (victim_id == 0)
@@ -247,13 +245,9 @@ private:
 
         auto victim = players.find(victim_id)->second;
         if (statement == TileMap::stmt::DEATH || (p == victim->pos()))
-            kill(player, victim);
-            
-          
-        if (victim_id != player->id())
+            kill(player, victim);                 
+        else if (victim_id != player->id())
           victim->remove_region(p);
-
-        
       }
     }
 
