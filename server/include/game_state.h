@@ -208,6 +208,9 @@ public:
 
     inactive_players.clear();
     frame_count = 1;
+
+    for (auto& player : players)
+      inactive_players.insert(player.first);
   }
 
 private:
