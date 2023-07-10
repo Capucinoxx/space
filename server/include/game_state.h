@@ -194,9 +194,7 @@ public:
       return;
 
     
-    handle_teleportation(player, action, new_pos);
-    handle_move_result(player, action, new_pos);
-    handle_statement(player, new_pos);
+    handle_teleportation(player, action, new_pos) || handle_move_result(player, action, new_pos) || handle_step_statement(player, new_pos);
   }
 
   TileMap& cell(player_t::position pos) const {
@@ -239,14 +237,23 @@ private:
         if (grid->is_invalid_pos(p))
           continue;
 
-        auto [statement, victim_id] = grid->at(p).take(player->id());
-        if (statement == TileMap::stmt::DEATH)
-          kill(player, players.find(victim_id)->second);
-        else if (statement == TileMap::stmt::STEP) {
-          if (victim_id != 0 && victim_id != player->id())
-            players.find(victim_id)->second->remove_region(player->pos());
-        }
+
         positions.push_back(p);
+        // handle_take_statement(player, p);
+
+        auto [statement, victim_id] = grid->at(p).take(player->id());
+        if (victim_id == 0)
+          continue;
+
+        auto victim = players.find(victim_id)->second;
+        if (statement == TileMap::stmt::DEATH || (p == victim->pos()))
+            kill(player, victim);
+            
+          
+        if (victim_id != player->id())
+          victim->remove_region(p);
+
+        
       }
     }
 
@@ -289,54 +296,60 @@ private:
       psql->bulk_insert(query, arguments);
   }
 
-  void handle_teleportation(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action, const player_t::position& new_pos) {
+  bool handle_teleportation(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action, const player_t::position& new_pos) {
     if (auto teleport_action = std::dynamic_pointer_cast<TeleportAction<ROWS, COLS>>(action)) {
       if (!player->can_teleport(new_pos))
-        return;
+        return true;
 
       player->for_each_trail([grid = grid, player_id = player->id()](player_t::position p) { 
         grid->at(p).reset(player_id); });
 
       player->clear_trail();
+      return true;
     }
+    return false;
   }
 
-  void handle_move_result(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action, const player_t::position& new_pos) {
+  bool handle_move_result(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action, const player_t::position& new_pos) {
     switch (player->move(new_pos)) {
       case player_t::movement_type::DEATH:
         kill(player, player);
-        break;
+        return true;
 
       case player_t::movement_type::COMPLETE:
         investigate_captured_tiles(player, grid->fill_region(player));
-        break;
+        return false;
 
-      default: 
-        break;
+      default:
+        return false;
     }
   }
 
-  void handle_statement(const player_ptr& player, const player_t::position& new_pos) {
+  bool handle_step_statement(const player_ptr& player, const player_t::position& new_pos) {
     auto [statement, victim_id] = grid->at(new_pos).step(player->id());
+    return handle_statement(player, new_pos, statement, victim_id);
+  }
+
+  bool handle_statement(const player_ptr& player, const player_t::position& new_pos, player_t::movement_type statement, uint32_t victim_id) {
     switch (statement) {
       case player_t::movement_type::DEATH:
         kill(player, players.find(victim_id)->second);
-        break;
+        return true;
 
       case player_t::movement_type::COMPLETE:
         investigate_captured_tiles(player, grid->fill_region(player));
-        break;
+        return true;
 
       case player_t::movement_type::STEP:
         if (victim_id != 0 && victim_id != player->id())
           players.find(victim_id)->second->remove_region(player->pos());
         
         player->deplace(new_pos);
-        break;
+        return true;
 
       default:
-        break;
-    }   
+        return false;
+    }
   }
 
   std::shared_ptr<Action<ROWS, COLS>> retrieve_action(const player_ptr& player, const std::string& payload) {
