@@ -254,6 +254,20 @@ private:
     player->deplace(pos);
   }
 
+  void investigate_captured_tiles(const player_ptr& player, const std::unordered_map<uint32_t, std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash>>& player_tiles) {
+    for (auto& [player_id, tiles] : player_tiles) {
+      auto victim = players.find(player_id)->second;
+
+      if (tiles.find(victim->pos()) != tiles.end()) {
+        kill(player, victim);
+        continue;
+      }
+
+      for (const auto& tile : tiles)
+        victim->remove_region(tile);
+    }
+  }
+
   void store_scores() {
     std::vector<std::string> arguments;
     
@@ -294,7 +308,7 @@ private:
         break;
 
       case player_t::movement_type::COMPLETE:
-        grid->fill_region(player);
+        investigate_captured_tiles(player, grid->fill_region(player));
         break;
 
       default: 
@@ -310,7 +324,7 @@ private:
         break;
 
       case player_t::movement_type::COMPLETE:
-        grid->fill_region(player);
+        investigate_captured_tiles(player, grid->fill_region(player));
         break;
 
       case player_t::movement_type::STEP:
