@@ -93,7 +93,7 @@ int main() {
       expectation{
         id{ 1 },
         position{ 14, 14 },
-        alive{ 1 },
+        alive{ 0 },
         scores{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 },
         trail_pos{},
         region_pos{ position{ 13, 13 }, position{ 13, 14 }, position{ 13, 15 },
