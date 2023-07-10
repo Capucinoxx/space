@@ -43,7 +43,7 @@ public:
   std::pair<stmt, uint32_t> take(uint32_t id) noexcept {
     std::lock_guard<std::mutex> lock(mu);
     auto statement = stmt::STEP;
-    if (current_owner != id && current_owner != 0 && !stepping)
+    if (current_owner != id && current_owner != 0 && stepping)
       statement = stmt::DEATH;
 
     auto old_owner = current_owner;
