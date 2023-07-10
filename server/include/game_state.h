@@ -178,24 +178,14 @@ public:
 
   void play_tick(const T& tick_action) {
     auto& [player, payload] = tick_action;
-    if (!player->can_play(frame())) {
+
+    if (!player->can_play(frame()))
       return;
-    }
 
-    std::shared_ptr<Action<ROWS, COLS>> action;
+    auto action = retrieve_action(player, payload);
 
-    if (payload.empty()) {
-      action = player->next_disconnected_action();
-    } else {
-      action = RetrieveAction<ROWS, COLS>()(payload);
-
-      if (auto pattern_action = std::dynamic_pointer_cast<PatternAction<ROWS, COLS>>(action)) {
-        player->update_pattern(pattern_action->get_actions());
-        return;
-      }
-
-      
-    }
+    if (update_pattern(player, action))
+      return;
 
     auto old_pos = player->pos();
     auto new_pos = action->perform(old_pos);
@@ -203,51 +193,10 @@ public:
     if (grid->is_invalid_pos(new_pos))
       return;
 
-    if (auto teleport_action = std::dynamic_pointer_cast<TeleportAction<ROWS, COLS>>(action)) {
-      if (!player->can_teleport(new_pos))
-        return;
-
-      player->for_each_trail([grid = grid, player_id = player->id()](player_t::position p) { 
-        grid->at(p).reset(player_id); });
-
-      
-
-      player->clear_trail();
-    }
-
-    switch (player->move(new_pos)) {
-      case player_t::movement_type::DEATH:
-        kill(player, player);
-        return;
-
-      case player_t::movement_type::COMPLETE:
-        grid->fill_region(player);
-        break;
-
-      default: 
-        break;
-    }
-
-    auto [statement, victim_id] = grid->at(new_pos).step(player->id());
-    switch (statement) {
-      case player_t::movement_type::DEATH:
-        kill(player, players.find(victim_id)->second);
-        break;
-
-      case player_t::movement_type::COMPLETE:
-        grid->fill_region(player);
-        break;
-
-      case player_t::movement_type::STEP:
-        if (victim_id != 0 && victim_id != player->id())
-          players.find(victim_id)->second->remove_region(player->pos());
-        
-        player->deplace(new_pos);
-        break;
-
-      default:
-        break;
-    }   
+    
+    handle_teleportation(player, action, new_pos);
+    handle_move_result(player, action, new_pos);
+    handle_statement(player, new_pos);
   }
 
   TileMap& cell(player_t::position pos) const {
@@ -264,31 +213,6 @@ public:
   }
 
 private:
-  void handle_move_result(player_ptr player, player_t::movement_type movement) {
-    switch (movement) {
-      case player_t::movement_type::DEATH: 
-        kill(player, player);
-        break;
-
-      case player_t::movement_type::COMPLETE:
-        grid->fill_region(player);
-        break;
-
-      case player_t::movement_type::STEP:
-
-      default:
-        auto [statement, victim_id] = grid->at(player->pos()).step(player->id());
-        if (victim_id != 0 && victim_id != player->id())
-          players.find(victim_id)->second->remove_region(player->pos());
-
-        if (statement == TileMap::stmt::DEATH)
-          kill(player, players.find(victim_id)->second);
-
-        
-        break;
-    }
-  }
-
   void kill(player_ptr murder, player_ptr victim) {
     victim->dump_info();
 
@@ -349,6 +273,72 @@ private:
 
     if (arguments.size() > 0)
       psql->bulk_insert(query, arguments);
+  }
+
+  void handle_teleportation(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action, const player_t::position& new_pos) {
+    if (auto teleport_action = std::dynamic_pointer_cast<TeleportAction<ROWS, COLS>>(action)) {
+      if (!player->can_teleport(new_pos))
+        return;
+
+      player->for_each_trail([grid = grid, player_id = player->id()](player_t::position p) { 
+        grid->at(p).reset(player_id); });
+
+      player->clear_trail();
+    }
+  }
+
+  void handle_move_result(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action, const player_t::position& new_pos) {
+    switch (player->move(new_pos)) {
+      case player_t::movement_type::DEATH:
+        kill(player, player);
+        break;
+
+      case player_t::movement_type::COMPLETE:
+        grid->fill_region(player);
+        break;
+
+      default: 
+        break;
+    }
+  }
+
+  void handle_statement(const player_ptr& player, const player_t::position& new_pos) {
+    auto [statement, victim_id] = grid->at(new_pos).step(player->id());
+    switch (statement) {
+      case player_t::movement_type::DEATH:
+        kill(player, players.find(victim_id)->second);
+        break;
+
+      case player_t::movement_type::COMPLETE:
+        grid->fill_region(player);
+        break;
+
+      case player_t::movement_type::STEP:
+        if (victim_id != 0 && victim_id != player->id())
+          players.find(victim_id)->second->remove_region(player->pos());
+        
+        player->deplace(new_pos);
+        break;
+
+      default:
+        break;
+    }   
+  }
+
+  std::shared_ptr<Action<ROWS, COLS>> retrieve_action(const player_ptr& player, const std::string& payload) {
+    if (payload.empty())
+      return player->next_disconnected_action();
+
+    return RetrieveAction<ROWS, COLS>()(payload);
+  }
+
+  bool update_pattern(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action) {
+    if (auto pattern_action = std::dynamic_pointer_cast<PatternAction<ROWS, COLS>>(action)) {
+      player->update_pattern(pattern_action->get_actions());
+      return true;
+    }
+
+    return false;
   }
 };
 

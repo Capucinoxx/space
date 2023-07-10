@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "tile_map.h"
 #include "player.h"
@@ -16,7 +17,6 @@ public:
 
 private:
   std::array<std::array<TileMap, COLS>, ROWS> grid;
-
   std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash> inacessible_areas;
 
 public:
@@ -40,15 +40,20 @@ public:
     }
   }
 
-  std::unordered_set<uint32_t> fill_region(player_ptr p) {
-    std::unordered_set<uint32_t> killed{};
+  std::unordered_map<uint32_t, std::unordered_set<position, PairHash>> fill_region(player_ptr p) {
     std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash> trail{};
+    std::unordered_map<uint32_t, std::unordered_set<position, PairHash>> tiles_to_investigate{};
 
-    std::size_t tile_coverage = 0;
+    auto insert_tiles = [&](uint32_t owner, const position& pos) {
+      if (tiles_to_investigate.find(owner) == tiles_to_investigate.end())
+        tiles_to_investigate[owner] = std::unordered_set<position, PairHash>{};
+
+      tiles_to_investigate[owner].insert(pos);
+    };
+
 
     p->for_each_trail([&](const position& pos) {
       at(pos).take(p->id());
-      ++tile_coverage;
       trail.insert(pos);
       p->append_region({ pos });
     });
@@ -69,11 +74,10 @@ public:
 
       been[pos.first][pos.second] = true;
 
-      ++tile_coverage;
       p->append_region({ pos });
       auto [statement, old_owner] = at(pos).take(p->id());
-      if (statement == TileMap::stmt::DEATH && old_owner != p->id())
-        killed.insert(old_owner);
+      if (old_owner != 0 && old_owner != p->id())
+        insert_tiles(old_owner, pos);
 
       auto movements = {
         std::make_pair(1, 0),
@@ -87,22 +91,19 @@ public:
         auto py = pos.second + movement.second;
 
         auto res = flood_fill(p->id(), { px, py }, been);
-        ++++tile_coverage;
 
-        for (const auto& pos : res.second) {
+        for (const auto& pos : res) {
           auto [statement, old_owner] = at(pos).take(p->id());
-          if (statement == TileMap::stmt::DEATH && old_owner != p->id())
-            killed.insert(old_owner);
+          if (old_owner != 0 && old_owner != p->id())
+            insert_tiles(old_owner, pos);
         }
 
-        p->append_region(res.second);
-        killed.insert(res.first.begin(), res.first.end());
-
+        p->append_region(res);
         neighbors.push_back({ px, py });
       }
     }
 
-    return killed;
+    return tiles_to_investigate;
   }
 
   bool is_invalid_pos(const position& pos) const noexcept {
@@ -110,9 +111,9 @@ public:
   }
 
 private:
-  std::pair<std::unordered_set<uint32_t>, std::vector<position>> flood_fill(uint32_t self_id, const position& pos, std::array<std::array<bool, COLS>, ROWS>& been) {
+  std::vector<position> flood_fill(uint32_t self_id, const position& pos, std::array<std::array<bool, COLS>, ROWS>& been) {
     if (is_invalid_pos(pos) || been[pos.first][pos.second])
-      return { {}, {} };
+      return {};
 
     std::vector<position> neighbors{};
     neighbors.reserve(ROWS > COLS ? ROWS : COLS);
@@ -126,7 +127,7 @@ private:
       neighbors.pop_back();
 
       if (is_invalid_pos(pos))
-        return { {}, {} };
+        return {};
 
       if (been[pos.first][pos.second] || at(pos).owner() == self_id)
         continue;
@@ -140,15 +141,7 @@ private:
       neighbors.push_back({ pos.first, pos.second - 1 });
     }
 
-    std::unordered_set<uint32_t> killed{};
-
-    for (auto& pos : filled) {
-      auto [statement, old_owner] = grid[pos.first][pos.second].take(self_id);
-      if (statement == TileMap::stmt::DEATH)
-        killed.insert(old_owner);
-    }
-
-    return { killed, filled };
+    return { filled };
   }
 };
 
