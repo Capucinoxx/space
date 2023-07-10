@@ -299,7 +299,6 @@ private:
         grid->at(p).reset(player_id); });
 
       player->clear_trail();
-      return true;
     }
     return false;
   }
