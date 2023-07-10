@@ -41,6 +41,8 @@ int main() {
     return 1;
   }
 
+  auto admin_middleware = AdminMiddleware(cfg["ADMIN_PASSWORD"]);
+
   Server server(8080);
 
   auto ranked = create_game("/ranked", server, postgres, true);
@@ -50,12 +52,18 @@ int main() {
   (ScoreboardHandle<rows, cols>(postgres))(server);
 
   server.add_http_endpoint("/start_game", [&](Server::http_request req) -> std::pair<http::status, std::string> {
+    if (!admin_middleware(req))
+      return std::make_pair(http::status::unauthorized, "Unauthorized");
+
     ranked->start(&server, &Server::broadcast_websocket_message, "ranked");
     unranked->start(&server, &Server::broadcast_websocket_message, "unranked");
     return std::make_pair(http::status::ok, "Game started");
   });
 
   server.add_http_endpoint("/stop_game", [&](Server::http_request req) -> std::pair<http::status, std::string> {
+    if (!admin_middleware(req))
+      return std::make_pair(http::status::unauthorized, "Unauthorized");
+
     ranked->stop();
     unranked->stop();
     return std::make_pair(http::status::ok, "Game stopped");
