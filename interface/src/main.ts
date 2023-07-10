@@ -34,9 +34,10 @@ import { Canvas } from './core/canvas.js';
 const board = document.getElementById('game-canvas') as HTMLCanvasElement;
 const scoreboard = document.getElementById('posessions') as HTMLElement;
 const vacant_tile = document.getElementById('vacant-tile') as HTMLElement;
+const current_tick = document.getElementById('current-tick') as HTMLElement;
 
 const canvas = new Canvas(board);
-const game = new BoardGame(canvas, scoreboard, vacant_tile);
+const game = new BoardGame(canvas, scoreboard, vacant_tile, current_tick);
 const game_nav = document.getElementById('game-nav') as HTMLElement;
 
 const ws = new WebsocketService();

@@ -105,7 +105,6 @@ class Deserializer {
 }
 
 class BoardGame {
-  private readonly name_size: number = 15;
   private readonly shadow_offset: number = 3;
 
   private deserializer: Deserializer = new Deserializer();
@@ -113,13 +112,15 @@ class BoardGame {
   private canvas: Canvas;
   private scoreboard: HTMLElement;
   private vancant_tile: HTMLElement;
+  private current_tick: HTMLElement;
 
   private data: BoardgameData | undefined = undefined;
 
-  constructor(canvas: Canvas, scoreboard: HTMLElement, vancant_tile: HTMLElement) {
+  constructor(canvas: Canvas, scoreboard: HTMLElement, vancant_tile: HTMLElement, current_tick: HTMLElement) {
     this.canvas = canvas;
     this.scoreboard = scoreboard;
     this.vancant_tile = vancant_tile;
+    this.current_tick = current_tick;
   }
 
   public render(message: ArrayBuffer): void {
@@ -136,6 +137,8 @@ class BoardGame {
     this.render_players();
 
     this.render_scoreboard(sorted_idx);
+
+    this.render_current_frame();
   }
 
   private render_regions = (): void => {
@@ -226,6 +229,10 @@ class BoardGame {
 
     this.vancant_tile.textContent = `${(this.data!.rows * this.data!.cols) - occupied_tiles}`;
   };
+
+  private render_current_frame = (): void => {
+    this.current_tick.textContent = `${this.data?.frame ?? 0}`;
+  }
 };
 
 class Game {
