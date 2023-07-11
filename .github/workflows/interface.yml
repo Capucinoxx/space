@@ -83,7 +83,7 @@ jobs:
               owner: OWNER,
               repo: REPO,
               issue_number: context.issue.number,
-              body: `![${name}](https://raw.githubusercontent.com/${OWNER}/${REPO}/blob/images/${fileName}?raw=true)`,
+              body: `![${name}](https://github.com/Capucinoxx/space/blob/images/${filename}?raw=true)`,
             });
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
