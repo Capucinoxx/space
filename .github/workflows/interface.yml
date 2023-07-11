@@ -4,7 +4,7 @@ name: Interface Github CI
 jobs:
   interface:
     runs-on: ubuntu-latest
-    default:
+    defaults:
       run:
         working-directory: ./interface
 
