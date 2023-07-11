@@ -1,0 +1,89 @@
+on: [ pull_request ]
+name: Interface Github CI
+
+jobs:
+  interface:
+    runs-on: ubuntu-latest
+    default:
+      run:
+        working-directory: ./interface
+
+    steps:
+      # —— Setup Github Actions       ————————————————————————————————————————————
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # —— Setup Node.js environment  ————————————————————————————————————————————
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: |
+          yarn install
+
+      # —— Take screenshots           —————————————————————————————————————————————
+      - name: Launch app and take screenshot
+        run: |
+          yarn install puppeteer
+          yarn run start &
+          npx wait-on http://localhost:8000
+          node screenshot.js
+        env:
+          CI: true
+
+      - name: Upload screenshot artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: screenshot
+          path: ./interface/screenshot.png   
+
+      - name: Add screenshot as a comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+
+            const OWNER = context.repo.owner;
+            const REPO = context.repo.repo;
+            const REF = 'heads/images';
+            const NOW = new Date().toISOString().slice(0, 10);
+
+            const ref = await github.rest.git.getRef({ owner: OWNER, repo: REPO, ref: REF });
+            const sha = ref.data.object.sha;
+
+            const name = `screenshot-${NOW}`;
+            const image = fs.readFileSync('./interface/screenshot.png').toString('base64');
+            const file_name = `${name}.png`;
+
+            const blob = await github.rest.git.createBlob({ owner: OWNER, repo: REPO, content: image, encoding: 'base64' });
+            const blob_sha = blob.data.sha;
+
+            const tree = [{
+              path: fileName,
+              mode: '100644',
+              type: 'blob',
+              sha: blob_sha
+            }];
+
+            const tree_sha = await github.rest.git.createTree({ owner: OWNER, repo: REPO, tree, base_tree: sha });
+
+            const commit = await github.rest.git.createCommit({
+              owner: OWNER,
+              repo: REPO,
+              message: `Add ${fileName}`,
+              tree: tree_sha.data.sha,
+              parents: [sha],
+            });
+
+            await github.rest.git.updateRef({ owner: OWNER, repo: REPO, ref: REF, sha: commit.data.sha });
+
+            await github.rest.issues.createComment({
+              owner: OWNER,
+              repo: REPO,
+              issue_number: context.issue.number,
+              body: `![${name}](https://raw.githubusercontent.com/${OWNER}/${REPO}/blob/images/${fileName}?raw=true)`,
+            });
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
