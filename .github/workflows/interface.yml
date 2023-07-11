@@ -26,7 +26,7 @@ jobs:
       # —— Take screenshots           —————————————————————————————————————————————
       - name: Launch app and take screenshot
         run: |
-          yarn add puppeteer
+          npm install puppeteer
           yarn run start &
           npx wait-on http://localhost:8000
           node screenshot.js
@@ -61,7 +61,7 @@ jobs:
             const blob_sha = blob.data.sha;
 
             const tree = [{
-              path: fileName,
+              path: file_name,
               mode: '100644',
               type: 'blob',
               sha: blob_sha
@@ -72,7 +72,7 @@ jobs:
             const commit = await github.rest.git.createCommit({
               owner: OWNER,
               repo: REPO,
-              message: `Add ${fileName}`,
+              message: `Add ${file_name}`,
               tree: tree_sha.data.sha,
               parents: [sha],
             });
@@ -83,7 +83,7 @@ jobs:
               owner: OWNER,
               repo: REPO,
               issue_number: context.issue.number,
-              body: `![${name}](https://github.com/Capucinoxx/space/blob/images/${filename}?raw=true)`,
+              body: `![${name}](https://github.com/Capucinoxx/space/blob/images/${file_name}?raw=true)`,
             });
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
