@@ -37,8 +37,9 @@ private:
       SELECT player_id, timestamp, score,
       ROW_NUMBER() OVER (PARTITION BY player_id, date_trunc('minute', timestamp) ORDER BY timestamp) AS row_num
       FROM player_scores
-      ) SELECT player_id, timestamp, score FROM ranked_scores 
-      WHERE row_num = 1)";
+      ) SELECT p.name, rs.timestamp, rs.score FROM ranked_scores rs
+      JOIN player p ON rs.player_id = p.id
+      WHERE rs.row_num = 1)";
 
     auto result = postgres->execute(query);
     
