@@ -61,7 +61,8 @@ const scoreboard = new Chart(ctx, {
         type: 'time',
         ticks: {
           autoSkip: true,
-          maxTicksLimit: 10
+          maxTicksLimit: 5,
+          display: false
         },
         time: { tooltipFormat: 'll HH:mm' },
         adapters: {
@@ -69,6 +70,12 @@ const scoreboard = new Chart(ctx, {
             parser: function (value) { return new Date(value); }
           }
         }
+      },
+      y: {
+        ticks: {
+          autoSkip: true,
+          maxTicksLimit: 5,
+        },
       }
     }
   }
