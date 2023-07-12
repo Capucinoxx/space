@@ -68,7 +68,7 @@ private:
     std::vector<uint8_t> serialized_scores;
     for (auto [name, serialized_score] : scores) {
       // name
-      serialize_data<uint32_t>(serialized_scores, name.size());
+      serialize_value<uint32_t>(serialized_scores, name.size());
       serialize_data<std::string>(serialized_scores, name, name.size());
 
       // color
@@ -77,8 +77,10 @@ private:
       serialize_value<boost::float64_t>(serialized_scores, s);
       serialize_value<boost::float64_t>(serialized_scores, l);
 
+      // each score entry is 8bytes for epoch and 8bytes for score
+      serialize_value<uint32_t>(serialized_scores, serialized_score.size() / 16);
+
       // scores
-      serialize_value<uint32_t>(serialized_scores, serialized_score.size());
       serialized_scores.insert(serialized_scores.end(), serialized_score.begin(), serialized_score.end());
     }
 
