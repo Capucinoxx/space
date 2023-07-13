@@ -11,7 +11,7 @@ CREATE TABLE player_scores (
   id        SERIAL            PRIMARY KEY,
   player_id INTEGER           NOT NULL,
   timestamp TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
-  score     DOUBLE PRECISION  NOT NULL,
+  score     BIGINT            NOT NULL,
 
   FOREIGN KEY (player_id) REFERENCES player(id)
 );

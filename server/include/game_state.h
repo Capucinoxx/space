@@ -105,11 +105,11 @@ public:
 
   ~GameState() = default;
 
-  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, boost::float64_t score) {
+  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, uint64_t score) {
     return register_player(name, id, color, score, (*spawn)());
   }
 
-  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, boost::float64_t score, std::pair<uint32_t, uint32_t> spawn_position) {
+  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, uint64_t score, std::pair<uint32_t, uint32_t> spawn_position) {
     auto it = players.find(id);
     if (it != players.end()) {
       if (it->second->is_connected())
@@ -227,7 +227,7 @@ private:
     inactive_players.insert(victim->id());
 
     if (victim->id() != murder->id())
-      murder->increase_kill();
+      murder->kill_bonus();
   }
 
   void spawn_player(player_ptr player, const std::pair<uint32_t, uint32_t>& pos) {
@@ -279,7 +279,7 @@ private:
 
     for (auto& player : players) {
       arguments.emplace_back(std::to_string(player.second->id()));
-      arguments.emplace_back(std::to_string(player.second->score()));
+      arguments.emplace_back(std::to_string(player.second->tick_score()));
 
       query += "($" + std::to_string(i * 2 + 1) + ", $" + std::to_string(i * 2 + 2) + ")";
       if (i != players.size() - 1)
@@ -312,6 +312,7 @@ private:
         return true;
 
       case player_t::movement_type::COMPLETE:
+        player->zone_captured_bonus();
         investigate_captured_tiles(player, grid->fill_region(player));
         return false;
 
@@ -332,6 +333,7 @@ private:
         return true;
 
       case player_t::movement_type::COMPLETE:
+        player->zone_captured_bonus();
         investigate_captured_tiles(player, grid->fill_region(player));
         return true;
 

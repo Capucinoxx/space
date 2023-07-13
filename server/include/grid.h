@@ -32,6 +32,9 @@ public:
   }
 
   std::unordered_map<uint32_t, std::unordered_set<position, PairHash>> fill_region(player_ptr p) {
+    if (p->get_trail().empty())
+      return {};
+
     std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash> trail{};
     std::unordered_map<uint32_t, std::unordered_set<position, PairHash>> tiles_to_investigate{};
 
