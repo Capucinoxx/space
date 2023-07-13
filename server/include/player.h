@@ -14,8 +14,6 @@
 #include <tuple>
 #include <memory>
 
-#define MAX_KILLS 6
-
 struct PairHash {
   template <typename T1, typename T2>
   std::size_t operator()(const std::pair<T1, T2>& p) const {
@@ -37,7 +35,6 @@ public:
 
 private:
   static constexpr uint32_t MAX_SIZE = (ROWS > COLS) ? ROWS : COLS;
-  static constexpr uint32_t KILL_COEF[MAX_KILLS] = {1, 2, 3, 4, 5, 10};
 
   uint32_t identifier;
   std::string name;
@@ -49,12 +46,6 @@ private:
   hsl_color color;
   bool connected;
 
-  std::size_t last_region_size = 0;
-  std::size_t last_region_size_ttl = 0;
-
-  std::size_t n_kills;
-  std::size_t n_trail_on_border;
-
   std::vector<std::shared_ptr<Action<ROWS, COLS>>> deconnected_actions{ std::make_shared<MovementAction<ROWS, COLS>>(std::to_string('\x01')) };
   std::size_t deconnected_action_index = 0;
 
@@ -65,7 +56,7 @@ private:
 public:
   Player(const std::string& name, uint32_t id, hsl_color color, float64_t score, uint32_t frame)
     : identifier{ id }, name{ name }, last_frame_played{ frame }, frame_alive{ 0 }, current_pos{}, p_score{ score }, last_direction{ direction::DOWN },
-      color{ color }, connected{ true }, n_kills{ 0 }, n_trail_on_border{ 0 } {
+      color{ color }, connected{ true } {
     trail.reserve(ROWS * COLS / 2);
     region.reserve(MAX_SIZE * 2);
   }
@@ -88,13 +79,6 @@ public:
     region.erase(pos);
   }
 
-  void set_last_region_size(std::size_t size) noexcept {
-    std::lock_guard<std::mutex> lock(mu);
-
-    last_region_size = size;
-    last_region_size_ttl = size;
-  }
-
   void update_pattern(const std::vector<std::shared_ptr<Action<ROWS, COLS>>>& new_pattern) {
     std::lock_guard<std::mutex> lock(mu);
 
@@ -114,21 +98,8 @@ public:
 
   boost::float64_t score() const noexcept { return p_score; }
 
-  void increase_kill() noexcept {
-    if (n_kills < MAX_KILLS)
-      ++n_kills;
-  }
-
   boost::float64_t frame_score() noexcept {
-    if (frame_alive == 0 || last_region_size_ttl == 0) return 0.0;
-    
-    --last_region_size_ttl;
 
-    boost::float64_t last_zone_completed = (last_region_size / static_cast<boost::float64_t>(ROWS * COLS)) * 100.00;
-
-    boost::float64_t score = 100.0 * static_cast<boost::float64_t>(region.size());
-    score *= last_zone_completed * last_zone_completed;
-    score *= ((KILL_COEF[n_kills] * KILL_COEF[n_kills]) / static_cast<boost::float64_t>(frame_alive)) + 1;
 
     return score;
   }
@@ -214,8 +185,6 @@ public:
 
     std::lock_guard<std::mutex> lock(mu);
     frame_alive = 0;
-    n_kills = 0;
-    n_trail_on_border = 0;
   }
 
   void serialize(std::vector<uint8_t>& data) {
