@@ -111,7 +111,7 @@ public:
 
         for (const auto& bot : bots) {
           auto& player = players[bot.uuid];
-          player_scores[bot.uuid].push_back(player->score());
+          player_scores[bot.uuid].push_back(player->tick_score());
         }
       }
 

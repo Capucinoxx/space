@@ -7,6 +7,7 @@
 #include "action.h"
 
 #include <boost/cstdfloat.hpp> 
+#include <ostream>
 #include <vector>
 #include <unordered_set>
 #include <mutex>
@@ -22,7 +23,7 @@ public:
   std::tuple<uint64_t, uint64_t, uint64_t> tick_score;
 
   explicit PlayerScore(uint64_t score) 
-    : total_score{ score }, tick_score{ {} } { }
+    : total_score{ score }, tick_score{  } { }
 
   uint64_t score() noexcept {
     total_score += std::get<0>(tick_score) + std::get<1>(tick_score) + std::get<2>(tick_score);
@@ -42,11 +43,11 @@ public:
     std::get<2>(tick_score) += (3 * (1 + trail_size));
   }
 
-  std::ostream &operator<<(std::ostream &os) {
+  friend std::ostream& operator<<(std::ostream &os, const PlayerScore& ps) {
     os  << " { total_score: " 
-        << total_score << ", tick_score: { zone_score: "  << std::get<0>(tick_score) 
-                                      << ", kill_score: " << std::get<1>(tick_score) 
-                                      << ", capture_score: " << std::get<2>(tick_score) << " } }";
+        << ps.total_score << ", tick_score: { zone_score: "  << std::get<0>(ps.tick_score) 
+                                      << ", kill_score: " << std::get<1>(ps.tick_score) 
+                                      << ", capture_score: " << std::get<2>(ps.tick_score) << " } }";
     return os;
   }
 };
@@ -156,7 +157,7 @@ public:
     std::cout << "  - Last direction: " << last_direction << std::endl;
     std::cout << "  - Trail size: " << trail.size() << std::endl;
     std::cout << "  - Region size: " << region.size() << std::endl;
-    std::cout << "  - Score: " << frame_score() << std::endl;
+    std::cout << "  - Score: " << p_score << std::endl;
     std::cout << std::endl;
   }
 

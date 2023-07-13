@@ -312,7 +312,7 @@ private:
         return true;
 
       case player_t::movement_type::COMPLETE:
-        player->zone_catured_bonus();
+        player->zone_captured_bonus();
         investigate_captured_tiles(player, grid->fill_region(player));
         return false;
 
@@ -333,7 +333,7 @@ private:
         return true;
 
       case player_t::movement_type::COMPLETE:
-        player->zone_catured_bonus();
+        player->zone_captured_bonus();
         investigate_captured_tiles(player, grid->fill_region(player));
         return true;
 
