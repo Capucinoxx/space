@@ -105,11 +105,11 @@ public:
 
   ~GameState() = default;
 
-  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, boost::float64_t score) {
+  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, uint64_t score) {
     return register_player(name, id, color, score, (*spawn)());
   }
 
-  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, boost::float64_t score, std::pair<uint32_t, uint32_t> spawn_position) {
+  player_ptr register_player(const std::string& name, uint32_t id, player_t::hsl_color color, uint64_t score, std::pair<uint32_t, uint32_t> spawn_position) {
     auto it = players.find(id);
     if (it != players.end()) {
       if (it->second->is_connected())

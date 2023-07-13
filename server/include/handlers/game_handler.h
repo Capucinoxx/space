@@ -50,7 +50,7 @@ public:
     float64_t s = result[0][3].as<float64_t>(0.0);
     float64_t l = result[0][4].as<float64_t>(0.0);
 
-    float64_t score = result[0][5].as<float64_t>(0.0);
+    uint64_t score = result[0][5].as<uint64_t>(0.0);
 
     player = game->register_player(name, id, { h, s, l }, score);
     return player != nullptr;
