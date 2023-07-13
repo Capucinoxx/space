@@ -21,9 +21,7 @@ class Socket {
 
     console.log(`Connected to ${this.url}`);
 
-    ws.on('open', () => {
-      console.log('Connected to WebSocket');
-    });
+    ws.on('open', () => {});
 
     ws.on('message', async (message) => {
       const state = GameState.deserialize(message);
