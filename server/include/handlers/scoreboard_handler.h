@@ -37,8 +37,9 @@ private:
       SELECT player_id, timestamp, score,
       ROW_NUMBER() OVER (PARTITION BY player_id, date_trunc('minute', timestamp) ORDER BY timestamp) AS row_num
       FROM player_scores
-      ) SELECT player_id, timestamp, score FROM ranked_scores 
-      WHERE row_num = 1)";
+      ) SELECT p.name, p.h, p.s, p.l, rs.timestamp, rs.score FROM ranked_scores rs
+      JOIN player p ON rs.player_id = p.id
+      WHERE rs.row_num = 1)";
 
     auto result = postgres->execute(query);
     
@@ -47,14 +48,18 @@ private:
       return std::make_pair(http::status::internal_server_error, "failed to retrieve scoreboard");
 
     std::unordered_map<std::string, std::vector<uint8_t>> scores;
+    std::unordered_map<std::string, std::tuple<boost::float64_t, boost::float64_t, boost::float64_t>> player_info;
 
     for (auto row : result) {
       std::string player_name = row[0].as<std::string>();
-      if (scores.find(player_name) == scores.end())
+      if (scores.find(player_name) == scores.end()) {
         scores[player_name] = std::vector<uint8_t>();
+        player_info[player_name] = std::make_tuple(row[1].as<boost::float64_t>(), row[2].as<boost::float64_t>(), row[3].as<boost::float64_t>());
+      }
+        
 
-      uint64_t epoch = parse_string_to_epoch(row[1].as<std::string>());
-      boost::float64_t score = row[2].as<boost::float64_t>();
+      uint64_t epoch = parse_string_to_epoch(row[4].as<std::string>());
+      boost::float64_t score = row[5].as<boost::float64_t>();
 
       serialize_value<uint64_t>(scores[player_name], epoch);
       serialize_value<boost::float64_t>(scores[player_name], score);
@@ -62,10 +67,21 @@ private:
 
     std::vector<uint8_t> serialized_scores;
     for (auto [name, serialized_score] : scores) {
+      // name
+      serialize_value<uint32_t>(serialized_scores, name.size());
       serialize_data<std::string>(serialized_scores, name, name.size());
+
+      // color
+      auto [h, s, l] = player_info[name];
+      serialize_value<boost::float64_t>(serialized_scores, h);
+      serialize_value<boost::float64_t>(serialized_scores, s);
+      serialize_value<boost::float64_t>(serialized_scores, l);
+
+      // each score entry is 8bytes for epoch and 8bytes for score
+      serialize_value<uint32_t>(serialized_scores, serialized_score.size() / 16);
+
+      // scores
       serialized_scores.insert(serialized_scores.end(), serialized_score.begin(), serialized_score.end());
-      serialize_value<uint64_t>(serialized_scores, 0);
-      serialize_value<boost::float64_t>(serialized_scores, 0.0);
     }
 
     return std::make_pair(http::status::ok, std::string(serialized_scores.begin(), serialized_scores.end()));

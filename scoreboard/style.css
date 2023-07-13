@@ -1,0 +1,67 @@
+:root {
+  --blue: #192E47;
+  --green: #21BD8E;
+  --white: #fff;
+  --black: #0E0E14;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body, html {
+  border: 0;
+  margin: 0;
+  font-family: sans-serif;
+
+  background: var(--black);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100vw;
+  height: 100vh;
+}
+
+.chart-container {
+  width: 80vw;
+  height: 30vh;
+}
+
+.chart-container canvas {
+  width: 100%;
+  height: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 500px;
+  max-width: 500px;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+
+  color: white;
+}
+
+.scoreboard td:first-child {
+  width: 50px;
+  text-align: center;
+}
+
+.scoreboard td {
+  padding: 1em;
+  border-bottom: 1px solid #ddd;
+  line-height: 1.5;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+
+.scoreboard thead th {
+  font-weight: 900;
+  font-size: 1.4em;
+}
