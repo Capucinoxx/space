@@ -119,7 +119,7 @@ public:
   void clear() {
     last_frame_played = 0;
     region.clear();
-    region.clear();
+    trail.clear();
   }
 
   void remove_region(const position& pos) {
@@ -253,15 +253,6 @@ public:
 
   bool can_teleport(const position& pos) const noexcept {
     return region.contains(pos);
-  }
-
-private:
-  bool is_out_of_bound(const position& pos) const noexcept {
-    return pos.first >= ROWS || pos.second >= COLS;
-  }
-
-  bool is_on_border(const position& pos) const noexcept {
-    return pos.first == 0 || pos.second == 0 || pos.first == ROWS - 1 || pos.second == COLS - 1;
   }
 };
 
