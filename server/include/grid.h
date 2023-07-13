@@ -17,7 +17,6 @@ public:
 
 private:
   std::array<std::array<TileMap, COLS>, ROWS> grid;
-  std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash> inacessible_areas;
 
 public:
   Grid() = default;
@@ -30,14 +29,6 @@ public:
 
   TileMap& at(const position& pos) {
     return grid[pos.first][pos.second];
-  }
-
-  void serialize(std::vector<uint8_t>& buffer) {
-    serialize_value<uint32_t>(buffer, inacessible_areas.size());
-    for (auto& inacessible_tile : inacessible_areas) {
-      serialize_value<uint32_t>(buffer, inacessible_tile.first);
-      serialize_value<uint32_t>(buffer, inacessible_tile.second);
-    }
   }
 
   std::unordered_map<uint32_t, std::unordered_set<position, PairHash>> fill_region(player_ptr p) {
@@ -107,7 +98,7 @@ public:
   }
 
   bool is_invalid_pos(const position& pos) const noexcept {
-    return pos.first >= ROWS || pos.second >= COLS || inacessible_areas.find(pos) != inacessible_areas.end();
+    return pos.first >= ROWS || pos.second >= COLS;
   }
 
 private:

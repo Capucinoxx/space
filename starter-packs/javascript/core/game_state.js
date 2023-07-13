@@ -13,28 +13,17 @@ class Player {
 }
 
 class GameState {
-  constructor(frame, rows, cols, players, inaccessibleTiles) {
+  constructor(frame, rows, cols, players) {
     this.frame = frame;
     this.rows = rows;
     this.cols = cols;
     this.players = players;
-    this.inaccessibleTiles = inaccessibleTiles;
   }
 
   static deserialize(data) {
     let offset = 0;
     const [rows, cols, frame] = new Uint32Array(data.slice(offset, offset + 12));
     offset += 12;
-
-    const inacessibleTilesLength = new Uint32Array(data.slice(offset, offset + 4))[0];
-    offset += 4;
-
-    const inacessibleTiles = [];
-    for (let i = 0; i < inacessibleTilesLength; i++) {
-      const [x, y] = new Uint32Array(data.slice(offset, offset + 8));
-      inacessibleTiles.push([x, y]);
-      offset += 8;
-    }    
 
     const players = [];
     while (offset < data.byteLength) {
@@ -74,7 +63,7 @@ class GameState {
       players.push(new Player(name, [posX, posY], tickAlive, trail, region));
     }
 
-    return new GameState(frame, rows, cols, players, inacessibleTiles);
+    return new GameState(frame, rows, cols, players);
   }
 
   toString() {
