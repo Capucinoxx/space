@@ -1,5 +1,5 @@
 
-const scoreboard_body = document.getElementById('scoreboard');
+
 
 const deserialize = (data) => {
   let offset = 0;
@@ -50,19 +50,21 @@ const deserialize = (data) => {
   return result;
 };
 
-
+const scoreboard = document.getElementById('scoreboard');
 const ctx = document.getElementById('chart').getContext('2d');
-const scoreboard = new Chart(ctx, {
+
+const timeline_chart = new Chart(ctx, {
   type: 'line',
-  // data: { datasets: dataset },
   options: {
+    maintainAspectRatio: false,
     scales: {
       x: {
         type: 'time',
+        grid: { color: 'white' },
         ticks: {
           autoSkip: true,
           maxTicksLimit: 5,
-          display: false
+          display: false,
         },
         time: { tooltipFormat: 'll HH:mm' },
         adapters: {
@@ -75,24 +77,25 @@ const scoreboard = new Chart(ctx, {
         ticks: {
           autoSkip: true,
           maxTicksLimit: 5,
+          color: 'white',
         },
+        grid: { color: 'white' },
       }
     }
   }
 });
 
+const retrieve_data = async () => {
+  return deserialize(await fetch('http://localhost:8080/scoreboard')
+            .then(response => response.arrayBuffer()));
+}
 
-const append_data_to_chart = async (ctx) => {
-  const data = deserialize(await fetch('http://localhost:8080/scoreboard')
-  .then(response => response.arrayBuffer()));
-
+const update_chart_with_data = (data) => {
   const dataset = [];
 
   for (const [name, {color, team_data}] of Object.entries(data)) {
     const [h, s, l] = color;
     const color_string = `hsl(${h}, ${s * 100}%, ${l * 100}%)`;
-
-    
 
     dataset.push({
       label: name,
@@ -103,16 +106,54 @@ const append_data_to_chart = async (ctx) => {
       pointRadius: 0,
     });
   }
-  
-  scoreboard.data.datasets = dataset;
-  scoreboard.update();
+
+  timeline_chart.data.datasets = dataset;
+  timeline_chart.update();
+};
+
+const update_scoreboard = (data) => {
+  let ranking = [];
+  for (const [name, {team_data}] of Object.entries(data)) {
+    ranking.push({ name, score: team_data[team_data.length - 1].y });
+  }
+  ranking.sort((a, b) => b.score - a.score);
+
+
+
+  scoreboard.replaceChildren(...ranking.reduce((acc, {name, score}, idx) => {
+    const row = document.createElement('tr');
+
+    const rank = document.createElement('td');
+    rank.innerText = idx + 1;
+    row.appendChild(rank);
+
+    const name_td = document.createElement('td');
+    name_td.innerText = name;
+    row.appendChild(name_td);
+
+    const score_td = document.createElement('td');
+    score_td.innerText = score;
+    row.appendChild(score_td);
+
+    return [...acc, row];
+  }, []));
+};
+
+const update = async () => {
+  const data = await retrieve_data();
+
+  update_chart_with_data(data);
+  update_scoreboard(data);
 };
 
 
-await append_data_to_chart(ctx);
+
+
+
+await update();
 
 setInterval(async () => {
-  await append_data_to_chart(ctx);
+  await update();
 }, 1000 * 60);
 
 

@@ -4,17 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scoreboard</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <table>
-    <tr>
-      <th>Team</th>
-      <th>Score</th>
-    </tr>
+  <div class='container'>
+    <section class='chart-container'>
+    <canvas id='chart'></canvas>
+  </section>
+  
+  <table class='scoreboard'>
+    <thead>
+      <tr>
+        <th>Place</th>
+        <th>Team</th>
+        <th>Score</th>
+        
+      </tr>
+    </thead>
     <tbody id="scoreboard"></tbody>
   </table>
+  </div>
 
-  <canvas id='chart'></canvas>
+  
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
