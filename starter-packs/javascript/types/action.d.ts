@@ -11,23 +11,16 @@
  * 
  * @param value The direction to take.
  */
-class Direction {
-  static UP = new Direction(0);
-  static DOWN = new Direction(1);
-  static LEFT = new Direction(2);
-  static RIGHT = new Direction(3);
+declare class Direction {
+	static UP: Direction;
+	static DOWN: Direction;
+	static LEFT: Direction;
+	static RIGHT: Direction;
 
-  constructor(value) {
-    this.value = value;
-  }
-
-  serialize() {
-    const buffer = new Uint8Array(1);
-    buffer[0] = this.value;
-    return buffer;
-  }
+	constructor(value: number);
+	serialize(): Uint8Array;
 }
- 
+
 /**
  * (fr)
  * Crée une action de téléportation vers la position (x, y).
@@ -43,22 +36,11 @@ class Direction {
  * @param x The x-coordinate of the teleportation.
  * @param y The y-coordinate of the teleportation. 
  */
-class Teleport {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-  
-  serialize() {
-    const buffer = new ArrayBuffer(9);
-    const data_view = new DataView(buffer);
-    data_view.setUint8(0, 5, true);
-    data_view.setUint32(1, this.x, true);
-    data_view.setUint32(5, this.y, true);
-    return new Uint8Array(buffer);
-  }
+declare class Teleport {
+	constructor(x: number, y: number);
+	serialize(): Uint8Array;
 }
-  
+
 /**
  * (fr)
  * Crée une action de type `Pattern`. Cette action permet de définir une liste d'actions 
@@ -82,22 +64,11 @@ class Teleport {
  * 
  * @param actions The actions to perform.
  */
-class Pattern {
-  constructor(actions) {
-    this.actions = actions;
-  }
-  
-  serialize() {
-    const serializedActions = Uint8Array.from(
-      this.actions.flatMap(action => action.serialize())
-    );
-    const buffer = new Uint8Array(serializedActions.length + 1);
-    buffer[0] = 7;
-    buffer.set(serializedActions, 1);
-    return buffer;
-  }
+declare class Pattern {
+	constructor(actions: Action[]);
+	serialize(): Uint8Array;
 }
- 
+
 /**
  * (fr)
  * Wrapper pour les actions de type `Teleport`, `Direction` et `Pattern`.
@@ -137,14 +108,7 @@ class Pattern {
  * ]));
  * ```
  */
-class Action {
-  constructor(actionType) {
-    this.actionType = actionType;
-  }
-  
-  serialize() {
-    return this.actionType.serialize();
-  }
+declare class Action {
+	constructor(action: Teleport | Direction | Pattern);
+	serialize(): Uint8Array;
 }
-
-export { Action, Direction, Pattern, Teleport };
