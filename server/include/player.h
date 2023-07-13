@@ -144,13 +144,6 @@ public:
   void disconnect() noexcept { connected = false; }
   bool is_connected() const noexcept { return connected; }
 
-  boost::float64_t score() const noexcept { return p_score; }
-
-  boost::float64_t frame_score() noexcept {
-
-
-    return score;
-  }
 
   void increase_frame_alive() noexcept { ++frame_alive; }
 
