@@ -74,8 +74,6 @@ public:
   using position = std::pair<uint32_t, uint32_t>;
 
 private:
-  static constexpr uint32_t MAX_SIZE = (ROWS > COLS) ? ROWS : COLS;
-
   uint32_t identifier;
   std::string name;
   uint32_t last_frame_played;
@@ -99,7 +97,7 @@ public:
     : identifier{ id }, name{ name }, last_frame_played{ frame }, frame_alive{ 0 }, current_pos{}, p_score{ score }, last_direction{ direction::DOWN },
       color{ color }, connected{ true } {
     trail.reserve(ROWS * COLS / 2);
-    region.reserve(MAX_SIZE * 2);
+    region.reserve(((ROWS > COLS) ? ROWS : COLS) * 2);
   }
 
 
@@ -119,7 +117,7 @@ public:
   void clear() {
     last_frame_played = 0;
     region.clear();
-    region.clear();
+    trail.clear();
   }
 
   void remove_region(const position& pos) {
@@ -253,15 +251,6 @@ public:
 
   bool can_teleport(const position& pos) const noexcept {
     return region.contains(pos);
-  }
-
-private:
-  bool is_out_of_bound(const position& pos) const noexcept {
-    return pos.first >= ROWS || pos.second >= COLS;
-  }
-
-  bool is_on_border(const position& pos) const noexcept {
-    return pos.first == 0 || pos.second == 0 || pos.first == ROWS - 1 || pos.second == COLS - 1;
   }
 };
 
