@@ -3,6 +3,35 @@ from typing import List, Tuple
 
 import struct
 
+"""
+(fr)
+Représente une joueur.
+
+(en)
+Represents a player.
+
+Attributes:
+    name (str):                     (fr) Nom du joueur.
+                                    (en) Name of the player.
+
+    pos (Tuple[int, int]):          (fr) Position du joueur. [x, y]
+                                    (en) Position of the player. [x, y]
+    
+    alive (int):                    (fr) Nombre de ticks depuis lequel le joueur est en vie.
+                                    (en) Number of ticks since the player is alive.
+
+    trail (List[Tuple[int, int]]):  (fr) Liste des traces du joueur. Si un autre joueur passe sur une de ces
+                                         positions, il meurt. Tableau de positions [[x, y], ...].
+                                    (en) List of the player's traces. If another player passes over one of these
+                                         positions, he dies. Array of positions [[x, y], ...].
+
+    region (List[Tuple[int, int]]): (fr) Liste des positions de la région du joueur. Si un autre joueur passe
+                                         sur une de ces positions, il retire cette position de la région du joueur.
+                                         Tableau de positions [[x, y], ...].
+                                    (en) List of the player's region positions. If another player passes over one of these
+                                         positions, he removes this position from the player's region.
+                                         Array of positions [[x, y], ...].
+ """
 @dataclass
 class Player:
     name: str
@@ -11,6 +40,27 @@ class Player:
     trail: List[Tuple[int, int]]
     region: List[Tuple[int, int]]
 
+
+"""
+(fr)
+Représente l'état du jeu à un instant donné.
+
+(en)
+Represents the state of the game at a given time.
+
+Attributes:
+    rows (int):                 (fr) Nombre de lignes de la carte.
+                                (en) Number of rows of the map.
+
+    cols (int):                 (fr) Nombre de colonnes de la carte.
+                                (en) Number of columns of the map.
+
+    tick(int):                  (fr) Numéro du tick actuel.
+                                (en) Number of the current tick.
+
+    players (List[Player]):     (fr) Liste des joueurs.
+                                (en) List of players.
+"""
 @dataclass
 class GameState:
     rows: int
