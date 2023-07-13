@@ -1,14 +1,41 @@
 import random
-from core.action import Action, Direction
+from core.action import Action, Direction, Pattern, Teleport
 from core.game_state import GameState
 
 class MyBot:
-    def __init__(self):
-        self.__name = "MyBot"
+    """
+    (fr)
+    Cette classe représente votre bot. Vous pouvez y définir des attributs et des méthodes qui 
+    seront conservés entre chaque appel de la méthode `tick`.
 
+    (en)
+    This class represents your bot. You can define attributes and methods in it that will be kept 
+    between each call of the `tick` method.
+    """
+    def __init__(self):
+        self.__name = "name_of_my_super_cool_bot"
+        self.__first_turn = True
+
+    def __random_action(self) -> Action:
+        return random.choice(list(Direction))
+
+    """
+    (fr)
+    Cette méthode est appelée à chaque tic de jeu. Vous pouvez y définir le comportement de
+    votre bot. Elle doit retourner une instance de `Action` qui sera exécutée par le serveur.
+
+    (en)
+    This method is called every game tick. You can define the behavior of your bot. It must 
+    return an instance of `Action` which will be executed by the server.
+
+    Args:
+        state (GameState):  (fr) L'état du jeu.
+                            (en) The state of the game.
+    """
     def tick(self, state: GameState) -> Action:
-       print(state.__str__())
-       # program your bot here
+       if self.__first_turn:
+           self.__first_turn = False
+           return Action(Pattern([Direction.UP, Direction.RIGHT]))
        
 
-       return random.choice(list(Direction))
+       return self.__random_action()
