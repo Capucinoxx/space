@@ -9,7 +9,7 @@
  *                    (en) Name of the player.
  * 
  * @property position (fr) Position du joueur. [x, y]
- *                    (en) Position of the player.
+ *                    (en) Position of the player. [x, y]
  * 
  * @property alive    (fr) Nombre de ticks depuis lequel le joueur est en vie.
  *                    (en) Number of ticks since the player is alive.
