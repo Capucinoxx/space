@@ -32,7 +32,7 @@ struct Bot {
 using action = std::pair<uint32_t, direction>;
 using actions = std::vector<action>;
 
-using scores = std::vector<double>;
+using scores = std::vector<uint64_t>;
 using trail_pos = std::vector<position>;
 using region_pos = std::vector<position>;
 
