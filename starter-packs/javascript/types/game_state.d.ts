@@ -33,7 +33,7 @@ type Position = [number, number];
  *                         Tableau de positions [[x, y], ...].
  *                    (en) List of the player's region positions. If another player passes over one of these
  *                         positions, he removes this position from the player's region.
- *                        Array of positions [[x, y], ...].
+ *                         Array of positions [[x, y], ...].
  */
 declare class Player {
   name: string;
