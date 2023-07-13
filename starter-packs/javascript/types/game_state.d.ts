@@ -17,28 +17,33 @@ type Position = [number, number];
  * @property name     (fr) Nom du joueur.
  *                    (en) Name of the player.
  * 
- * @property position (fr) Position du joueur.
+ * @property position (fr) Position du joueur. [x, y]
  *                    (en) Position of the player.
  * 
  * @property alive    (fr) Nombre de ticks depuis lequel le joueur est en vie.
  *                    (en) Number of ticks since the player is alive.
  * 
  * @property trail    (fr) Liste des traces du joueur. Si un autre joueur passe sur une de ces
- *                          positions, il meurt.
+ *                         positions, il meurt. Tableau de positions [[x, y], ...].
  *                    (en) List of the player's traces. If another player passes over one of these
- *                          positions, he dies.
+ *                         positions, he dies. Array of positions [[x, y], ...].
  * 
  * @property region   (fr) Liste des positions de la région du joueur. Si un autre joueur passe
- *                          sur une de ces positions, il retire cette position de la région du joueur.
+ *                         sur une de ces positions, il retire cette position de la région du joueur.
+ *                         Tableau de positions [[x, y], ...].
  *                    (en) List of the player's region positions. If another player passes over one of these
- *                          positions, he removes this position from the player's region.
+ *                         positions, he removes this position from the player's region.
+ *                        Array of positions [[x, y], ...].
  */
-interface Player {
-  name: string
-  position: Position
-  alive: number
-  trail: Position[]
-  region: Position[]
+declare class Player {
+  name: string;
+  pos: Position;
+  alive: number;
+  trail: Position[];
+  region: Position[];
+
+  constructor(name: string, pos: Position, alive: number, trail: Position[], region: Position[]);
+  toString(): string;
 }
 
 /**
@@ -60,11 +65,15 @@ interface Player {
  * @property players  (fr) Liste des joueurs.
  *                    (en) List of players.
  */
-interface GameState {
-  rows: number
-  cols: number
-  tick: number
-  players: Player[]
+declare class GameState {
+  frame: number;
+  rows: number;
+  cols: number;
+  players: Player[];
+
+  constructor(frame: number, rows: number, cols: number, players: Player[]);
+  static deserialize(data: ArrayBuffer): GameState;
+  toString(): string;
 }
 
 export { Position, Player, GameState };
