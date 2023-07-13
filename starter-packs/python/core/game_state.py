@@ -40,6 +40,9 @@ class Player:
     trail: List[Tuple[int, int]]
     region: List[Tuple[int, int]]
 
+    def __str__(self) -> str:
+        return f"Player(name={self.name}, pos={self.pos}, alive={self.alive}, trail={self.trail}, region={self.region})"
+
 
 """
 (fr)
@@ -79,9 +82,6 @@ class GameState:
             offset += 4
 
             name = data[offset:offset+name_size].decode('utf-8')
-            print("--------------------------")
-            print(name)
-            print("--------------------------")
             offset += name_size
 
             # skip 24 bytes for the player's color
