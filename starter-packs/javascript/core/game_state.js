@@ -25,12 +25,14 @@ class GameState {
     const [rows, cols, frame] = new Uint32Array(data.slice(offset, offset + 12));
     offset += 12;
 
+    const decoder = new TextDecoder('unicode-1-1-utf-8');
+
     const players = [];
     while (offset < data.byteLength) {
       const nameSize = new Uint32Array(data.slice(offset, offset + 4))[0];
       offset += 4;
 
-      const name = new TextDecoder().decode(data.slice(offset, offset + nameSize));
+      const name = decoder.decode(data.slice(offset, offset + nameSize));
       offset += nameSize;
 
       offset += 24; // Skip 24 bytes for the player's color

@@ -28,7 +28,10 @@ class GameState:
             name_size = struct.unpack_from('<I', data, offset)[0]
             offset += 4
 
-            name = data[offset:name_size]
+            name = data[offset:offset+name_size].decode('utf-8')
+            print("--------------------------")
+            print(name)
+            print("--------------------------")
             offset += name_size
 
             # skip 24 bytes for the player's color
