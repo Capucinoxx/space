@@ -95,7 +95,9 @@ private:
   uint32_t last_frame_played;
   uint32_t frame_alive;
   position current_pos;
+
   PlayerScore<ROWS, COLS> p_score;
+  TeleportStatement teleport_statement{};
 
   direction last_direction;
   hsl_color color;
@@ -265,8 +267,17 @@ public:
     });
   }
 
-  bool can_teleport(const position& pos) const noexcept {
-    return region.contains(pos);
+  void teleport(const position& p) noexcept {
+    if (!can_teleport(p))
+      return;
+
+    teleport_statement.teleport();
+    deplace(p);
+    clear_trail();
+  }
+
+  bool can_teleport(const position& p) const noexcept {
+    return region.contains(p) && teleport_statement.can_teleport();
   }
 };
 
