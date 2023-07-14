@@ -80,6 +80,31 @@ public:
 };
 
 template<uint32_t ROWS, uint32_t COLS>
+class DeconnectedActions {
+private:
+  std::vector<std::shared_ptr<Action<ROWS, COLS>>> actions;
+  std::size_t index = 0;
+
+public:
+  DeconnectedActions() 
+    : actions{ std::make_shared<MovementAction<ROWS, COLS>>(std::to_string('\x01')) }, index{ 0 } {}
+
+  DeconnectedActions(const std::vector<std::shared_ptr<Action<ROWS, COLS>>>& actions) 
+    : actions{ actions }, index{ 0 } { }
+
+
+  std::shared_ptr<Action<ROWS, COLS>> next() {
+    return actions[index++ % actions.size()];
+  }
+
+  void update(const std::vector<std::shared_ptr<Action<ROWS, COLS>>>& new_actions) {
+    actions = new_actions;
+  }
+
+  void reset() noexcept { index = 0; }
+};
+
+template<uint32_t ROWS, uint32_t COLS>
 class Player {
 public:
   enum direction { UP, DOWN, LEFT, RIGHT };
@@ -98,13 +123,11 @@ private:
 
   PlayerScore<ROWS, COLS> p_score;
   TeleportStatement teleport_statement{};
+  DeconnectedActions<ROWS, COLS> deconnected_actions{ };
 
   direction last_direction;
   hsl_color color;
   bool connected;
-
-  std::vector<std::shared_ptr<Action<ROWS, COLS>>> deconnected_actions{ std::make_shared<MovementAction<ROWS, COLS>>(std::to_string('\x01')) };
-  std::size_t deconnected_action_index = 0;
 
   ConcurrentUnorderedSet<position, PairHash> trail{ };
   ConcurrentUnorderedSet<position, PairHash> region{ };
@@ -121,6 +144,8 @@ public:
 
   void zone_captured_bonus() noexcept { p_score.add_capture_score(trail.size()); }
   void kill_bonus() noexcept { p_score.add_kill_score(trail.size()); }
+
+  void has_played() noexcept { deconnected_actions.reset(); }
 
   uint64_t tick_score() noexcept {
     p_score.add_zone_score(region.size());
@@ -145,9 +170,7 @@ public:
   }
 
   void update_pattern(const std::vector<std::shared_ptr<Action<ROWS, COLS>>>& new_pattern) {
-    std::lock_guard<std::mutex> lock(mu);
-
-    deconnected_actions = new_pattern;
+    deconnected_actions.update(new_pattern);
   }
 
   void append_region(const std::vector<position>& new_region) {
@@ -194,7 +217,7 @@ public:
   }
 
   std::shared_ptr<Action<ROWS, COLS>> next_disconnected_action() {
-    return deconnected_actions[deconnected_action_index++ % deconnected_actions.size()];
+    return deconnected_actions.next();
   }
 
   bool can_play(uint32_t frame) noexcept { 
