@@ -188,3 +188,93 @@ body, html {
 
   width: 10em;
 }
+
+.modal {
+  background-color: transparent;
+  animation: modalFadeIn 500ms 800ms cibuc-bezier(0.165, 0.84, 0.44, 1) forwards;
+
+  & > * {
+    opacity: 0;
+    position: relative;
+    animation: modalContentFadeIn 500ms 100ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  }
+
+  rect {
+    animation: sketchIn 500ms 300ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  }
+
+  &-container {
+    position: fixed;
+    display: table;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    transform: scale(0);
+
+    &.out {
+      animation: quickScaleDown 0ms 500ms linear forwards;
+
+      .modal-background {
+        animation: fadeOut 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+
+        .modal {
+          animation: modalFadeOut 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+
+          & > * {
+            animation: modalContentFadeOut 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+          }
+
+          rect {
+            animation: sketchOut 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+          }
+        }
+      }
+    }
+  }
+
+  &-background {
+    display: table-cell;
+    background: rgba(0,0,0,0);
+    animation: fadeIn 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+    text-align: center;
+    vertical-align: middle;
+  }
+}
+
+
+@keyframes fadeIn {
+  0%   { background: rgba(0,0,0,0.0); }
+  100% { background: rgba(0,0,0,0.7); }
+}
+
+@keyframes sketchIn {
+  0%   { stroke-dashoffset: 778; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes sketchOut {
+  0%   { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 778; }
+}
+
+@keyframes modalFadeIn {
+  0%   { background-color: transparent; }
+  100% { background-color: #fff; }
+}
+
+@keyframes modalFadeOut {
+  0%   { background-color: #fff; }
+  100% { background-color: transparent; }
+}
+
+@keyframes modalContentFadeIn {
+  0%   { opacity: 0; top: -20px; }
+  100% { opacity: 1; top: 0; }
+}
+
+@keyframes modalContentFadeOut {
+  0%   { opacity: 1; top: 0; }
+  100% { opacity: 0; top: -20px; }
+}
