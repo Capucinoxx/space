@@ -80,6 +80,31 @@ public:
 };
 
 template<uint32_t ROWS, uint32_t COLS>
+class DeconnectedActions {
+private:
+  std::vector<std::shared_ptr<Action<ROWS, COLS>>> actions;
+  std::size_t index = 0;
+
+public:
+  DeconnectedActions() 
+    : actions{ std::make_shared<MovementAction<ROWS, COLS>>(std::to_string('\x01')) }, index{ 0 } {}
+
+  DeconnectedActions(const std::vector<std::shared_ptr<Action<ROWS, COLS>>>& actions) 
+    : actions{ actions }, index{ 0 } { }
+
+
+  std::shared_ptr<Action<ROWS, COLS>> next() {
+    return actions[index++ % actions.size()];
+  }
+
+  void update(const std::vector<std::shared_ptr<Action<ROWS, COLS>>>& new_actions) {
+    actions = new_actions;
+  }
+
+  void reset() noexcept { index = 0; }
+};
+
+template<uint32_t ROWS, uint32_t COLS>
 class Player {
 public:
   enum direction { UP, DOWN, LEFT, RIGHT };
@@ -98,13 +123,11 @@ private:
 
   PlayerScore<ROWS, COLS> p_score;
   TeleportStatement teleport_statement{};
+  DeconnectedActions<ROWS, COLS> deconnected_actions{ };
 
   direction last_direction;
   hsl_color color;
   bool connected;
-
-  std::vector<std::shared_ptr<Action<ROWS, COLS>>> deconnected_actions{ std::make_shared<MovementAction<ROWS, COLS>>(std::to_string('\x01')) };
-  std::size_t deconnected_action_index = 0;
 
   ConcurrentUnorderedSet<position, PairHash> trail{ };
   ConcurrentUnorderedSet<position, PairHash> region{ };
@@ -118,19 +141,40 @@ public:
     region.reserve(((ROWS > COLS) ? ROWS : COLS) * 2);
   }
 
+  // ==================================================================================
+  // methods for player's attricutes
+  // ==================================================================================
 
-  void zone_captured_bonus() noexcept { p_score.add_capture_score(trail.size()); }
-  void kill_bonus() noexcept { p_score.add_kill_score(trail.size()); }
-
-  uint64_t tick_score() noexcept {
-    p_score.add_zone_score(region.size());
-    return p_score.score();
+  std::string player_name() const noexcept { 
+    return name;
+  }
+  
+  uint32_t id() const noexcept {
+    return identifier;
   }
 
-  std::string player_name() const noexcept { return name; }
-  uint32_t id() const noexcept         { return identifier; }
-  position pos() const noexcept            { return current_pos; }
-  uint32_t tick_alive() const noexcept { return frame_alive; }
+  position pos() const noexcept {
+    return current_pos;
+  }
+  void increase_frame_alive() noexcept {
+    ++frame_alive;
+  }
+
+  uint32_t tick_alive() const noexcept {
+    return frame_alive;
+  }
+
+  void connect() noexcept {
+    connected = true;
+  }
+
+  void disconnect() noexcept {
+    connected = false;
+  }
+  
+  bool is_connected() const noexcept {
+    return connected;
+  }
 
   void clear() {
     last_frame_played = 0;
@@ -138,44 +182,85 @@ public:
     trail.clear();
   }
 
-  void remove_region(const position& pos) {
-    std::lock_guard<std::mutex> lock(mu);
 
-    region.erase(pos);
+  // ==================================================================================
+  // methods for deconnected actions
+  // ==================================================================================
+
+  void has_played() noexcept { 
+    deconnected_actions.reset();
   }
 
-  void update_pattern(const std::vector<std::shared_ptr<Action<ROWS, COLS>>>& new_pattern) {
-    std::lock_guard<std::mutex> lock(mu);
+  void update_pattern(const std::vector<std::shared_ptr<Action<ROWS, COLS>>>& new_pattern) noexcept {
+    deconnected_actions.update(new_pattern);
+  }
 
-    deconnected_actions = new_pattern;
+  std::shared_ptr<Action<ROWS, COLS>> next_disconnected_action() {
+    return deconnected_actions.next();
+  }
+
+
+  // ==================================================================================
+  // methods for score
+  // ==================================================================================
+
+  uint64_t tick_score() noexcept {
+    p_score.add_zone_score(region.size());
+    return p_score.score();
+  }
+
+  void zone_captured_bonus() noexcept { 
+    p_score.add_capture_score(trail.size());
+  }
+
+  void kill_bonus() noexcept { 
+    p_score.add_kill_score(trail.size());
+  }
+
+  
+  // ==================================================================================
+  // methods for player's region
+  // ==================================================================================
+
+  template<typename F>
+  void for_each_region(F&& f) {
+    region.for_each(f);
   }
 
   void append_region(const std::vector<position>& new_region) {
-    std::lock_guard<std::mutex> lock(mu);
-
     region.insert(new_region.begin(), new_region.end());
   }
 
-  void set_connection(bool status) noexcept { connected = status; }
-  void connect() noexcept { connected = true; }
-  void disconnect() noexcept { connected = false; }
-  bool is_connected() const noexcept { return connected; }
-
-
-  void increase_frame_alive() noexcept { ++frame_alive; }
-
-  void dump_info() {
-    std::cout << "Player: " << name << std::endl;
-    std::cout << "  - ID: " << identifier << std::endl;
-    std::cout << "  - Last frame played: " << last_frame_played << std::endl;
-    std::cout << "  - Frame alive: " << frame_alive << std::endl;
-    std::cout << "  - Current position: (" << current_pos.first << ", " << current_pos.second << ")" << std::endl;
-    std::cout << "  - Last direction: " << last_direction << std::endl;
-    std::cout << "  - Trail size: " << trail.size() << std::endl;
-    std::cout << "  - Region size: " << region.size() << std::endl;
-    std::cout << "  - Score: " << p_score << std::endl;
-    std::cout << std::endl;
+  void remove_region(const position& pos) {
+    region.erase(pos);
   }
+
+  std::vector<position> get_region() {    
+    return std::vector<position>(region.get().begin(), region.get().end());
+  }
+
+
+  // ==================================================================================
+  // methods for player's trail
+  // ==================================================================================
+
+  template<typename F>
+  void for_each_trail(F&& f) {
+    trail.for_each(f);
+  }
+
+  std::vector<position> get_trail() {    
+    return std::vector<position>(trail.get().begin(), trail.get().end());
+  }
+
+  void clear_trail() {
+    trail.clear();
+  }
+
+
+  // ==================================================================================
+  // methods for player's actions
+  // ==================================================================================
 
   movement_type move(const position& new_pos) {
     if (new_pos == current_pos)
@@ -193,16 +278,11 @@ public:
     return movement_type::STEP;
   }
 
-  std::shared_ptr<Action<ROWS, COLS>> next_disconnected_action() {
-    return deconnected_actions[deconnected_action_index++ % deconnected_actions.size()];
-  }
-
   bool can_play(uint32_t frame) noexcept { 
     bool ok = frame > last_frame_played; 
     last_frame_played = frame;
     return ok;
   }
-
 
   void deplace(const position& p) {
     std::lock_guard<std::mutex> lock(mu);
@@ -212,37 +292,41 @@ public:
       trail.insert(p);
   }
 
-
-  template<typename F>
-  void for_each_region(F&& f) {
-    region.for_each(f);
-  }
-
-  std::vector<position> get_region() {
-    std::lock_guard<std::mutex> lock(mu);
-    
-    return std::vector<position>(region.get().begin(), region.get().end());
-  }
-
-  std::vector<position> get_trail() {
-    std::lock_guard<std::mutex> lock(mu);
-    
-    return std::vector<position>(trail.get().begin(), trail.get().end());
-  }
-
-  template<typename F>
-  void for_each_trail(F&& f) {
-    trail.for_each(f);
-  }
-
-  void clear_trail() { trail.clear(); }
-
   void death() {  
     trail.clear();
     region.clear();
-
-    std::lock_guard<std::mutex> lock(mu);
     frame_alive = 0;
+  }
+
+  void teleport(const position& p) noexcept {
+    if (!can_teleport(p))
+      return;
+
+    teleport_statement.teleport();
+    deplace(p);
+    clear_trail();
+  }
+
+  bool can_teleport(const position& p) const noexcept {
+    return region.contains(p) && teleport_statement.can_teleport();
+  }
+  
+
+  // ==================================================================================
+  // methods for player's informations
+  // ==================================================================================  
+
+  void dump_info() {
+    std::cout << "Player: " << name << std::endl;
+    std::cout << "  - ID: " << identifier << std::endl;
+    std::cout << "  - Last frame played: " << last_frame_played << std::endl;
+    std::cout << "  - Frame alive: " << frame_alive << std::endl;
+    std::cout << "  - Current position: (" << current_pos.first << ", " << current_pos.second << ")" << std::endl;
+    std::cout << "  - Last direction: " << last_direction << std::endl;
+    std::cout << "  - Trail size: " << trail.size() << std::endl;
+    std::cout << "  - Region size: " << region.size() << std::endl;
+    std::cout << "  - Score: " << p_score << std::endl;
+    std::cout << std::endl;
   }
 
   void serialize(std::vector<uint8_t>& data) {
@@ -265,19 +349,6 @@ public:
       serialize_value<uint32_t>(data, p.first);
       serialize_value<uint32_t>(data, p.second);
     });
-  }
-
-  void teleport(const position& p) noexcept {
-    if (!can_teleport(p))
-      return;
-
-    teleport_statement.teleport();
-    deplace(p);
-    clear_trail();
-  }
-
-  bool can_teleport(const position& p) const noexcept {
-    return region.contains(p) && teleport_statement.can_teleport();
   }
 };
 

@@ -157,7 +157,9 @@ public:
     actions.for_each([this, &ids](const T& tick_action) {
       auto& [player, payload] = tick_action;
       ids.insert(player->id());
-      play_tick(tick_action); 
+      play_tick(tick_action);
+      player->has_played();
+
     });
 
     for (auto& player : players) {
