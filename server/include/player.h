@@ -52,7 +52,6 @@ public:
   }
 };
 
-// score = zone_score + kill_bonus + capture_zone
 
 struct PairHash {
   template <typename T1, typename T2>
@@ -61,6 +60,23 @@ struct PairHash {
     auto h2 = std::hash<T2>{}(p.second);
     return h1 ^ h2;
   }
+};
+
+class TeleportStatement {
+private:
+  constexpr static uint8_t TTL = 8;
+  uint8_t ttl = 0;
+
+public:
+  TeleportStatement() = default;
+
+  bool can_teleport() const noexcept { return ttl == 0; }
+  void decrement_ttl() noexcept {
+    if (ttl > 0)
+      --ttl;
+  }
+
+  void teleport() noexcept { ttl = TTL; }
 };
 
 template<uint32_t ROWS, uint32_t COLS>
@@ -79,7 +95,9 @@ private:
   uint32_t last_frame_played;
   uint32_t frame_alive;
   position current_pos;
+
   PlayerScore<ROWS, COLS> p_score;
+  TeleportStatement teleport_statement{};
 
   direction last_direction;
   hsl_color color;
@@ -249,8 +267,17 @@ public:
     });
   }
 
-  bool can_teleport(const position& pos) const noexcept {
-    return region.contains(pos);
+  void teleport(const position& p) noexcept {
+    if (!can_teleport(p))
+      return;
+
+    teleport_statement.teleport();
+    deplace(p);
+    clear_trail();
+  }
+
+  bool can_teleport(const position& p) const noexcept {
+    return region.contains(p) && teleport_statement.can_teleport();
   }
 };
 

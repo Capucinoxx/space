@@ -302,7 +302,8 @@ private:
       player->for_each_trail([grid = grid, player_id = player->id()](player_t::position p) { 
         grid->at(p).reset(player_id); });
 
-      player->clear_trail();
+      player->teleport(new_pos);
+      return true;
     }
     return false;
   }
