@@ -2,6 +2,7 @@ import { HSL } from './color.js';
 import { Position } from './position.js';
 import { get_index_array_sorted_by_values } from './util.js';
 import { Canvas } from './canvas.js';
+import { render_player, render_trail } from './player.js';
 
 interface BoardgameData {
   rows: number;
@@ -147,11 +148,8 @@ class BoardGame {
   private render_trails = (): void => {
     const { ctx, cell_size } = this.canvas;
 
-    for (let i = 0; i != this.data!.trails.length; i++) {
-      ctx.fillStyle = this.data!.colors[i].adjust_luminosity(0.74).to_rgba(0.8);
-
-      this.data!.trails[i].forEach(pos => ctx.fillRect(pos.x * cell_size, pos.y * cell_size, cell_size, cell_size));
-    }
+    for (let i = 0; i != this.data!.trails.length; i++)
+      render_trail(ctx, cell_size, this.data!.colors[i].adjust_luminosity(0.74).to_rgba(0.8), this.data!.regions[i]);
   };
 
   private render_players = (): void => {
@@ -162,34 +160,7 @@ class BoardGame {
       const hsl = this.data!.colors[i];
       const pos = this.data!.positions[i];
 
-      // --- render name
-      let { x, y } = pos;
-      x *= cell_size;
-      y *= cell_size;
-
-      const color = hsl.to_rgba(0.9);
-      const dark_color = hsl.adjust_luminosity(0.35).to_rgba(1);
-      const light_color = hsl.to_rgba(1);
-
-      ctx.fillStyle = dark_color;
-      ctx.textAlign = 'center';
-      ctx.font = 'bold 12px sans-serif';
-
-      const y_offset = -this.shadow_offset * 2;
-      ctx.fillText(name, x + cell_size / 2, y + y_offset);
-
-      // --- render cube
-      ctx.fillStyle = dark_color;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetX = 3;
-      ctx.shadowOffsetY = 3;
-      ctx.fillRect(x, y, cell_size, cell_size);
-
-      ctx.shadowColor = 'transparent';
-
-      ctx.fillStyle = light_color;
-      ctx.fillRect(x - 1, y - this.shadow_offset, cell_size + 2, cell_size);
+      render_player(ctx, cell_size, name, hsl, pos);
     }
   };
 
