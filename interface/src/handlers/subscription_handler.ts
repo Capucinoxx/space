@@ -1,12 +1,14 @@
 const handling_subscription = () => {
 	const modal = document.getElementById('subscription-modal') as HTMLElement;
 	const open_btn = document.getElementById('open-subscription-modal') as HTMLElement;
+	const close_btn = document.getElementById('close-subscription-modal') as HTMLElement;
 
 	const modal_container = modal.querySelector('.modal') as HTMLElement;
 	const modal_svg = modal.querySelector('rect') as SVGRectElement;	
 
 	open_btn.onclick = () => {
 		modal.classList.add('open');
+		
 		const rect = modal_svg.getBoundingClientRect();
 		const length = (rect.width + rect.height) * 2;
 
@@ -22,8 +24,11 @@ const handling_subscription = () => {
 			easing: 'cubic-bezier(0.165, 0.84, 0.44, 1)',
 			fill: 'forwards'
 		})
-	}
+	};
 
+	close_btn.onclick = () => {
+		modal.classList.remove('open');
+	};
 }
 
 export { handling_subscription }

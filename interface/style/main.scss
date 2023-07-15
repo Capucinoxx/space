@@ -206,30 +206,9 @@ body, html {
     z-index: 1;
     transform: scale(0);
     
-
-    &.out {
-      animation: quickScaleDown 0ms 500ms linear forwards;
-
-      .modal-background {
-        animation: fadeOut 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-
-        .modal {
-          animation: modalFadeOut 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-
-          & > * {
-            animation: modalContentFadeOut 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-          }
-
-          rect {
-            animation: sketchOut 500ms 300ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-          }
-        }
-      }
-    }
-
     &.open {
       transform: scale(1);
-
+      
       .modal-background {
         background-color: rgba(0,0,0,0.0);
         animation: fadeIn 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
@@ -252,7 +231,7 @@ body, html {
     display: table-cell;
     background: rgba(0,0,0,0.8);
     animation: fadeIn 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-    text-align: center;
+    text-align: center  ;
     vertical-align: middle;
     position: relative;
 
@@ -263,6 +242,9 @@ body, html {
       border-radius: 3px;
       font-weight: 300;
       position: relative;
+      min-width: 1000px;
+      text-align: left;
+      font-size: 16px;
     }
 
     svg {
@@ -272,6 +254,7 @@ body, html {
       width: 100%;
       height: 100%;
       border-radius: 3px;
+      z-index: -1;
     }
 
     rect {
@@ -287,24 +270,10 @@ body, html {
   100% { background: rgba(0,0,0,0.7); }
 }
 
-@keyframes sketchIn {
-  0%   { stroke-dashoffset: 10000; }
-  100% { stroke-dashoffset: 0; }
-}
-
-@keyframes sketchOut {
-  0%   { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: 10000; }
-}
 
 @keyframes modalFadeIn {
   0%   { background-color: transparent; }
   100% { background-color: #fff; }
-}
-
-@keyframes modalFadeOut {
-  0%   { background-color: #fff; }
-  100% { background-color: transparent; }
 }
 
 @keyframes modalContentFadeIn {
@@ -312,7 +281,96 @@ body, html {
   100% { opacity: 1; top: 0; }
 }
 
-@keyframes modalContentFadeOut {
-  0%   { opacity: 1; top: 0; }
-  100% { opacity: 0; top: -20px; }
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(297px, 1fr));
+  grid-gap: 24px;
+  align-items: stretch;
+
+  .full {
+    grid-column: 1 / -1;
+  }
+}
+
+.form-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: flex-start;
+  grid-template-rows: min-content;
+  grid-gap: 8px;
+
+  &-2h {
+    grid-row-end: span 2;
+    height: 100%;
+    align-content: stretch;
+  }
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  border: 1px solid #D2D6DB;
+  border-radius: 16px;
+  font-size: 16px;
+  padding: 14px 10px;
+  align-content: flex-start;
+}
+
+.btn {
+  border: none;
+  color: var(--white);
+  font-weight: 500;
+  padding: 15px 25px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.close-btn {
+  width: 30px;
+  height: 30px;
+  position: relative;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 15px;
+    height: 2px;
+    background-color: var(--black);
+    transform: translate(-50%, -50%);
+  }
+
+  &::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  &::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+}
+
+.primary-btn {
+  background-color: var(--green);
 }

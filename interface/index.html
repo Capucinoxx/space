@@ -56,11 +56,29 @@
 
   <!-- subscription modal -->
   <!-- based on: https://codepen.io/designcouch/pen/obvKxm?editors=1010 -->
-  <div id='subscription-modal' class='modal-container'>
+  <div id='subscription-modal' class='modal-container out'>
     <div class='modal-background'>
       <div class='modal'>
-        Subscription modal
-        <p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p><p>Subscription modal</p>
+        
+        
+
+        <div class='grid'>
+          <div class='full flex-end'>
+            <button id='close-subscription-modal' class='close-btn'></button>
+          </div>
+
+          <div class='form-group'>
+            <label for='username'>Nom du bot</label>
+            <input type='text' id='username' name='username' placeholder='Nom du bot' class='form-control' />
+          </div>
+          <div class='form-group form-group-2h'>
+            bot preview
+          </div>
+
+          <div class='full flex-end'>
+            <button id='submit-subscription-modal' class='btn primary-btn'>S'inscrire</button>
+          </div>
+        </div>
 
         <svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' preserveAspectRatio='none'>
           <rect x='0' y='0' fill='none' width="100%" height="100%" rx='3' ry='3'></rect>
