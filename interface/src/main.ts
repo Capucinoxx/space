@@ -4,6 +4,10 @@ import { HSL } from './core/color.js';
 import { send } from './service/api.js';
 import { Canvas } from './core/canvas.js';
 
+import { handling_subscription } from './handlers/subscription_handler.js';
+
+handling_subscription();
+
 // handle register modal events
 // ==================================================
 // const register_modal = document.getElementById('register-modal') as HTMLElement;

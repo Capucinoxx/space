@@ -17,6 +17,10 @@ body, html {
   background: var(--black);
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 #container {
   width: 100%;
   height: 100vh;
@@ -191,17 +195,6 @@ body, html {
 
 .modal {
   background-color: transparent;
-  animation: modalFadeIn 500ms 800ms cibuc-bezier(0.165, 0.84, 0.44, 1) forwards;
-
-  & > * {
-    opacity: 0;
-    position: relative;
-    animation: modalContentFadeIn 500ms 100ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-  }
-
-  rect {
-    animation: sketchIn 500ms 300ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-  }
 
   &-container {
     position: fixed;
@@ -212,6 +205,7 @@ body, html {
     left: 0;
     z-index: 1;
     transform: scale(0);
+    
 
     &.out {
       animation: quickScaleDown 0ms 500ms linear forwards;
@@ -227,7 +221,27 @@ body, html {
           }
 
           rect {
-            animation: sketchOut 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+            animation: sketchOut 500ms 300ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+          }
+        }
+      }
+    }
+
+    &.open {
+      transform: scale(1);
+
+      .modal-background {
+        background-color: rgba(0,0,0,0.0);
+        animation: fadeIn 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+
+        .modal {
+          background: transparent;
+          animation: modalFadeIn 500ms 800ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+
+          div {
+            opacity: 0;
+            position: relative;
+            animation: modalContentFadeIn 500ms 1000ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
           }
         }
       }
@@ -236,10 +250,34 @@ body, html {
 
   &-background {
     display: table-cell;
-    background: rgba(0,0,0,0);
+    background: rgba(0,0,0,0.8);
     animation: fadeIn 500ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
     text-align: center;
     vertical-align: middle;
+    position: relative;
+
+    .modal {
+      position: relative;
+      padding: 50px;
+      display: inline-block;
+      border-radius: 3px;
+      font-weight: 300;
+      position: relative;
+    }
+
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    rect {
+      stroke: #fff;
+      stroke-width: 2px;
+    }
   }
 }
 
@@ -250,13 +288,13 @@ body, html {
 }
 
 @keyframes sketchIn {
-  0%   { stroke-dashoffset: 778; }
+  0%   { stroke-dashoffset: 10000; }
   100% { stroke-dashoffset: 0; }
 }
 
 @keyframes sketchOut {
   0%   { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: 778; }
+  100% { stroke-dashoffset: 10000; }
 }
 
 @keyframes modalFadeIn {
