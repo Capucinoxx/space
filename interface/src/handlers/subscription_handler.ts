@@ -6,6 +6,7 @@ const handling_subscription = () => {
 	const modal = document.getElementById('subscription-modal') as HTMLElement;
 	const open_btn = document.getElementById('open-subscription-modal') as HTMLElement;
 	const close_btn = document.getElementById('close-subscription-modal') as HTMLElement;
+	const submit_btn = document.getElementById('submit-subscription-modal') as HTMLButtonElement;
 
 	const modal_container = modal.querySelector('.modal') as HTMLElement;
 	const modal_svg = modal.querySelector('rect') as SVGRectElement;	
@@ -14,6 +15,24 @@ const handling_subscription = () => {
 
 	const canvas_preview = document.getElementById('bot-preview') as HTMLCanvasElement;
 	const ctx = canvas_preview.getContext('2d') as CanvasRenderingContext2D;
+
+	submit_btn.onclick = () => {
+		const name = name_input.value;
+		if (name.length == 0 || name.length > 20) return;
+
+		const color = HSL.from_name(name).to_array();
+
+		const data = new FormData();
+		data.set('name', name);
+		data.set('color', color.join(' '));
+
+		send('http://localhost:8080/subscribe',
+			{ method: 'POST', body: data },
+			(response: ArrayBuffer) => {
+				alert(`secret: ${new TextDecoder().decode(response)}`);
+			});
+	};
+	
 
 	name_input.addEventListener('keyup', (e: Event) => {
 		const name = (e.target as HTMLInputElement).value;
