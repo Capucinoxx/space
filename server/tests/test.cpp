@@ -142,6 +142,35 @@ int main() {
   }
   }});
 
+  scenarios.insert({ "weird pattern - 2", {
+    Spawns{ position{ 25, 15 } },
+    Bots{ Bot{ id{ 1 }, position{ 25, 15 } } },
+    Ticks{
+      actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, UP    } },
+      actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, LEFT  } },
+      actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, DOWN  } },
+      actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, DOWN  } },
+      actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, RIGHT } },
+    },
+    Expectations{
+      expectation{
+        id{ 1 },
+        position{ 24, 14 },
+        alive{ 16 },
+        scores{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0 ,0 ,0 ,0 ,0 },
+        trail_pos{},
+        region_pos{ position{ 26, 16 }, position{ 24, 16 }, position{ 23, 12 },
+                    position{ 26, 15 }, position{ 24, 15 }, position{ 23, 11 }, 
+                    position{ 26, 14 }, position{ 24, 14 }, position{ 22, 13 }, 
+                    position{ 25, 16 }, position{ 24, 13 }, position{ 22, 12 }, 
+                    position{ 25, 15 }, position{ 24, 12 }, position{ 22, 11 }, 
+                    position{ 25, 14 }, position{ 23, 14 }, position{ 22, 10 },
+                    position{ 25, 13 }, position{ 23, 13 }, position{ 21, 12 }, position{ 21, 11 },  position{ 21, 10 }}
+    }
+  }
+  }});
+
   scenarios.insert({ "kill player on spawn", { 
     Spawns{ position{ 5, 5 }, position{ 6, 6 }, position{ 10, 10 } },
     Bots{ Bot{ id{ 1 }, position{ 5, 5 } }, Bot{ id{ 2 }, position{ 6, 6 } } },
