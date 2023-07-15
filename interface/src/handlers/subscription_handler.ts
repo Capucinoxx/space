@@ -50,7 +50,7 @@ const handling_subscription = () => {
 const bot_preview = (canvas: HTMLCanvasElement,ctx: CanvasRenderingContext2D, name: string) => {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	const hsl = HSL.from_hex('#ff0000');
+	const hsl = HSL.from_name(name);
 
 	render_player(ctx, 20, name, hsl, { x: 7, y: 2 });
 	render_trail(ctx, 20, hsl.adjust_luminosity(0.74).to_rgba(0.8), [{ x: 7, y: 3 }, { x: 7, y: 4 }, { x: 8, y: 4 }, { x: 9, y: 4 }, { x: 9, y: 3 }, { x: 10, y: 3 }]);
