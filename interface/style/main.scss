@@ -374,3 +374,7 @@ body, html {
 .primary-btn {
   background-color: var(--green);
 }
+
+input:invalid {
+  border: 2px dashed red;
+}

@@ -3,6 +3,15 @@ class HSL {
   private saturation: number;
   private lightness: number;
 
+  public static from_name(name: string): HSL {
+    const hash = name.split('').reduce((hash, char) => char.charCodeAt(0) + ((hash << 5) - hash), 0);
+    const h = Math.abs(hash % 360);
+    const s = Math.abs(hash % 100) / 100;
+    const l = Math.abs(hash % 50) / 100 + 0.25;
+
+    return new HSL(h, s, l);
+  }
+
   public static from_hex(hex: string): HSL {
     const rgb = hex.match(/[a-f0-9]{2}/gi)?.map((x) => parseInt(x, 16));
     if (rgb == undefined || rgb.length != 3)
