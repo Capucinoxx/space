@@ -20,7 +20,7 @@ int main() {
         id{ 1 }, 
         position{ 10, 7 }, 
         alive{ 3 }, 
-        scores{ 0, 0, 0 },
+        scores{ 9, 18, 27 },
         trail_pos{ position{ 10, 8 }, position{ 10, 7 } },
         region_pos{ position{ 9, 9 }, position{ 9, 10 }, position{ 9, 11 },  
                     position{ 10, 9 }, position{ 10, 10 }, position{ 10, 11 },
