@@ -1,8 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jomhuria&family=Raleway:wght@400;800&display=swap');
+
 :root {
   --blue: #192E47;
   --green: #21BD8E;
   --white: #fff;
   --black: #0E0E14;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 html {
@@ -18,50 +26,125 @@ body, html {
 }
 
 .container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 40% 60%;
 
-  width: 100vw;
-  height: 100vh;
+  margin: 5px;
+  width: calc(100vw - 10px);
+  height: calc(100vh - 10px);
+  max-height: calc(100vh - 10px);
+  background: radial-gradient(233.66% 55.96% at 50% 47.02%, #15151C 30.19%, #0D0E15 96.43%);
+  border: 1px solid var(--blue);
 }
 
-.chart-container {
-  width: 80vw;
-  height: 30vh;
-}
+.scoreboard-container {
+  display: grid;
+  grid-template-rows: min-content auto;
 
-.chart-container canvas {
-  width: 100%;
+  padding-left: 80px;
+  padding-right: 80px;
+  gap: 30px;
+  padding-top: 30px;
+
   height: 100%;
+  max-height: 100%;
+  overflow-y:hidden;
 }
 
-table {
+.logo {
+  position: relative;
+  height: 100px;
+}
+
+.logo img { 
+  position: absolute;
+  top: 0;
+  left: -50px;
+  max-height: 100px;
+}
+
+.scoreboard {
+  display: table;
   border-collapse: collapse;
+  width: 100%;
   border-spacing: 0;
-  width: 500px;
-  max-width: 500px;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  max-height: 100%;
 
-  color: white;
+  font-family: 'Raleway', sans-serif;
 }
 
-.scoreboard td:first-child {
-  width: 50px;
-  text-align: center;
+.scoreboard thead {
+  font-weight: 800;
+  font-size: 22px;
+  color: #E7E9F1;
+  text-transform: uppercase;
 }
 
-.scoreboard td {
-  padding: 1em;
-  border-bottom: 1px solid #ddd;
-  line-height: 1.5;
-  font-size: 1.1em;
-  font-weight: 600;
+.scoreboard thead tr {
+  text-align: left;
+  position: relative;
+  z-index: 1;
 }
 
+.scoreboard thead tr:last-child::after {
+  content: '';
+  height: 80px;
+  width: 80px;
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  z-index: -1;
+  background-image: url(./assets/trophy.png);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
 
-.scoreboard thead th {
-  font-weight: 900;
-  font-size: 1.4em;
+}
+
+.scoreboard thead tr th {
+  padding: 20px 0;
+}
+
+.scoreboard tbody {
+  font-size: 1.2em;
+  font-weight: 400;
+  color: #C1C4D0;
+}
+
+.scoreboard tbody tr {
+  border-bottom: 1px solid #2c3039;
+}
+
+.scoreboard tbody td {
+  padding: 20px 0 20px 0;
+  vertical-align: middle;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-size: 16px;
+}
+
+.scoreboard tbody td:first-child {
+  color: #2c3039;
+  font-family: 'Jomhuria', cursive;
+  font-size: 64px;
+  line-height: 0;
+}
+
+.scoreboard tbody td:first-child span {
+  position: relative;
+  top: 5px;
+}
+
+.score-chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-right: 80px;
+}
+
+.score-chart-container canvas {
+  width: 100%;
+  border: 1px solid var(--blue);
+  background: var(--black);
+
+  max-height: 80vh;
 }

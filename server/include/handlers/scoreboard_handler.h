@@ -39,7 +39,8 @@ private:
       FROM player_scores
       ) SELECT p.name, p.h, p.s, p.l, rs.timestamp, rs.score FROM ranked_scores rs
       JOIN player p ON rs.player_id = p.id
-      WHERE rs.row_num = 1)";
+      WHERE rs.row_num = 1
+      AND EXTRACT('minute' FROM rs.timestamp) % 3 = 0)";
 
     auto result = postgres->execute(query);
     

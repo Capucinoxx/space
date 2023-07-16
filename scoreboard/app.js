@@ -46,12 +46,11 @@ const deserialize = (data) => {
     }
   }
 
-  console.log(result);
   return result;
 };
 
-const scoreboard = document.getElementById('scoreboard');
-const ctx = document.getElementById('chart').getContext('2d');
+const scoreboard = document.getElementById('scoreboard-data');
+const ctx = document.getElementById('score-chart').getContext('2d');
 
 const timeline_chart = new Chart(ctx, {
   type: 'line',
@@ -60,7 +59,7 @@ const timeline_chart = new Chart(ctx, {
     scales: {
       x: {
         type: 'time',
-        grid: { color: 'white' },
+        grid: { display: false },
         ticks: {
           autoSkip: true,
           maxTicksLimit: 5,
@@ -79,7 +78,7 @@ const timeline_chart = new Chart(ctx, {
           maxTicksLimit: 5,
           color: 'white',
         },
-        grid: { color: 'white' },
+        grid: { display: false },
       }
     }
   }
@@ -120,11 +119,13 @@ const update_scoreboard = (data) => {
 
 
 
-  scoreboard.replaceChildren(...ranking.reduce((acc, {name, score}, idx) => {
+  scoreboard.replaceChildren(...ranking.slice(0, 10).reduce((acc, {name, score}, idx) => {
     const row = document.createElement('tr');
 
     const rank = document.createElement('td');
-    rank.innerText = idx + 1;
+    const rank_span = document.createElement('span');
+    rank_span.innerText = idx + 1 + (idx == 0 ? 'st' : idx == 1 ? 'nd' : idx == 2 ? 'rd' : 'th');
+    rank.appendChild(rank_span);
     row.appendChild(rank);
 
     const name_td = document.createElement('td');
@@ -132,7 +133,8 @@ const update_scoreboard = (data) => {
     row.appendChild(name_td);
 
     const score_td = document.createElement('td');
-    score_td.innerText = score;
+    score = 123456789;
+    score_td.innerText = score.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     row.appendChild(score_td);
 
     return [...acc, row];
