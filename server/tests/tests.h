@@ -94,11 +94,11 @@ namespace assert {
       std::cerr << "\n\tAssertion failed: two containers are not equal" << " " << msg << std::endl;
       
       std::cerr << "\tLHS: ";
-      for (const auto& e : lhs)
+      for (const auto& e : copy_lhs)
         std::cerr << e << " ";
 
       std::cerr << "\n\tRHS: ";
-      for (const auto& e : rhs)
+      for (const auto& e : copy_rhs)
         std::cerr << e << " ";
       std::cerr << std::endl;
     }
