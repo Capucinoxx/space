@@ -51,7 +51,7 @@ public:
       trail.insert(pos);
       p->append_region({ pos });
     });
-    p->clear_trail();
+    
 
     std::array<std::array<bool, COLS>, ROWS> been{};
     std::vector<position> neighbors{};

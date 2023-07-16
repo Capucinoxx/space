@@ -324,6 +324,7 @@ private:
 
         player->zone_captured_bonus();
         investigate_captured_tiles(player, captured_tiles);
+        player->clear_trail();
         return false;
       }
         
@@ -350,6 +351,7 @@ private:
 
         player->zone_captured_bonus();
         investigate_captured_tiles(player, captured_tiles);
+        player->clear_trail();
         return true;
       }
       
