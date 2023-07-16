@@ -167,7 +167,7 @@ int main() {
   }
   }});
 
-  scenarios.insert({ "rectangle pattern - zone completion", {
+  scenarios.insert({ "rectangle pattern 1 - zone completion", {
     Spawns{ position{ 2, 2 } },
     Bots{ Bot{ id{ 1 }, position{ 2, 2 } } },
     Ticks{
@@ -197,7 +197,33 @@ int main() {
   }
   }});
 
-  scenarios.insert({ "u pattern - zone completion", {
+  scenarios.insert({ "rectangle pattern 2 - zone completion", {
+    Spawns{ position{ 2, 2 } },
+    Bots{ Bot{ id{ 1 }, position{ 2, 2 } } },
+    Ticks{
+      actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } },
+      actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, LEFT } },
+      actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, LEFT  } }
+    },
+    Expectations{
+      expectation{
+        id{ 1 },
+        position{ 3, 3 },
+        alive{ 12 },
+        scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 153 },
+        trail_pos{},
+        region_pos{ position{ 1, 1 }, position{ 1, 2 }, position{ 1, 3 },
+                    position{ 2, 1 }, position{ 2, 2 }, position{ 2, 3 },  
+                    position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 }, 
+                    position{ 4, 2 }, position{ 4, 3 }, position{ 4, 4 },
+                    position{ 5, 2 }, position{ 5, 3 }, position{ 5, 4 }, 
+                    position{ 6, 2 }, position{ 6, 3 }, position{ 6, 4 }, 
+                    position{ 7, 2 }, position{ 7, 3 }, position{ 7, 4 } }
+    }
+  }
+  }});
+
+  scenarios.insert({ "U pattern - zone completion", {
     Spawns{ position{ 2, 2 } },
     Bots{ Bot{ id{ 1 }, position{ 2, 2 } } },
     Ticks{
