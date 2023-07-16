@@ -103,7 +103,7 @@ int main() {
     }
   }});
 
-  scenarios.insert({ "weird pattern - 1", {
+  scenarios.insert({ "weird pattern 1 - zone completion", {
     Spawns{ position{ 25, 15 } },
     Bots{ Bot{ id{ 1 }, position{ 25, 15 } } },
     Ticks{
@@ -139,7 +139,7 @@ int main() {
   }
   }});
 
-  scenarios.insert({ "weird pattern - 2", {
+  scenarios.insert({ "weird pattern 2 - zone completion", {
     Spawns{ position{ 25, 15 } },
     Bots{ Bot{ id{ 1 }, position{ 25, 15 } } },
     Ticks{
@@ -163,6 +163,36 @@ int main() {
                     position{ 25, 15 }, position{ 24, 12 }, position{ 22, 11 }, 
                     position{ 25, 14 }, position{ 23, 14 }, position{ 22, 10 },
                     position{ 25, 13 }, position{ 23, 13 }, position{ 21, 12 }, position{ 21, 11 },  position{ 21, 10 }}
+    }
+  }
+  }});
+
+  scenarios.insert({ "rectangle pattern - zone completion", {
+    Spawns{ position{ 2, 2 } },
+    Bots{ Bot{ id{ 1 }, position{ 25, 15 } } },
+    Ticks{
+      actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN } },
+      actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN } },
+      actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN } },
+      actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN } },
+      actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP   } }, 
+      actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP   } },
+      actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP   } },
+      actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP   } },
+    },
+    Expectations{
+      expectation{
+        id{ 1 },
+        position{ 3, 3 },
+        alive{ 32 },
+        scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 144, 153, 162, 171, 180, 189, 198, 207, 216, 225, 234, 243, 252, 261, 270, 279, 420 },
+        trail_pos{},
+        region_pos{ position{ 1, 1 }, position{ 1, 2  }, position{ 1, 3  }, position{ 1, 4  }, position{ 1, 5  }, position{ 1, 6  }, position{ 1, 7  }, position{ 1, 8  },
+                    position{ 1, 9 }, position{ 1, 10 }, position{ 1, 11 }, position{ 1, 12 }, position{ 1, 13 }, position{ 1, 14 }, position{ 1, 15 }, position{ 1, 16 }, position{ 1, 17 },
+                    position{ 2, 1 }, position{ 2, 2  }, position{ 2, 3  }, position{ 2, 4  }, position{ 2, 5  }, position{ 2, 6  }, position{ 2, 7  }, position{ 2, 8  },
+                    position{ 2, 9 }, position{ 2, 10 }, position{ 2, 11 }, position{ 2, 12 }, position{ 2, 13 }, position{ 2, 14 }, position{ 2, 15 }, position{ 2, 16 }, position{ 2, 17 },
+                    position{ 3, 1 }, position{ 3, 2  }, position{ 3, 3  }, position{ 3, 4  }, position{ 3, 5  }, position{ 3, 6  }, position{ 3, 7  }, position{ 3, 8  },
+                    position{ 3, 9 }, position{ 3, 10 }, position{ 3, 11 }, position{ 3, 12 }, position{ 3, 13 }, position{ 3, 14 }, position{ 3, 15 }, position{ 3, 16 }, position{ 3, 17 }}
     }
   }
   }});
