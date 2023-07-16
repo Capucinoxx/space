@@ -318,8 +318,12 @@ private:
         return true;
 
       case player_t::movement_type::COMPLETE:
+        auto captured_tiles = grid->fill_region(player);
+        if (captured_tiles.empty())
+          return false;
+
         player->zone_captured_bonus();
-        investigate_captured_tiles(player, grid->fill_region(player));
+        investigate_captured_tiles(player, captured_tiles);
         return false;
 
       default:
@@ -339,8 +343,12 @@ private:
         return true;
 
       case player_t::movement_type::COMPLETE:
+        auto captured_tiles = grid->fill_region(player);
+        if (captured_tiles.empty())
+          return true;
+
         player->zone_captured_bonus();
-        investigate_captured_tiles(player, grid->fill_region(player));
+        investigate_captured_tiles(player, captured_tiles);
         return true;
 
       case player_t::movement_type::STEP:
