@@ -317,16 +317,14 @@ private:
         kill(player, player);
         return true;
 
-      case player_t::movement_type::COMPLETE: {
-        auto captured_tiles = grid->fill_region(player);
-        if (captured_tiles.empty())
+      case player_t::movement_type::COMPLETE:
+        if (player->get_trail().empty())
           return false;
 
         player->zone_captured_bonus();
-        investigate_captured_tiles(player, captured_tiles);
+        investigate_captured_tiles(player, grid->fill_region(player));
         player->clear_trail();
         return false;
-      }
         
       default:
         return false;
@@ -344,16 +342,14 @@ private:
         kill(player, players.find(victim_id)->second);
         return true;
 
-      case player_t::movement_type::COMPLETE: {
-        auto captured_tiles = grid->fill_region(player);
-        if (captured_tiles.empty())
+      case player_t::movement_type::COMPLETE:
+        if (player->get_trail().empty())
           return true;
 
         player->zone_captured_bonus();
-        investigate_captured_tiles(player, captured_tiles);
+        investigate_captured_tiles(player, grid->fill_region(player));
         player->clear_trail();
         return true;
-      }
       
       case player_t::movement_type::STEP:
         if (victim_id != 0 && victim_id != player->id())
