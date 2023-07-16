@@ -169,7 +169,7 @@ int main() {
 
   scenarios.insert({ "rectangle pattern - zone completion", {
     Spawns{ position{ 2, 2 } },
-    Bots{ Bot{ id{ 1 }, position{ 25, 15 } } },
+    Bots{ Bot{ id{ 1 }, position{ 2, 2 } } },
     Ticks{
       actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN } },
       actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN } },
