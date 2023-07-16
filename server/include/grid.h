@@ -35,7 +35,6 @@ public:
     if (p->get_trail().empty())
       return {};
 
-    std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash> trail{};
     std::unordered_map<uint32_t, std::unordered_set<position, PairHash>> tiles_to_investigate{};
 
     auto insert_tiles = [&](uint32_t owner, const position& pos) {
@@ -48,7 +47,6 @@ public:
 
     p->for_each_trail([&](const position& pos) {
       at(pos).take(p->id());
-      trail.insert(pos);
       p->append_region({ pos });
     });
     
@@ -63,7 +61,7 @@ public:
       auto pos = neighbors.back();
       neighbors.pop_back();
 
-      if (is_invalid_pos(pos) || been[pos.first][pos.second] || trail.find(pos) != trail.end())
+      if (is_invalid_pos(pos) || been[pos.first][pos.second])
         continue;
 
       been[pos.first][pos.second] = true;
