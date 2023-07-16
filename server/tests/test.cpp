@@ -197,6 +197,67 @@ int main() {
   }
   }});
 
+  scenarios.insert({ "u pattern - zone completion", {
+    Spawns{ position{ 2, 2 } },
+    Bots{ Bot{ id{ 1 }, position{ 2, 2 } } },
+    Ticks{
+      actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } },
+      actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } },
+      actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, LEFT  } },
+      actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } },
+      actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, 
+      actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } },
+      actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, LEFT  } },
+      actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } },
+      actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } },
+      actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }
+    },
+    Expectations{
+      expectation{
+        id{ 1 },
+        position{ 7, 3 },
+        alive{ 40 },
+        scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 150, 171, 192, 213, 234, 255, 276, 297, 318, 339, 360, 381, 402, 423, 444, 465, 486, 507, 528, 549, 648, 693, 738, 783, 828, 873, 918, 963, 1018 },
+        trail_pos{},
+        region_pos{ position{ 1, 1 }, position{ 1, 2 }, position{ 1, 3 }, position{ 1, 4 }, position{ 1, 5 }, position{ 1, 6 }, position{ 1, 7 },
+                    position{ 2, 1 }, position{ 2, 2 }, position{ 2, 3 }, position{ 2, 4 }, position{ 2, 5 }, position{ 2, 6 }, position{ 2, 7 }, 
+                    position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 }, position{ 3, 4 }, position{ 3, 5 }, position{ 3, 6 }, position{ 3, 7 }, 
+                    position{ 4, 1 }, position{ 4, 2 }, position{ 4, 3 }, position{ 4, 4 }, position{ 4, 5 }, position{ 4, 6 }, position{ 4, 7 }, 
+                    position{ 5, 1 }, position{ 5, 2 }, position{ 5, 3 }, position{ 5, 4 }, position{ 5, 5 }, position{ 5, 6 }, position{ 5, 7 }, 
+                    position{ 6, 1 }, position{ 6, 2 }, position{ 6, 3 }, position{ 6, 4 }, position{ 6, 5 }, position{ 6, 6 }, position{ 6, 7 }, 
+                    position{ 7, 1 }, position{ 7, 2 }, position{ 7, 3 }, position{ 7, 4 }, position{ 7, 5 }, position{ 7, 6 }, position{ 7, 7 } }
+    }
+  }
+  }});
+
+  scenarios.insert({ "L pattern - zone completion", {
+    Spawns{ position{ 2, 2 } },
+    Bots{ Bot{ id{ 1 }, position{ 2, 2 } } },
+    Ticks{
+      actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } },
+      actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, 
+      actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, RIGHT } },
+      actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, LEFT  } },
+      actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }
+    },
+    Expectations{
+      expectation{
+        id{ 1 },
+        position{ 3, 3 },
+        alive{ 20 },
+        scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 144, 153, 162, 171, 258 },
+        trail_pos{},
+        region_pos{ position{ 1, 1 }, position{ 1, 2 }, position{ 1, 3 }, position{ 1, 4 }, position{ 1, 5 }, position{ 1, 6 }, position{ 1, 7 },
+                    position{ 2, 1 }, position{ 2, 2 }, position{ 2, 3 }, position{ 2, 4 }, position{ 2, 5 }, position{ 2, 6 }, position{ 2, 7 }, 
+                    position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 }, position{ 3, 4 }, position{ 3, 5 }, position{ 3, 6 }, position{ 3, 7 }, 
+                    position{ 4, 5 }, position{ 4, 6 }, position{ 4, 7 }, 
+                    position{ 5, 5 }, position{ 5, 6 }, position{ 5, 7 }, 
+                    position{ 6, 5 }, position{ 6, 6 }, position{ 6, 7 }, 
+                    position{ 7, 5 }, position{ 7, 6 }, position{ 7, 7 } }
+    }
+  }
+  }});
+
   scenarios.insert({ "kill player on spawn", { 
     Spawns{ position{ 5, 5 }, position{ 6, 6 }, position{ 10, 10 } },
     Bots{ Bot{ id{ 1 }, position{ 5, 5 } }, Bot{ id{ 2 }, position{ 6, 6 } } },
