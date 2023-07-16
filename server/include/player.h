@@ -206,6 +206,7 @@ public:
 
   uint64_t tick_score() noexcept {
     p_score.add_zone_score(region.size());
+    std::cout << p_score << std::endl;
     return p_score.score();
   }
 
@@ -215,6 +216,10 @@ public:
 
   void kill_bonus() noexcept { 
     p_score.add_kill_score(trail.size());
+  }
+
+  uint64_t score() const noexcept {
+    return p_score.total_score;
   }
 
   
