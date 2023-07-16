@@ -120,7 +120,7 @@ const update_scoreboard = (data) => {
 
 
 
-  scoreboard.replaceChildren(...ranking.reduce((acc, {name, score}, idx) => {
+  scoreboard.replaceChildren(...ranking.slice(0, 10).reduce((acc, {name, score}, idx) => {
     const row = document.createElement('tr');
 
     const rank = document.createElement('td');
