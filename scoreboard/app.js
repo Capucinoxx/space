@@ -46,7 +46,6 @@ const deserialize = (data) => {
     }
   }
 
-  console.log(result);
   return result;
 };
 
@@ -124,7 +123,9 @@ const update_scoreboard = (data) => {
     const row = document.createElement('tr');
 
     const rank = document.createElement('td');
-    rank.innerText = idx + 1;
+    const rank_span = document.createElement('span');
+    rank_span.innerText = idx + 1 + (idx == 0 ? 'st' : idx == 1 ? 'nd' : idx == 2 ? 'rd' : 'th');
+    rank.appendChild(rank_span);
     row.appendChild(rank);
 
     const name_td = document.createElement('td');
@@ -132,7 +133,8 @@ const update_scoreboard = (data) => {
     row.appendChild(name_td);
 
     const score_td = document.createElement('td');
-    score_td.innerText = score;
+    score = 123456789;
+    score_td.innerText = score.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     row.appendChild(score_td);
 
     return [...acc, row];

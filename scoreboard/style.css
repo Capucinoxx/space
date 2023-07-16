@@ -75,8 +75,9 @@ body, html {
 
 .scoreboard thead {
   font-weight: 800;
-  font-size: 1.8em;
+  font-size: 22px;
   color: #E7E9F1;
+  text-transform: uppercase;
 }
 
 .scoreboard thead tr {
@@ -117,6 +118,8 @@ body, html {
 .scoreboard tbody td {
   padding: 20px 0 20px 0;
   vertical-align: middle;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-size: 16px;
 }
 
 .scoreboard tbody td:first-child {
