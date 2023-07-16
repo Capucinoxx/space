@@ -20,7 +20,7 @@ int main() {
         id{ 1 }, 
         position{ 10, 7 }, 
         alive{ 3 }, 
-        scores{ 0, 0, 0 },
+        scores{ 9, 18, 27 },
         trail_pos{ position{ 10, 8 }, position{ 10, 7 } },
         region_pos{ position{ 9, 9 }, position{ 9, 10 }, position{ 9, 11 },  
                     position{ 10, 9 }, position{ 10, 10 }, position{ 10, 11 },
@@ -42,7 +42,7 @@ int main() {
         id{ 2 },
         position{ 4, 5 },
         alive{ 3 },
-        scores{ 0, 0, 0 },
+        scores{ 9, 18, 63 },
         trail_pos{ position{ 5, 5 }, position{ 4, 5 } },
         region_pos{ position{ 4, 6 }, position{ 4, 7 }, position{ 4, 8 },
                     position{ 5, 6 }, position{ 5, 7 }, position{ 5, 8 },
@@ -79,7 +79,7 @@ int main() {
         id{ 2 },
         position{ 4, 4 },
         alive{ 18 },
-        scores{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 },
+        scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117 , 126, 135, 144, 153, 445 },
         trail_pos{},
         region_pos{ position{ 2, 2 }, position{ 2, 3 }, position{ 2, 4 },
                     position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 }, position{ 3, 4 },
@@ -94,7 +94,7 @@ int main() {
         id{ 1 },
         position{ 14, 14 },
         alive{ 0 },
-        scores{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 },
+        scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117 , 126, 135, 144, 153, 162 },
         trail_pos{},
         region_pos{ position{ 13, 13 }, position{ 13, 14 }, position{ 13, 15 },
                     position{ 14, 13 }, position{ 14, 14 }, position{ 14, 15 },
@@ -126,10 +126,7 @@ int main() {
         id{ 1 },
         position{ 24, 14 },
         alive{ 38 },
-        scores{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0,
-                0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0,
-                0, 0 ,0 ,0 ,0 ,0 ,0 ,0 },
+        scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 144, 153, 162, 171, 180, 189, 198, 207, 216, 225, 234, 243, 252, 261, 270, 279, 288, 297, 306, 315, 324, 333 },
         trail_pos{},
         region_pos{ position{ 23, 10 }, position{ 23, 11 }, position{ 23, 12 }, position{ 23, 13 }, position{ 23, 14 }, position{ 23, 15 }, position{ 23, 16 }, position{ 23, 17 },
                     position{ 24, 10 }, position{ 24, 11 }, position{ 24, 12 }, position{ 24, 13 }, position{ 24, 14 }, position{ 24, 15 }, position{ 24, 16 }, position{ 24, 17 },
@@ -142,16 +139,44 @@ int main() {
   }
   }});
 
-  scenarios.insert({ "kill player on spawn", { 
-    Spawns{ position{ 5, 5 }, position{ 6, 6 }, position{ 10, 10 } },
-    Bots{ Bot{ id{ 1 }, position{ 5, 5 } }, Bot{ id{ 2 }, position{ 6, 6 } } },
-    Ticks{},
+  scenarios.insert({ "weird pattern - 2", {
+    Spawns{ position{ 25, 15 } },
+    Bots{ Bot{ id{ 1 }, position{ 25, 15 } } },
+    Ticks{
+      actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, UP    } },
+      actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, LEFT  } },
+      actions{ { id{ 1 }, UP    } }, actions{ { id{ 1 }, LEFT  } }, actions{ { id{ 1 }, DOWN  } },
+      actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, DOWN  } },
+      actions{ { id{ 1 }, RIGHT } }, actions{ { id{ 1 }, DOWN  } }, actions{ { id{ 1 }, RIGHT } },
+    },
     Expectations{
       expectation{
         id{ 1 },
-        position{ 10 ,10 },
+        position{ 24, 14 },
+        alive{ 16 },
+        scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 203 },
+        trail_pos{},
+        region_pos{ position{ 26, 16 }, position{ 24, 16 }, position{ 23, 12 },
+                    position{ 26, 15 }, position{ 24, 15 }, position{ 23, 11 }, 
+                    position{ 26, 14 }, position{ 24, 14 }, position{ 22, 13 }, 
+                    position{ 25, 16 }, position{ 24, 13 }, position{ 22, 12 }, 
+                    position{ 25, 15 }, position{ 24, 12 }, position{ 22, 11 }, 
+                    position{ 25, 14 }, position{ 23, 14 }, position{ 22, 10 },
+                    position{ 25, 13 }, position{ 23, 13 }, position{ 21, 12 }, position{ 21, 11 },  position{ 21, 10 }}
+    }
+  }
+  }});
+
+  scenarios.insert({ "kill player on spawn", { 
+    Spawns{ position{ 5, 5 }, position{ 6, 6 }, position{ 10, 10 } },
+    Bots{ Bot{ id{ 1 }, position{ 5, 5 } }, Bot{ id{ 2 }, position{ 6, 6 } } },
+    Ticks{ actions{ { id{ 2 }, UP } } },
+    Expectations{
+      expectation{
+        id{ 1 },
+        position{ 10, 10 },
         alive{ 0 },
-        scores{},
+        scores{ 9 },
         trail_pos{},
         region_pos{ position{ 9, 9 }, position{ 9, 10 }, position{ 9, 11 },
                     position{ 10, 9 }, position{ 10, 10 }, position{ 10, 11 },
@@ -159,9 +184,9 @@ int main() {
       },
       expectation{
         id{ 2 },
-        position{ 6, 6 },
-        alive{ 0 },
-        scores{},
+        position{ 6, 5 },
+        alive{ 1 },
+        scores{ 21 },
         trail_pos{},
         region_pos{ position{ 5, 5 }, position{ 5, 6 }, position{ 5, 7 },
                     position{ 6, 5 }, position{ 6, 6 }, position{ 6, 7 },
@@ -186,7 +211,7 @@ int main() {
         id{ 1 },
         position{ 14, 14 },
         alive{ 0 },
-        scores{ 0, 0, 0, 0, 0, 0 },
+        scores{ 9, 18, 27, 36, 45, 54 },
         trail_pos{},
         region_pos{ position{ 13, 13 }, position{ 13, 14 }, position{ 13, 15 },
                     position{ 14, 13 }, position{ 14, 14 }, position{ 14, 15 },
@@ -196,7 +221,7 @@ int main() {
         id{ 2 },
         position{ 4, 1 },
         alive{ 0 },
-        scores{ 0, 0, 0, 0, 0, 0 },
+        scores{ 9, 18, 27, 36, 45, 66 },
         trail_pos{},
         region_pos{ position{ 3, 0 }, position{ 3, 1 }, position{ 3, 2 },
                     position{ 4, 0 }, position{ 4, 1 }, position{ 4, 2 },
@@ -208,22 +233,22 @@ int main() {
   scenarios.insert({ "take region of other player on spawn", {
     Spawns{ position{ 2, 2 }, position{ 4, 2 }, position{ 14, 14 } },
     Bots{ Bot{ id{ 1 }, position{ 2, 2 } }, Bot{ id{ 2 }, position{ 4, 2 } } },
-    Ticks{},
+    Ticks{ actions{ { id{ 1 }, UP }, { id{ 2 }, UP } } },
     Expectations{
       expectation{
         id{ 1 },
-        position{ 2, 2 },
-        alive{ 0 },
-        scores{},
+        position{ 2, 1 },
+        alive{ 1 },
+        scores{ 6 },
         trail_pos{},
         region_pos{ position{ 1, 1 }, position{ 1, 2 }, position{ 1, 3 },
                     position{ 2, 1 }, position{ 2, 2 }, position{ 2, 3 } }
       },
       expectation{
         id{ 2 },
-        position{ 4, 2 },
-        alive{ 0 },
-        scores{},
+        position{ 4, 1 },
+        alive{ 1 },
+        scores{ 9 },
         trail_pos{},
         region_pos{ position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 },
                     position{ 4, 1 }, position{ 4, 2 }, position{ 4, 3 },
