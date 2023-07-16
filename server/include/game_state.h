@@ -170,8 +170,7 @@ public:
       }
     }
 
-    if (psql != nullptr && score_insert)
-      store_scores();
+    store_scores(psql != nullptr && score_insert);
 
     inactive_players.clear();
     ++frame_count;
@@ -275,7 +274,7 @@ private:
     }
   }
 
-  void store_scores() {
+  void store_scores(bool with_insert) {
     std::vector<std::string> arguments;
     
     std::string query = "INSERT INTO player_scores (player_id, score) VALUES ";
@@ -285,14 +284,16 @@ private:
       arguments.emplace_back(std::to_string(player.second->id()));
       arguments.emplace_back(std::to_string(player.second->tick_score()));
 
-      query += "($" + std::to_string(i * 2 + 1) + ", $" + std::to_string(i * 2 + 2) + ")";
-      if (i != players.size() - 1)
-        query += ", ";
+      if (with_insert) {
+        query += "($" + std::to_string(i * 2 + 1) + ", $" + std::to_string(i * 2 + 2) + ")";
+        if (i != players.size() - 1)
+          query += ", ";
 
-      ++i;
+        ++i;
+      }
     }
 
-    if (arguments.size() > 0)
+    if (arguments.size() > 0 && with_insert)
       psql->bulk_insert(query, arguments);
   }
 
