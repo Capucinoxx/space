@@ -50,8 +50,8 @@ const deserialize = (data) => {
   return result;
 };
 
-const scoreboard = document.getElementById('scoreboard');
-const ctx = document.getElementById('chart').getContext('2d');
+const scoreboard = document.getElementById('scoreboard-data');
+const ctx = document.getElementById('score-chart').getContext('2d');
 
 const timeline_chart = new Chart(ctx, {
   type: 'line',
@@ -60,7 +60,7 @@ const timeline_chart = new Chart(ctx, {
     scales: {
       x: {
         type: 'time',
-        grid: { color: 'white' },
+        grid: { display: false },
         ticks: {
           autoSkip: true,
           maxTicksLimit: 5,
@@ -79,7 +79,7 @@ const timeline_chart = new Chart(ctx, {
           maxTicksLimit: 5,
           color: 'white',
         },
-        grid: { color: 'white' },
+        grid: { display: false },
       }
     }
   }

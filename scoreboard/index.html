@@ -12,19 +12,32 @@
     <section class='scoreboard-container'>
       <!-- logo -->
       <div class='logo'>
-        logo
+        <img src='./assets/jdis-header.png' alt='logo'>
       </div>
       <!-- table -->
-      <table class='scoreboard'>
-        <thead>
-          <tr>
-            <th></th>
-            <th>Team</th>
-            <th>Score</th>
-          </tr>
-        </thead>
-        <tbody id="scoreboard-data"></tbody>
-      </table>
+      <div class='scoreboard-table-container'>
+        <table class='scoreboard'>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Team</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody id="scoreboard-data">
+            <tr>
+              <td><span>1er</span></td>
+              <td>Nom d'equipe super long</td>
+              <td>100</td>
+            </tr>
+            <tr>
+              <td><span>2e</span></td>
+              <td>Team 1</td>
+              <td>100</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class='score-chart-container'>
@@ -33,6 +46,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
