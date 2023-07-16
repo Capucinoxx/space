@@ -149,7 +149,7 @@ class BoardGame {
     const { ctx, cell_size } = this.canvas;
 
     for (let i = 0; i != this.data!.trails.length; i++)
-      render_trail(ctx, cell_size, this.data!.colors[i].adjust_luminosity(0.74).to_rgba(0.8), this.data!.regions[i]);
+      render_trail(ctx, cell_size, this.data!.colors[i].adjust_luminosity(0.74).to_rgba(0.8), this.data!.trails[i]);
   };
 
   private render_players = (): void => {
