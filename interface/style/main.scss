@@ -185,14 +185,6 @@ body, html {
   }
 }
 
-.logo {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-
-  width: 10em;
-}
-
 .modal {
   background-color: transparent;
 
@@ -377,4 +369,25 @@ body, html {
 
 input:invalid {
   border: 2px dashed red;
+}
+
+#open-subscription-modal {
+  cursor: pointer;
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+
+  width: 10em;
+
+  &::after {
+    content: 'Inscription';
+    position: absolute;
+    color: var(--white);
+    bottom: -10px;
+    font-size: 20px;
+    width: 100%;
+    text-align: center;
+    left: 0;
+    font-weight: bolder;
+  }
 }
