@@ -51,10 +51,23 @@ private:
   void on_write(error_code ec, std::size_t, bool close);
   bool handle_custom_route();
 
+  template<class Response>
+  void async_write(Response resp);
+
 public:
   http_session(tcp::socket socket, std::shared_ptr<shared_state> const& state);
 
   void run();
 };
+
+template<class Response>
+void http_session::async_write(Response resp) {
+  auto sp = std::make_shared<Response>(std::move(resp));
+  auto self = shared_from_this();
+
+  http::async_write(socket, *sp, [self, sp](error_code ec, std::size_t bytes) {
+    self->on_write(ec, bytes, sp->need_eof());
+  });
+}
 
 #endif //SPACE_NETWORK_SESSION_H

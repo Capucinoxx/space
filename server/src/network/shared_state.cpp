@@ -19,9 +19,12 @@ void shared_state::send(std::string message) {
     session->send(ss);
 }
 
-std::pair<http::status, std::string> shared_state::handle_http_request(http::request<http::string_body>& req) {
+http::response<http::string_body> shared_state::handle_http_request(http::request<http::string_body>& req) {
+  http::response<http::string_body> resp{http::status::not_found, req.version()};
   auto it = http_handlers.find(req.target().to_string());
-  if (it != http_handlers.end())
-    return it->second(req);
-  return {http::status::not_found, "Not found"};
+  if (it != http_handlers.end()) {
+    auto ptr = it->second.get();
+    (*ptr)(req, resp);
+  }
+  return resp;
 }

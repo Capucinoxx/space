@@ -6,8 +6,9 @@
 
 // #include "handlers/subscription_hander.h"
 // #include "handlers/game_handler.h"
-#include "handlers/scoreboard_handler.h"
+#include "handler/scoreboard_handler.h"
 #include <atomic>
+#include <memory>
 
 #include "network/utils.h"
 #include "network/listener.h"
@@ -42,13 +43,13 @@ constexpr std::size_t max_tick = 1000;
 
 
 int main() {
-    Config cfg = load_config(".env");
+  //   Config cfg = load_config(".env");
 
-  auto postgres = PostgresConnector::get_instance(cfg);
-  if (!postgres->connected()) {
-    std::cerr << "Failed to connect to database" << std::endl;
-    return 1;
-  }
+  // auto postgres = PostgresConnector::get_instance(cfg);
+  // if (!postgres->connected()) {
+  //   std::cerr << "Failed to connect to database" << std::endl;
+  //   return 1;
+  // }
 
   auto address = net::ip::make_address("0.0.0.0");
   unsigned short port = 8080;
@@ -58,9 +59,9 @@ int main() {
 
   auto state = std::make_shared<shared_state>(doc_root);
 
-  auto scoreboard_handler = ScoreboardHandle<rows, cols>(postgres);
 
-  state->add_http_handler("/scoreboard", scoreboard_handler);
+  auto h_scoreboard = std::make_shared<scoreboard_handler>();
+  state->add_http_handler("/scoreboard", h_scoreboard);
   std::make_shared<listener>(ioc, tcp::endpoint{ address, port }, state)->run();
 
   net::signal_set signals(ioc, SIGINT, SIGTERM);
@@ -68,7 +69,7 @@ int main() {
 
   ioc.run();
 
-
+// 
 
   // auto admin_middleware = AdminMiddleware(cfg["ADMIN_PASSWORD"]);
 
