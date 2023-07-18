@@ -41,42 +41,44 @@ private:
       AND EXTRACT('minute' FROM rs.timestamp) % 3 = 0)";
 
     auto result = postgres->execute(query);
-    
 
     if (result.empty())
       return std::make_pair(http::status::internal_server_error, "failed to retrieve scoreboard");
 
     std::unordered_map<std::string, std::vector<uint8_t>> scores;
     std::unordered_map<std::string, std::tuple<boost::float64_t, boost::float64_t, boost::float64_t>> player_info;
+    std::vector<uint8_t> serialized_scores;
 
-    for (auto row : result) {
+    for (const auto& row : result) {
       std::string player_name = row[0].as<std::string>();
-      if (scores.find(player_name) == scores.end()) {
-        scores[player_name] = std::vector<uint8_t>();
-        player_info[player_name] = std::make_tuple(row[1].as<boost::float64_t>(), row[2].as<boost::float64_t>(), row[3].as<boost::float64_t>());
+      auto& score_data = scores[player_name];
+      auto& info = player_info[player_name];
+
+      if (score_data.empty()) {
+        std::get<0>(info) = row[1].as<boost::float64_t>();
+        std::get<1>(info) = row[2].as<boost::float64_t>();
+        std::get<2>(info) = row[3].as<boost::float64_t>();
       }
-        
 
       uint64_t epoch = parse_string_to_epoch(row[4].as<std::string>());
       boost::float64_t score = row[5].as<boost::float64_t>();
 
-      serialize_value<uint64_t>(scores[player_name], epoch);
-      serialize_value<boost::float64_t>(scores[player_name], score);
+      serialize_value<uint64_t>(score_data, epoch);
+      serialize_value<boost::float64_t>(score_data, score);
     }
 
-    std::vector<uint8_t> serialized_scores;
-    for (auto [name, serialized_score] : scores) {
+    for (const auto& [name, serialized_score] : scores) {
       // name
       serialize_value<uint32_t>(serialized_scores, name.size());
       serialize_data<std::string>(serialized_scores, name, name.size());
 
       // color
-      auto [h, s, l] = player_info[name];
-      serialize_value<boost::float64_t>(serialized_scores, h);
-      serialize_value<boost::float64_t>(serialized_scores, s);
-      serialize_value<boost::float64_t>(serialized_scores, l);
+      const auto& info = player_info[name];
+      serialize_value<boost::float64_t>(serialized_scores, std::get<0>(info));
+      serialize_value<boost::float64_t>(serialized_scores, std::get<1>(info));
+      serialize_value<boost::float64_t>(serialized_scores, std::get<2>(info));
 
-      // each score entry is 8bytes for epoch and 8bytes for score
+      // each score entry is 8 bytes for epoch and 8 bytes for score
       serialize_value<uint32_t>(serialized_scores, serialized_score.size() / 16);
 
       // scores
@@ -85,6 +87,7 @@ private:
 
     return std::make_pair(http::status::ok, std::string(serialized_scores.begin(), serialized_scores.end()));
   }
+
 };
 
 #endif  // SPACE_HANDLERS_SCOREBOARD_HANDLER_H
