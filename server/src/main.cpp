@@ -60,9 +60,7 @@ int main() {
 
   auto scoreboard_handler = ScoreboardHandle<rows, cols>(postgres);
 
-  state->add_http_handler("/scoreboard", [&scoreboard_handler](http::request<http::string_body>& req) -> std::pair<http::status, std::string> {
-    return scoreboard_handler(req);
-  });
+  state->add_http_handler("/scoreboard", scoreboard_handler);
   std::make_shared<listener>(ioc, tcp::endpoint{ address, port }, state)->run();
 
   net::signal_set signals(ioc, SIGINT, SIGTERM);
