@@ -1,7 +1,9 @@
 #include "network/session.h"
 
 websocket_session::websocket_session(tcp::socket socket, std::shared_ptr<shared_state> const& state)
-  : ws(std::move(socket)), state(state) {}
+  : ws(std::move(socket)), state(state) {
+    std::cout << "websocket_session::websocket_session\n";
+  }
 
 websocket_session::~websocket_session() {
   state->leave(*this);
@@ -21,9 +23,9 @@ void websocket_session::on_accept(error_code ec) {
   state->join(*this);
 
   ws.async_read(buffer, 
-                std::bind(buffer, [sp = shared_from_this()](error_code ec, std::size_t bytes) {
+                [sp = shared_from_this()](error_code ec, std::size_t bytes) {
                   sp->on_read(ec, bytes);
-                }));
+                });
 }
 
 void websocket_session::on_read(error_code ec, std::size_t bytes_transferred) {
@@ -48,7 +50,7 @@ void websocket_session::send(std::shared_ptr<std::string const> const& ss) {
   if (queue.size() > 1)
     return;
 
-  ws.async_write(*queue.front(), 
+  ws.async_write(net::buffer(*queue.front()), 
                  [sp = shared_from_this()](error_code ec, std::size_t bytes) {
                    sp->on_write(ec, bytes);
                  });
@@ -63,7 +65,7 @@ void websocket_session::on_write(error_code ec, std::size_t bytes_transferred) {
   queue.pop();
 
   if (!queue.empty())
-    ws.async_write(*queue.front(), 
+    ws.async_write(net::buffer(*queue.front()), 
                    [sp = shared_from_this()](error_code ec, std::size_t bytes) {
                      sp->on_write(ec, bytes);
                    });
@@ -118,21 +120,21 @@ void handle_request(beast::string_view doc_root, http::request<Body, http::basic
     return res;
   };
 
-  auto const not_found = [this](beast::string_view target) {
-    http::response<http::string_body> res{ http::status::not_found, request.version() };
+  auto const not_found = [&req](beast::string_view target) {
+    http::response<http::string_body> res{ http::status::not_found, req.version() };
     res.set(http::field::server, "Space");
     res.set(http::field::content_type, "text/html");
-    res.keep_alive(request.keep_alive());
+    res.keep_alive(req.keep_alive());
     res.body() = "The resource '" + std::string(target) + "' was not found.";
     res.prepare_payload();
     return res;
   };
 
-  auto const server_error = [this](beast::string_view what) {
-    http::response<http::string_body> res{ http::status::internal_server_error, request.version() };
+  auto const server_error = [&req](beast::string_view what) {
+    http::response<http::string_body> res{ http::status::internal_server_error, req.version() };
     res.set(http::field::server, "Space");
     res.set(http::field::content_type, "text/html");
-    res.keep_alive(request.keep_alive());
+    res.keep_alive(req.keep_alive());
     res.body() = "An error occurred: '" + std::string(what) + "'";
     res.prepare_payload();
     return res;
@@ -211,7 +213,7 @@ void http_session::on_read(error_code ec, std::size_t) {
   }
 
   handle_request(state->doc_root(), std::move(req), [this](auto&& response) {
-    auto response_type = typename std::decay<decltype(response)>::type;
+    using response_type = typename std::decay<decltype(response)>::type;
     auto sp = std::make_shared<response_type>(std::forward<decltype(response)>(response));
 
     auto self = shared_from_this();
