@@ -49,6 +49,7 @@ private:
   void fail(error_code ec, char const* what);
   void on_read(error_code ec, std::size_t);
   void on_write(error_code ec, std::size_t, bool close);
+  bool handle_custom_route();
 
 public:
   http_session(tcp::socket socket, std::shared_ptr<shared_state> const& state);

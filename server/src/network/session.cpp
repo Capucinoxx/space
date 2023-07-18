@@ -212,19 +212,9 @@ void http_session::on_read(error_code ec, std::size_t) {
     return;
   }
   
-  if (auto [status, body] = state->handle_http_request(req); status != http::status::not_found) {
-    http::response<http::string_body> res{status, req.version()};
-    res.set(http::field::server, "Space");
-    res.set(http::field::content_type, "application/octet-stream");
-    res.keep_alive(req.keep_alive());
-    res.body() = body;
-    res.prepare_payload();
-
-    http::async_write(socket, res, [this](error_code ec, std::size_t bytes) {
-      this->on_write(ec, bytes, false);
-    });
+  if (handle_custom_route())
     return;
-  }
+  
 
   handle_request(state->doc_root(), std::move(req), [this](auto&& response) {
     using response_type = typename std::decay<decltype(response)>::type;
@@ -252,4 +242,22 @@ void http_session::on_write(error_code ec, std::size_t, bool close) {
                           [self = shared_from_this()](error_code ec, std::size_t bytes) {
                             self->on_read(ec, bytes);
                           });
+}
+
+bool http_session::handle_custom_route() {
+  if (auto [status, body] = state->handle_http_request(req); status != http::status::not_found) {
+    http::response<http::string_body> res{status, req.version()};
+    res.set(http::field::server, "Space");
+    res.set(http::field::content_type, "application/octet-stream");
+    res.keep_alive(req.keep_alive());
+    res.body() = body;
+    res.prepare_payload();
+
+    http::async_write(socket, res, [this](error_code ec, std::size_t bytes) {
+      this->on_write(ec, bytes, false);
+    });
+    return true;
+  }
+
+  return false;
 }
