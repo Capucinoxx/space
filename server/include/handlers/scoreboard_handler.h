@@ -25,14 +25,12 @@ public:
   explicit ScoreboardHandle(psql_ref postgres) 
     : postgres(postgres) {}
 
-  void operator()(Server& server) {
-    server.add_http_endpoint("/scoreboard", [&](Server::http_request req) -> std::pair<http::status, std::string> {
-      return handle_scoreboard(req);
-    });
+  std::pair<http::status, std::string> operator()(http::request<http::string_body> & req) {
+    return handle_scoreboard();
   }
 
 private:
-  std::pair<http::status, std::string> handle_scoreboard(Server::http_request req) {
+  std::pair<http::status, std::string> handle_scoreboard() {
     std::string query = R"(WITH ranked_scores AS (
       SELECT player_id, timestamp, score,
       ROW_NUMBER() OVER (PARTITION BY player_id, date_trunc('minute', timestamp) ORDER BY timestamp) AS row_num
