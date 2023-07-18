@@ -39,4 +39,21 @@ void websocket_session::run(http::request<Body, http::basic_fields<Allocator>> r
   ws.async_accept(req, std::bind(&websocket_session::on_accept, shared_from_this(), std::placeholders::_1));
 }
 
+class http_session : public std::enable_shared_from_this<http_session> {
+private:
+  tcp::socket socket;
+  beast::flat_buffer buffer;
+  std::shared_ptr<shared_state> state;
+  http::request<http::string_body> req;
+
+  void fail(error_code ec, char const* what);
+  void on_read(error_code ec, std::size_t);
+  void on_write(error_code ec, std::size_t, bool close);
+
+public:
+  http_session(tcp::socket socket, std::shared_ptr<shared_state> const& state);
+
+  void run();
+};
+
 #endif //SPACE_NETWORK_SESSION_H
