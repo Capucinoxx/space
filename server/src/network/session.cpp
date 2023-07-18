@@ -211,10 +211,8 @@ void http_session::on_read(error_code ec, std::size_t) {
     std::make_shared<websocket_session>(std::move(socket), state)->run(std::move(req));
     return;
   }
- // TODO: refactor this for dynamic routing
-  if (req.target() == "/scoreboard") {
-    auto [status, body] = state->handle_http_request(req);
-
+  
+  if (auto [status, body] = state->handle_http_request(req); status != http::status::not_found) {
     http::response<http::string_body> res{status, req.version()};
     res.set(http::field::server, "Space");
     res.set(http::field::content_type, "application/octet-stream");
@@ -225,6 +223,7 @@ void http_session::on_read(error_code ec, std::size_t) {
     http::async_write(socket, res, [this](error_code ec, std::size_t bytes) {
       this->on_write(ec, bytes, false);
     });
+    return;
   }
 
   handle_request(state->doc_root(), std::move(req), [this](auto&& response) {

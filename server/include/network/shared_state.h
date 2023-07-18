@@ -35,13 +35,7 @@ public:
 		http_handlers[path] = handler;
 	}
 
-	std::pair<http::status, std::string> handle_http_request(http::request<http::string_body>& req) {
-		auto it = http_handlers.find(req.target().to_string());
-		if (it != http_handlers.end()) {
-			return it->second(req);
-		}
-		return {http::status::not_found, "Not found"};
-	}
+	std::pair<http::status, std::string> handle_http_request(http::request<http::string_body>& req);
 };
 
 #endif //SPACE_NETWORK_SHARED_STATE_H
