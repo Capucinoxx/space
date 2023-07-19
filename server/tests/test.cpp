@@ -2,7 +2,7 @@
 #include <unordered_map>
 
 
-#include "utils.h"
+#include "scenario.h"
 
 int main() {
   std::unordered_map<std::string, Scenario> scenarios;

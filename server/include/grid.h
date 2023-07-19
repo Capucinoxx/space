@@ -7,7 +7,7 @@
 
 #include "tile_map.h"
 #include "player.h"
-#include "utils.h"
+#include "common.h"
 
 template<uint32_t ROWS, uint32_t COLS>
 class Grid {

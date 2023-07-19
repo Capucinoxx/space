@@ -1,4 +1,5 @@
 // #include "network.h"
+#include "handler/scoreboard_handler.h"
 #include "configuration.h"
 #include "postgres_connector.h"
 // #include "game_loop.h"
@@ -6,7 +7,7 @@
 
 // #include "handlers/subscription_hander.h"
 // #include "handlers/game_handler.h"
-#include "handler/scoreboard_handler.h"
+
 #include <atomic>
 #include <memory>
 
@@ -43,13 +44,13 @@ constexpr std::size_t max_tick = 1000;
 
 
 int main() {
-  //   Config cfg = load_config(".env");
+    Config cfg = load_config(".env");
 
-  // auto postgres = PostgresConnector::get_instance(cfg);
-  // if (!postgres->connected()) {
-  //   std::cerr << "Failed to connect to database" << std::endl;
-  //   return 1;
-  // }
+  auto postgres = PostgresConnector::get_instance(cfg);
+  if (!postgres->connected()) {
+    std::cerr << "Failed to connect to database" << std::endl;
+    return 1;
+  }
 
   auto address = net::ip::make_address("0.0.0.0");
   unsigned short port = 8080;
@@ -60,7 +61,7 @@ int main() {
   auto state = std::make_shared<shared_state>(doc_root);
 
 
-  auto h_scoreboard = std::make_shared<scoreboard_handler>();
+  auto h_scoreboard = std::make_shared<scoreboard_handler>(postgres);
   state->add_http_handler("/scoreboard", h_scoreboard);
   std::make_shared<listener>(ioc, tcp::endpoint{ address, port }, state)->run();
 
