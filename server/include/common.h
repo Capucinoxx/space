@@ -14,6 +14,21 @@
 #include <ctime>
 #include <string_view>
 
+constexpr std::size_t rows = 100;
+constexpr std::size_t cols = 100;
+constexpr std::size_t tick = 100;
+constexpr std::size_t max_tick = 1000;
+
+
+struct pair_hash {
+  template <typename T1, typename T2>
+  std::size_t operator()(const std::pair<T1, T2>& p) const {
+    auto h1 = std::hash<T1>{}(p.first);
+    auto h2 = std::hash<T2>{}(p.second);
+    return h1 ^ h2;
+  }
+};
+
 template<typename T>
 void serialize_value(std::vector<uint8_t>& data, const T& value) {
   const uint8_t* ptr = reinterpret_cast<const uint8_t*>(&value);
