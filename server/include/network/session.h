@@ -3,6 +3,7 @@
 
 #include "network/utils.h"
 #include "network/shared_state.h"
+#include "handler/handler.h"
 
 #include <cstdlib>
 #include <memory>
@@ -19,6 +20,9 @@ private:
   std::shared_ptr<shared_state> state;
   std::queue<std::shared_ptr<std::string const>> queue;
 
+  handler_sptr handler;
+  std::string channel;
+
   void fail(error_code ec, char const* what);
   void on_accept(error_code ec);
   void on_read(error_code ec, std::size_t bytes_transferred);
@@ -29,13 +33,18 @@ public:
   ~websocket_session();
 
   template<class Body, class Allocator>
-  void run(http::request<Body, http::basic_fields<Allocator>> req);
+  void run(http::request<Body, http::basic_fields<Allocator>> req, std::string channel);
 
   void send(std::shared_ptr<std::string const> const& ss);
 };
 
 template<class Body, class Allocator>
-void websocket_session::run(http::request<Body, http::basic_fields<Allocator>> req) {
+void websocket_session::run(http::request<Body, http::basic_fields<Allocator>> req, std::string channel) {
+  this->channel = channel;
+  handler = state->get_handler(channel, shared_state::WEBSOCKET);
+  if (!handler->on_open(req))
+    return;
+
   ws.async_accept(req, std::bind(&websocket_session::on_accept, shared_from_this(), std::placeholders::_1));
 }
 

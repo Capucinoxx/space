@@ -15,14 +15,7 @@
 #include <tuple>
 #include <memory>
 
-template<uint32_t ROWS, uint32_t COLS>
-class Player;
 
-template<uint32_t ROWS, uint32_t COLS>
-using player_sptr = std::shared_ptr<Player<ROWS, COLS>>;
-
-template<uint32_t ROWS, uint32_t COLS>
-using action_t = std::pair<player_sptr<ROWS, COLS>, std::string>;
 
 
 template<uint32_t ROWS, uint32_t COLS>

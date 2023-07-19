@@ -9,8 +9,11 @@ class handler {
 public:
 	virtual void operator()(http::request<http::string_body>& req, http::response<http::string_body>& resp) = 0;
 
-	void on_open() {}
+	bool on_open(http::request<http::string_body>& req) {
+		return true;
+	}
 	void on_close() {}
+	void on_message(std::string message) {}
 };
 
 using handler_sptr = std::shared_ptr<handler>;

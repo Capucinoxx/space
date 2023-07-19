@@ -4,18 +4,21 @@
 shared_state::shared_state(std::string doc_root)
   : doc_root_(std::move(doc_root)) {}
 
-void shared_state::join(websocket_session& session) {
-  sessions_.insert(&session);
+void shared_state::join(websocket_session& session, std::string channel) {
+  
+  sessions_[channel].insert(&session);
+  std::cout << "size: " << sessions_[channel].size() << std::endl;
 }
 
 void shared_state::leave(websocket_session& session) {
-  sessions_.erase(&session);
+  for (auto& [_, sessions] : sessions_)
+    sessions.erase(&session);
 }
 
-void shared_state::send(std::string message) {
+void shared_state::send(std::string channel, std::string message) {
   auto const ss = std::make_shared<std::string const>(std::move(message));
 
-  for (auto session : sessions_)
+  for (auto session : sessions_[channel])
     session->send(ss);
 }
 

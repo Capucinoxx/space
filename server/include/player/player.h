@@ -12,6 +12,9 @@
 #include <memory>
 #include <algorithm>
 
+class player;
+using player_sptr = std::shared_ptr<player>;
+
 using position = std::pair<uint32_t, uint32_t>;
 
 class player {
@@ -30,8 +33,8 @@ private:
   position current_pos;
 
   player_score score;
-  teleport_stmt teleport_stmt{ };
-  deconnected_actions deconnected_actions{ };
+  teleport_stmt teleport_stmt_{ };
+  deconnected_actions deconnected_actions_{ };
 
   hsl_color hsl;
   bool connected;
@@ -71,14 +74,14 @@ public:
   // methods for deconnected actions
   // ==================================================================================
 
-  void has_played() noexcept { deconnected_actions.reset(); }
+  void has_played() noexcept { deconnected_actions_.reset(); }
 
   void update_pattern(const std::vector<std::shared_ptr<Action<rows, cols>>>& actions) noexcept {
-    deconnected_actions.update(actions);
+    deconnected_actions_.update(actions);
   }
 
-  std::shared_ptr<Action<rows, cols>> next_action() noexcept {
-    return deconnected_actions.next();
+  std::shared_ptr<Action<rows, cols>> next_disconnected_action() noexcept {
+    return deconnected_actions_.next();
   }
 
 
@@ -187,13 +190,13 @@ public:
     if (!can_teleport(pos))
       return;
 
-    teleport_stmt.teleport();
+    teleport_stmt_.teleport();
     go_to(pos);
     clear_trail();
   }
 
   bool can_teleport(const position& pos) const noexcept {
-    return teleport_stmt.can_teleport() && region.find(pos) != region.end();
+    return teleport_stmt_.can_teleport() && region.find(pos) != region.end();
   }
 
 

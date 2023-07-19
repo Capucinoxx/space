@@ -4,6 +4,7 @@ websocket_session::websocket_session(tcp::socket socket, std::shared_ptr<shared_
   : ws(std::move(socket)), state(state) {}
 
 websocket_session::~websocket_session() {
+  handler->on_close();
   state->leave(*this);
 }
 
@@ -18,7 +19,7 @@ void websocket_session::on_accept(error_code ec) {
   if (ec)
     return fail(ec, "accept");
 
-  state->join(*this);
+  state->join(*this, channel);
 
   ws.async_read(buffer, 
                 [sp = shared_from_this()](error_code ec, std::size_t bytes) {
@@ -32,7 +33,8 @@ void websocket_session::on_read(error_code ec, std::size_t bytes_transferred) {
   if (ec)
     return fail(ec, "read");
 
-  state->send(beast::buffers_to_string(buffer.data()));
+  auto const ss = std::make_shared<std::string const>(beast::buffers_to_string(buffer.data()));
+  handler->on_message(*ss);
 
   buffer.consume(buffer.size());
 
@@ -205,8 +207,8 @@ void http_session::on_read(error_code ec, std::size_t) {
   if (ec)
     return fail(ec, "read");
 
-  if (websocket::is_upgrade(req)) {
-    std::make_shared<websocket_session>(std::move(socket), state)->run(std::move(req));
+  if (websocket::is_upgrade(req) && state->is_channel(req.target().to_string())) {
+    std::make_shared<websocket_session>(std::move(socket), state)->run(std::move(req), req.target().to_string());
     return;
   }
   

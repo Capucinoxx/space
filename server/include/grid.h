@@ -8,12 +8,13 @@
 #include "tile_map.h"
 #include "player.h"
 #include "common.h"
+#include "player/player.h"
 
 template<uint32_t ROWS, uint32_t COLS>
 class Grid {
 public:
   using position = std::pair<uint32_t, uint32_t>;
-  using player_ptr = std::shared_ptr<Player<ROWS, COLS>>;
+  using player_ptr = std::shared_ptr<player>;
 
 private:
   std::array<std::array<TileMap, COLS>, ROWS> grid;

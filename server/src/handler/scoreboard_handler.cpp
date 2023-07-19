@@ -57,9 +57,6 @@ std::pair<http::status, std::string> scoreboard_handler::handle() {
   serialize_value<uint32_t>(buffer, scores.size() / 16);
   buffer.insert(buffer.end(), scores.begin(), scores.end());
 
-  std::cout << "serializing " << current_player << " scores " << scores.size() / 16 << " | " << scores.size() % 10 << std::endl;
-
-
   return {http::status::ok, std::move(std::string(buffer.begin(), buffer.end()))};
 }
 

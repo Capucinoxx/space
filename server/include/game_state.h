@@ -1,7 +1,7 @@
 #ifndef SPACE_MAP_H
 #define SPACE_MAP_H
 
-#include "player.h"
+#include "player/player.h"
 #include "grid.h"
 #include "common.h"
 #include "postgres_connector.h"
@@ -17,6 +17,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <optional>
+
+
 
 template<uint32_t ROWS, uint32_t COLS>
 class Spawner {
@@ -73,12 +75,12 @@ public:
 template<typename T, uint32_t ROWS, uint32_t COLS>
 class GameState {
   static_assert(std::is_same<T, std::pair<typename T::first_type, typename T::second_type>>::value, "T must be a pair");
-  static_assert(std::is_same<typename T::first_type, std::shared_ptr<Player<ROWS, COLS>>>::value,
+  static_assert(std::is_same<typename T::first_type, std::shared_ptr<player>>::value,
                   "T::first_type must be std::shared_ptr<Player>");
 
 public:
   using psql_ref = std::shared_ptr<PostgresConnector>;
-  using player_t = Player<ROWS, COLS>;
+  using player_t = player;
   using player_ptr = std::shared_ptr<player_t>;
 
 private:
@@ -164,7 +166,7 @@ public:
 
     for (auto& player : players) {
       if (!inactive_players.contains(player.first)) {
-        player.second->increase_frame_alive();
+        player.second->increase_tick_alive();
         if (ids.find(player.first) == ids.end())
           play_tick(std::make_pair(player.second, std::string{}));
       }
@@ -197,7 +199,7 @@ public:
     handle_teleportation(player, action, new_pos) || handle_move_result(player, action, new_pos) || handle_step_statement(player, new_pos);
   }
 
-  TileMap& cell(player_t::position pos) const {
+  TileMap& cell(position pos) const {
     return grid->at(pos);
   }
 
@@ -221,8 +223,8 @@ private:
 
     auto victim_id = victim->id();
     
-    victim->for_each_region([grid = grid, victim_id](player_t::position p) { grid->at(p).reset(victim_id); });
-    victim->for_each_trail([grid = grid, victim_id](player_t::position p) { grid->at(p).reset(victim_id); });
+    victim->for_each_region([grid = grid, victim_id](position p) { grid->at(p).reset(victim_id); });
+    victim->for_each_trail([grid = grid, victim_id](position p) { grid->at(p).reset(victim_id); });
     victim->death();
 
     spawn_player(victim, (*spawn)());
@@ -257,7 +259,7 @@ private:
     }
 
     player->append_region(positions);
-    player->deplace(pos);
+    player->go_to(pos);
   }
 
   void investigate_captured_tiles(const player_ptr& player, const std::unordered_map<uint32_t, std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash>>& player_tiles) {
@@ -297,12 +299,12 @@ private:
       psql->bulk_insert(query, arguments);
   }
 
-  bool handle_teleportation(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action, const player_t::position& new_pos) {
+  bool handle_teleportation(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action, const position& new_pos) {
     if (auto teleport_action = std::dynamic_pointer_cast<TeleportAction<ROWS, COLS>>(action)) {
       if (!player->can_teleport(new_pos))
         return true;
 
-      player->for_each_trail([grid = grid, player_id = player->id()](player_t::position p) { 
+      player->for_each_trail([grid = grid, player_id = player->id()](position p) { 
         grid->at(p).reset(player_id); });
 
       player->teleport(new_pos);
@@ -311,13 +313,13 @@ private:
     return false;
   }
 
-  bool handle_move_result(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action, const player_t::position& new_pos) {
+  bool handle_move_result(const player_ptr& player, const std::shared_ptr<Action<ROWS, COLS>>& action, const position& new_pos) {
     switch (player->move(new_pos)) {
-      case player_t::movement_type::DEATH:
+      case player_t::action_stmt::DEATH:
         kill(player, player);
         return true;
 
-      case player_t::movement_type::COMPLETE:
+      case player_t::action_stmt::COMPLETE:
         if (player->get_trail().empty())
           return false;
 
@@ -331,18 +333,18 @@ private:
     }
   }
 
-  bool handle_step_statement(const player_ptr& player, const player_t::position& new_pos) {
+  bool handle_step_statement(const player_ptr& player, const position& new_pos) {
     auto [statement, victim_id] = grid->at(new_pos).step(player->id());
     return handle_statement(player, new_pos, statement, victim_id);
   }
 
-  bool handle_statement(const player_ptr& player, const player_t::position& new_pos, player_t::movement_type statement, uint32_t victim_id) {
+  bool handle_statement(const player_ptr& player, const position& new_pos, player_t::action_stmt statement, uint32_t victim_id) {
     switch (statement) {
-      case player_t::movement_type::DEATH:
+      case player_t::action_stmt::DEATH:
         kill(player, players.find(victim_id)->second);
         return true;
 
-      case player_t::movement_type::COMPLETE:
+      case player_t::action_stmt::COMPLETE:
         if (player->get_trail().empty())
           return true;
 
@@ -351,11 +353,11 @@ private:
         player->clear_trail();
         return true;
       
-      case player_t::movement_type::STEP:
+      case player_t::action_stmt::STEP:
         if (victim_id != 0 && victim_id != player->id())
           players.find(victim_id)->second->remove_region(player->pos());
         
-        player->deplace(new_pos);
+        player->go_to(new_pos);
         return true;
 
       default:
@@ -381,6 +383,8 @@ private:
 };
 
 template<typename T, uint32_t ROWS, uint32_t COLS>
-UniqueIDGenerator<15> GameState<T, ROWS, COLS>::uuid_generator{};  
+UniqueIDGenerator<15> GameState<T, ROWS, COLS>::uuid_generator{}; 
+
+using game_sptr = std::shared_ptr<GameState<std::pair<std::shared_ptr<player>, std::string>, rows, cols>>;
 
 #endif //SPACE_MAP_H
