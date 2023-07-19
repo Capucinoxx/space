@@ -10,8 +10,11 @@
 #include "game_state.h"
 #include "player.h"
 #include "tests.h"
+#include "common.h"
+#include "player/player.h"
 
-enum { ROWS = 300, COLS = 400 }; 
+
+enum { ROWS = 100, COLS = 100 }; 
 
 enum direction { UP, DOWN, LEFT, RIGHT };
 
@@ -74,8 +77,8 @@ struct Scenario {
   Expectations expected_positions;
 
 public:
-  using players_map = std::unordered_map<uint32_t, std::shared_ptr<Player<ROWS, COLS>>>;
-  using game_state = GameState<std::pair<std::shared_ptr<Player<ROWS, COLS>>, std::string>, ROWS, COLS>;
+  using players_map = std::unordered_map<uint32_t, std::shared_ptr<player>>;
+  using game_state = GameState<std::pair<std::shared_ptr<player>, std::string>, ROWS, COLS>;
 
 
   void run(const std::string& name) {
@@ -111,7 +114,7 @@ public:
 
         for (const auto& bot : bots) {
           auto& player = players[bot.uuid];
-          player_scores[bot.uuid].push_back(player->score());
+          player_scores[bot.uuid].push_back(player->total_score());
         }
       }
 
