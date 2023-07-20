@@ -261,7 +261,7 @@ private:
     player->go_to(pos);
   }
 
-  void investigate_captured_tiles(const player_ptr& player, const std::unordered_map<uint32_t, std::unordered_set<std::pair<uint32_t, uint32_t>, PairHash>>& player_tiles) {
+  void investigate_captured_tiles(const player_ptr& player, const std::unordered_map<uint32_t, std::unordered_set<std::pair<uint32_t, uint32_t>, pair_hash>>& player_tiles) {
     for (auto& [player_id, tiles] : player_tiles) {
       auto victim = players.find(player_id)->second;
 

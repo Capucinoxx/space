@@ -31,15 +31,15 @@ public:
     return grid[pos.first][pos.second];
   }
 
-  std::unordered_map<uint32_t, std::unordered_set<position, PairHash>> fill_region(player_ptr p) {
+  std::unordered_map<uint32_t, std::unordered_set<position, pair_hash>> fill_region(player_ptr p) {
     if (p->get_trail().empty())
       return {};
 
-    std::unordered_map<uint32_t, std::unordered_set<position, PairHash>> tiles_to_investigate{};
+    std::unordered_map<uint32_t, std::unordered_set<position, pair_hash>> tiles_to_investigate{};
 
     auto insert_tiles = [&](uint32_t owner, const position& pos) {
       if (tiles_to_investigate.find(owner) == tiles_to_investigate.end())
-        tiles_to_investigate[owner] = std::unordered_set<position, PairHash>{};
+        tiles_to_investigate[owner] = std::unordered_set<position, pair_hash>{};
 
       tiles_to_investigate[owner].insert(pos);
     };
