@@ -32,8 +32,6 @@ std::pair<http::status, std::string> scoreboard_handler::handle() {
     std::string player_name = row[0].as<std::string>();
     if (player_name != current_player) {
       if (!current_player.empty()) {
-        std::cout << "serializing " << current_player << " scores " << scores.size() / 16 << " | " << scores.size() % 10 << std::endl;
-
         serialize_value<uint32_t>(buffer, scores.size() / 16);
         buffer.insert(buffer.end(), scores.begin(), scores.end());
         scores.clear();

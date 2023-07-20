@@ -80,11 +80,7 @@ void websocket_session::run(http::request<Body, http::basic_fields<Allocator>> r
   this->channel = path;
   handler = state->get_handler(channel, shared_state::WEBSOCKET);
 
-  if (!handler) {
-    std::cout << "handler not found" << std::endl;
-    return;
-  }
-  if (!handler->on_open(req))
+  if (!handler || !handler->on_open(req))
     return;
 
   ws->async_accept(req, std::bind(&websocket_session::on_accept, shared_from_this(), std::placeholders::_1));

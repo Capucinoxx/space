@@ -42,15 +42,8 @@ uint64_t parse_string_to_epoch(const std::string& str) {
   std::tm tm = {};
   std::istringstream iss(str);
   iss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
-  if (iss.fail()) {
-    std::cout << "FAIL ! (1)" << std::endl;
+  if (iss.fail() || std::mktime(&tm) == -1)
     return 0;
-  }
-
-  if (std::mktime(&tm) == -1) {
-    std::cout << "FAIL ! (2)" << std::endl;
-    return 0;
-  }
 
   std::chrono::system_clock::time_point timestamp = std::chrono::system_clock::from_time_t(std::mktime(&tm));
 

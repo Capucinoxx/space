@@ -27,9 +27,7 @@ private:
 public:
 
   game_handler(game_sptr game_state, psql_sptr postgres) 
-    : game_state(game_state), postgres(postgres) {
-      std::cout << "CREATE" << std::endl;
-    };
+    : game_state(game_state), postgres(postgres) {};
   ~game_handler() {};
 
   void operator()(http::request<http::string_body>& req, http::response<http::string_body>& resp) override;

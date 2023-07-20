@@ -2,29 +2,25 @@
 #include "handler/scoreboard_handler.h"
 #include "handler/spectator_handler.h"
 #include "handler/controller_handler.h"
-
 #include "handler/game_handler.h"
+
 #include "configuration.h"
 #include "postgres_connector.h"
 #include "game_loop.h"
 #include "game_state.h"
 
-
-#include <atomic>
-#include <memory>
-
 #include "network/utils.h"
 #include "network/listener.h"
 #include "network/shared_state.h"
+
 #include "player/player.h"
-
 #include "common.h"
-
 
 #include <boost/asio/signal_set.hpp>
 #include <iostream>
 #include <string>
-
+#include <atomic>
+#include <memory>
 
 game_loop_sptr create_game(const std::string& base_path, std::shared_ptr<shared_state> state, std::shared_ptr<PostgresConnector> postgres, bool with_score_insertion) {
   auto game_state = std::make_shared<GameState<std::pair<player_sptr, std::string>, rows, cols>>(postgres, with_score_insertion);
@@ -73,37 +69,5 @@ int main() {
 
   ioc.run();
 
-// 
-
-  // auto admin_middleware = AdminMiddleware(cfg["ADMIN_PASSWORD"]);
-
-  // Server server(8080);
-
-  // auto ranked = create_game("/ranked", server, postgres, true);
-  // auto unranked = create_game("/unranked", server, postgres, false);
-
-  // (SubscriptionHandle<action_t, rows, cols>(postgres))(server);
-  // (ScoreboardHandle<rows, cols>(postgres))(server);
-
-  // server.add_http_endpoint("/start_game", [&](Server::http_request req) -> std::pair<http::status, std::string> {
-  //   if (!admin_middleware(req))
-  //     return std::make_pair(http::status::unauthorized, "Unauthorized");
-
-  //   ranked->start(&server, &Server::broadcast_websocket_message, "ranked");
-  //   unranked->start(&server, &Server::broadcast_websocket_message, "unranked");
-  //   return std::make_pair(http::status::ok, "Game started");
-  // });
-
-  // server.add_http_endpoint("/stop_game", [&](Server::http_request req) -> std::pair<http::status, std::string> {
-  //   if (!admin_middleware(req))
-  //     return std::make_pair(http::status::unauthorized, "Unauthorized");
-
-  //   ranked->stop();
-  //   unranked->stop();
-  //   return std::make_pair(http::status::ok, "Game stopped");
-  // }); 
-
-  // server.run();
-
-  // return 0;
+  return 0;
 }

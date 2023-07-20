@@ -5,9 +5,7 @@ shared_state::shared_state(std::string doc_root)
   : doc_root_(std::move(doc_root)) {}
 
 void shared_state::join(websocket_session& session, std::string channel) {
-  
   sessions_[channel].insert(&session);
-  std::cout << "size: " << sessions_[channel].size() << std::endl;
 }
 
 void shared_state::leave(websocket_session& session) {
