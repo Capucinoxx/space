@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <unordered_set>
 #include <unordered_map>
 #include <functional>
@@ -17,13 +18,14 @@ class websocket_session;
 class shared_state {
 public:
 	enum protocol_t { HTTP, WEBSOCKET };
+	using handler_sptr_fct = std::function<handler_sptr()>;
 
 private:
 	std::string doc_root_;
 	std::unordered_map<std::string, std::unordered_set<websocket_session*>> sessions_;
 
 	std::unordered_map<std::string, handler_sptr> http_handlers;
-	std::unordered_map<std::string, handler_sptr> channels;
+	std::unordered_map<std::string, handler_sptr_fct> channels;
 
 public:
 	explicit shared_state(std::string doc_root);
@@ -31,7 +33,7 @@ public:
 	void join(websocket_session& session, std::string channel);
 	void leave(websocket_session& session);
 
-	void send(std::string channel, std::string message);
+	void send(const std::string& channel, const std::vector<uint8_t>& message);
 
 	std::string const& doc_root() const noexcept { return doc_root_; }
 
@@ -43,12 +45,11 @@ public:
 		if (proto == HTTP)
 			return http_handlers[path];
 		
-		std::cout << "get_handler: " << path << std::endl;
-		return channels[path];
+		return channels[path]();
 	}
 
 
-	void add_channel(std::string path, handler_sptr handler) {
+	void add_channel(std::string path, handler_sptr_fct handler) {
 		channels[path] = handler;
 	}
 
@@ -58,6 +59,8 @@ public:
 		return channels.find(path) != channels.end();
 	}
 };
+
+using shared_state_sptr = std::shared_ptr<shared_state>;
 
 
 

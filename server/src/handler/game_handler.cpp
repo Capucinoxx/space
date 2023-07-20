@@ -2,10 +2,13 @@
 
 #include <boost/format.hpp>
 #include <boost/cstdfloat.hpp> 
+#include <iostream>
 
 void game_handler::operator()(http::request<http::string_body>& req, http::response<http::string_body>& resp) {}
 
 bool game_handler::on_open(http::request<http::string_body>& req) {
+  std::cout << "game_handler::on_open" << std::endl;
+
   std::string token = req[http::field::authorization].to_string();
   if (token.empty())
     return false;
@@ -24,6 +27,12 @@ bool game_handler::on_open(http::request<http::string_body>& req) {
   uint64_t score = result[0][5].as<uint64_t>(0);
 
   player = game_state->register_player(name, id, { h, s, l }, score);
+ 
+  if (player == nullptr)
+    std::cout << "player is null" << std::endl;
+
+  std::cout << "player id: " << player->id() << std::endl;
+
   return player != nullptr;
 }
 
@@ -33,5 +42,13 @@ void game_handler::on_close() {
 }
 
 void game_handler::on_message(std::string message) {
+
+
+  std::cout << "received message: " << "<" << player->id() << "> ";
+  for (auto c : message)
+    std::cout << static_cast<int>(c) << " ";
+
+  std::cout << std::endl;
+
   game_state->push({ player, std::move(message) });
 }

@@ -1,7 +1,10 @@
 #include "network/session.h"
+#include "common.h"
+
+#include <iostream>
 
 websocket_session::websocket_session(tcp::socket socket, std::shared_ptr<shared_state> const& state)
-  : ws(std::move(socket)), state(state) {}
+  : ws(std::make_unique<websocket::stream<tcp::socket>>(std::move(socket))), state(state) {}
 
 websocket_session::~websocket_session() {
   handler->on_close();
@@ -19,9 +22,10 @@ void websocket_session::on_accept(error_code ec) {
   if (ec)
     return fail(ec, "accept");
 
-  state->join(*this, channel);
+  state->join(*this, std::string(retrieve_channel(channel)));
 
-  ws.async_read(buffer, 
+  ws->binary(true);
+  ws->async_read(buffer, 
                 [sp = shared_from_this()](error_code ec, std::size_t bytes) {
                   sp->on_read(ec, bytes);
                 });
@@ -38,19 +42,19 @@ void websocket_session::on_read(error_code ec, std::size_t bytes_transferred) {
 
   buffer.consume(buffer.size());
 
-  ws.async_read(buffer, 
+  ws->async_read(buffer, 
                 [sp = shared_from_this()](error_code ec, std::size_t bytes) {
                   sp->on_read(ec, bytes);
                 });
 }
 
-void websocket_session::send(std::shared_ptr<std::string const> const& ss) {
+void websocket_session::send(std::shared_ptr<std::vector<uint8_t> const> const& ss) {
   queue.push(ss);
 
   if (queue.size() > 1)
     return;
 
-  ws.async_write(net::buffer(*queue.front()), 
+  ws->async_write(net::buffer(*queue.front()), 
                  [sp = shared_from_this()](error_code ec, std::size_t bytes) {
                    sp->on_write(ec, bytes);
                  });
@@ -65,7 +69,7 @@ void websocket_session::on_write(error_code ec, std::size_t bytes_transferred) {
   queue.pop();
 
   if (!queue.empty())
-    ws.async_write(net::buffer(*queue.front()), 
+    ws->async_write(net::buffer(*queue.front()), 
                    [sp = shared_from_this()](error_code ec, std::size_t bytes) {
                      sp->on_write(ec, bytes);
                    });

@@ -7,10 +7,12 @@
 #include "common.h"
 #include "player/player.h"
 
+#include <iostream>
+
 class game_handler : public handler {
 private:
-  psql_sptr postgres;
   game_sptr game_state;
+  psql_sptr postgres;
   player_sptr player;
 
   static constexpr const char* query = R"(
@@ -24,14 +26,17 @@ private:
 
 public:
 
-  game_handler(game_sptr game_state, psql_sptr postgres) : postgres(postgres) {};
+  game_handler(game_sptr game_state, psql_sptr postgres) 
+    : game_state(game_state), postgres(postgres) {
+      std::cout << "CREATE" << std::endl;
+    };
   ~game_handler() {};
 
   void operator()(http::request<http::string_body>& req, http::response<http::string_body>& resp) override;
 
-  bool on_open(http::request<http::string_body>& req);
-  void on_close();
-  void on_message(std::string message);
+  bool on_open(http::request<http::string_body>& req) override;
+  void on_close() override;
+  void on_message(std::string message) override;
 
 };
 

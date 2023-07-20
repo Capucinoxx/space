@@ -3,12 +3,14 @@
 
 #include "common.h"
 #include "player/player.h"
+#include "game_state.h"
 
 #include <memory>
 #include <thread>
 #include <atomic>
 #include <type_traits>
 #include <utility>
+#include <iostream>
 
 template<typename T, std::size_t TICK, std::size_t MAX_TICK, std::size_t ROWS, std::size_t COLS>
 class GameLoop {
@@ -21,19 +23,20 @@ private:
   std::atomic<bool> running{ false };
   
   std::shared_ptr<GameState<T, ROWS, COLS>> state;
+  std::string channel;
 
 public:
-  GameLoop(std::shared_ptr<GameState<T, ROWS, COLS>> state) 
-    : state(std::move(state)) { }
+  GameLoop(std::shared_ptr<GameState<T, ROWS, COLS>> state, std::string channel) 
+    : state(std::move(state)), channel(std::move(channel)) { }
 
   template<typename Callback>
-  void start(Callback* object, void (Callback::*callback)(const std::string&, const std::vector<uint8_t>&), const std::string& channel) { 
+  void start(Callback* object, void (Callback::*callback)(const std::string&, const std::vector<uint8_t>&)) { 
     if (is_running())
       return;
 
     running.store(true);
 
-    th = std::thread([object, callback, channel, this]() {
+    th = std::thread([object, callback, this]() {
       while (is_running()) {
         if (state->frame() == MAX_TICK + 1)
           restart_state();
@@ -60,6 +63,10 @@ public:
     running.store(false);
     if (th.joinable())
       th.join();
+  }
+
+  std::string get_channel() const noexcept {
+    return channel;
   }
 
 private:

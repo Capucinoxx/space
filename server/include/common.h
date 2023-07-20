@@ -69,7 +69,6 @@ public:
   }
 };
 
-
 std::optional<std::tuple<double, double, double>> parse_color(const std::string& color);
 
 std::size_t count_unicode_chars(const std::string& str);

@@ -15,8 +15,8 @@ void shared_state::leave(websocket_session& session) {
     sessions.erase(&session);
 }
 
-void shared_state::send(std::string channel, std::string message) {
-  auto const ss = std::make_shared<std::string const>(std::move(message));
+void shared_state::send(const std::string& channel, const std::vector<uint8_t>& message) {
+  auto const ss = std::make_shared<std::vector<uint8_t> const>(std::move(message));
 
   for (auto session : sessions_[channel])
     session->send(ss);
