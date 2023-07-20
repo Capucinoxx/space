@@ -73,6 +73,8 @@ public:
   void run(http::request<Body, http::basic_fields<Allocator>> req, std::string path);
 
   void send(std::shared_ptr<std::vector<uint8_t> const> const& ss);
+
+  std::string const& get_channel() const noexcept { return channel; }
 };
 
 template<class Body, class Allocator>

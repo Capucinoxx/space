@@ -4,11 +4,12 @@
 #include "network/utils.h"
 #include "handler/handler.h"
 
+#include "structures/concurrent_unordered_map.h"
+#include "structures/concurrent_unordered_set.h"
+
 #include <memory>
 #include <string>
 #include <vector>
-#include <unordered_set>
-#include <unordered_map>
 #include <functional>
 #include <iostream>
 
@@ -22,7 +23,7 @@ public:
 
 private:
 	std::string doc_root_;
-	std::unordered_map<std::string, std::unordered_set<websocket_session*>> sessions_;
+	c_unordered_map<std::string, c_unordered_set<websocket_session*>> sessions_;
 
 	std::unordered_map<std::string, handler_sptr> http_handlers;
 	std::unordered_map<std::string, handler_sptr_fct> channels;

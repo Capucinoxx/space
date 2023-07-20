@@ -6,6 +6,7 @@
 #include "common.h"
 #include "postgres_connector.h"
 #include "structures/concurrent_unordered_map.h"
+#include "structures/concurrent_unordered_set.h"
 #include "structures/concurrent_queue.h"
 #include "action.h"
 
@@ -14,8 +15,6 @@
 #include <vector>
 #include <type_traits>
 #include <utility>
-#include <unordered_map>
-#include <unordered_set>
 #include <optional>
 
 
@@ -85,8 +84,8 @@ public:
 
 private:
   std::shared_ptr<Grid<ROWS, COLS>> grid;
-  ConcurrentUnorderedMap<uint32_t, player_ptr> players;
-  ConcurrentUnorderedSet<uint32_t> inactive_players;
+  c_unordered_map<uint32_t, player_ptr> players;
+  c_unordered_set<uint32_t> inactive_players;
   
   psql_ref psql;
   Spawner<ROWS, COLS>* spawn;
