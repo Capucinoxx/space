@@ -61,9 +61,9 @@ public:
   }
 
   template<typename F>
-  void do_at(const K& key, F&& F) {
+  void do_at(const K& key, F&& f) {
     std::lock_guard<std::mutex> lock(mu);
-    F(map[key]);
+    f(map[key]);
   }
 };
 
