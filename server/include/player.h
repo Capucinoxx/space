@@ -2,7 +2,6 @@
 #define SPACE_PLAYER_H
 
 #include "tile_map.h"
-#include "structures/concurent_unordered_set.h"
 #include "common.h"
 #include "action.h"
 
@@ -132,8 +131,8 @@ private:
   hsl_color color;
   bool connected;
 
-  ConcurrentUnorderedSet<position, PairHash> trail{ };
-  ConcurrentUnorderedSet<position, PairHash> region{ };
+  std::unordered_set<position, PairHash> trail{ };
+  std::unordered_set<position, PairHash> region{ };
   std::mutex mu;
 
 public:
