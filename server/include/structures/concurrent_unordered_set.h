@@ -1,18 +1,19 @@
-#ifndef SPACE_CONCURENT_UNORDERED_SET_H
-#define SPACE_CONCURENT_UNORDERED_SET_H
+#ifndef SPACE_CONCURRENT_UNORDERED_SET_H
+#define SPACE_CONCURRENT_UNORDERED_SET_H
 
 #include <unordered_set>
 #include <mutex>
+#include <algorithm>
 
 template <typename T, class Hash = std::hash<T>>
-class ConcurrentUnorderedSet
+class c_unordered_set
 {
 private:
   std::unordered_set<T, Hash> set{ };
   mutable std::mutex mu;
 
 public:
-  ConcurrentUnorderedSet() = default;
+  c_unordered_set() = default;
 
   bool insert(const T &value) {
     std::lock_guard<std::mutex> lock(mu);
@@ -73,10 +74,8 @@ public:
   template<typename F>
   void for_each(F&& f) {
     std::lock_guard<std::mutex> lock(mu);
-    for (auto& value : set) {
-      f(value);
-    }
+    std::for_each(set.begin(), set.end(), f);
   }
 };
 
-#endif // SPACE_CONCURENT_UNORDERED_SET_H
+#endif // SPACE_CONCURRENT_UNORDERED_SET_H

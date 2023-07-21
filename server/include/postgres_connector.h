@@ -79,4 +79,6 @@ public:
   }
 };
 
+using psql_sptr = std::shared_ptr<PostgresConnector>;
+
 #endif //SPACE_POSTGRES_H

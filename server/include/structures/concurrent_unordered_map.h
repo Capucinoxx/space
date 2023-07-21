@@ -3,15 +3,16 @@
 
 #include <unordered_map>
 #include <mutex>
+#include <algorithm>
 
 template <typename K, typename V, class Hash = std::hash<K>>
-class ConcurrentUnorderedMap {
+class c_unordered_map {
 private:
   std::unordered_map<K, V, Hash> map{ };
   mutable std::mutex mu;
 
 public:
-  ConcurrentUnorderedMap() = default;
+  c_unordered_map() = default;
 
   bool insert(const K &key, const V &value) {
     std::lock_guard<std::mutex> lock(mu);
@@ -46,6 +47,23 @@ public:
   std::size_t size() const noexcept {
     std::lock_guard<std::mutex> lock(mu);
     return map.size();
+  }
+
+  template<typename F>
+  void for_each(F&& f) {
+    std::lock_guard<std::mutex> lock(mu);
+    std::for_each(map.begin(), map.end(), f);
+  }
+
+  V operator[](const K &key) {
+    std::lock_guard<std::mutex> lock(mu);
+    return map[key];
+  }
+
+  template<typename F>
+  void do_at(const K& key, F&& f) {
+    std::lock_guard<std::mutex> lock(mu);
+    f(map[key]);
   }
 };
 

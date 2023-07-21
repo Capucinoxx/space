@@ -1,7 +1,6 @@
 #ifndef SPACE_TILE_MAP_H
 #define SPACE_TILE_MAP_H
 
-#include "player.h"
 #include <mutex>
 
 class TileMap {

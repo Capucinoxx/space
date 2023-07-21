@@ -1,15 +1,21 @@
 #ifndef SPACE_GAME_LOOP_H
 #define SPACE_GAME_LOOP_H
 
+#include "common.h"
+#include "player/player.h"
+#include "game_state.h"
+
+#include <memory>
 #include <thread>
 #include <atomic>
 #include <type_traits>
 #include <utility>
+#include <iostream>
 
 template<typename T, std::size_t TICK, std::size_t MAX_TICK, std::size_t ROWS, std::size_t COLS>
 class GameLoop {
   static_assert(std::is_same<T, std::pair<typename T::first_type, typename T::second_type>>::value, "T must be a pair");
-  static_assert(std::is_same<typename T::first_type, std::shared_ptr<Player<ROWS, COLS>>>::value,
+  static_assert(std::is_same<typename T::first_type, std::shared_ptr<player>>::value,
                   "T::first_type must be std::shared_ptr<Player>");
 
 private:
@@ -17,19 +23,20 @@ private:
   std::atomic<bool> running{ false };
   
   std::shared_ptr<GameState<T, ROWS, COLS>> state;
+  std::string channel;
 
 public:
-  GameLoop(std::shared_ptr<GameState<T, ROWS, COLS>> state) 
-    : state(std::move(state)) { }
+  GameLoop(std::shared_ptr<GameState<T, ROWS, COLS>> state, std::string channel) 
+    : state(std::move(state)), channel(std::move(channel)) { }
 
   template<typename Callback>
-  void start(Callback* object, void (Callback::*callback)(const std::string&, const std::vector<uint8_t>&), const std::string& channel) { 
+  void start(Callback* object, void (Callback::*callback)(const std::string&, const std::vector<uint8_t>&)) { 
     if (is_running())
       return;
 
     running.store(true);
 
-    th = std::thread([object, callback, channel, this]() {
+    th = std::thread([object, callback, this]() {
       while (is_running()) {
         if (state->frame() == MAX_TICK + 1)
           restart_state();
@@ -58,6 +65,10 @@ public:
       th.join();
   }
 
+  std::string get_channel() const noexcept {
+    return channel;
+  }
+
 private:
   void tick() {
     state->tick();
@@ -67,5 +78,7 @@ private:
     state->clear();
   }
 };
+
+using game_loop_sptr = std::shared_ptr<GameLoop<std::pair<std::shared_ptr<player>, std::string>, tick, max_tick, rows, cols>>;
 
 #endif // SPACE_GAME_LOOP_H

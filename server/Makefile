@@ -13,9 +13,10 @@ SERVER := $(BIN_DIR)/server
 TESTS := $(BIN_DIR)/test_server
 ANGRY := $(BIN_DIR)/angry_server
 
-SRCS := $(wildcard $(SRC_DIR)/*.cpp)
-TEST_SRCS := $(wildcard $(TEST_DIR)/*.cpp)
-ANGRY_SRCS := $(wildcard $(SRC_DIR)/*.cpp)
+COMMON_SRCS := $(shell find $(SRC_DIR) -type f -name '*.cpp' -not -path '$(SRC_DIR)/main.cpp')
+SRCS := $(wildcard $(SRC_DIR)/*.cpp) $(COMMON_SRCS)
+TEST_SRCS := $(wildcard $(TEST_DIR)/*.cpp) $(COMMON_SRCS)
+ANGRY_SRCS := $(wildcard $(SRC_DIR)/*.cpp) $(COMMON_SRCS)
 
 OBJS := $(SRCS:$(SRC_DIR)/%.cpp=$(SERVER)_objs/%.o)
 TEST_OBJS := $(TEST_SRCS:$(TEST_DIR)/%.cpp=$(TESTS)_objs/%.o)
