@@ -121,6 +121,8 @@ body, html {
 
   background: radial-gradient(280.02% 67.06% at 50.00% 35.91%, #15151C 24.01%, #0D0E15 96.43%);
   box-shadow: -6px 4px 33px 0px rgba(0, 0, 0, 0.25);
+
+  max-height: calc(100vh - 20px);
 }
 
 .jdis-header {
