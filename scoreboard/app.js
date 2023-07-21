@@ -133,8 +133,7 @@ const update_scoreboard = (data) => {
     row.appendChild(name_td);
 
     const score_td = document.createElement('td');
-    score = 123456789;
-    score_td.innerText = score.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    score_td.innerText = score.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     row.appendChild(score_td);
 
     return [...acc, row];
