@@ -8,7 +8,6 @@
 #include <utility>
 
 #include "game_state.h"
-#include "player.h"
 #include "tests.h"
 #include "common.h"
 #include "player/player.h"
