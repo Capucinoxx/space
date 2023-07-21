@@ -43,7 +43,6 @@ int main() {
     },
   }});
   
-
   for (auto& [name, scenario] : scenarios)
     scenario.run(name);
   
