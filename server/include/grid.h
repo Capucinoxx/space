@@ -36,6 +36,7 @@ public:
       return {};
 
     std::unordered_map<uint32_t, std::unordered_set<position, pair_hash>> tiles_to_investigate{};
+    std::unordered_set<position, pair_hash> trail{};
 
     auto insert_tiles = [&](uint32_t owner, const position& pos) {
       if (tiles_to_investigate.find(owner) == tiles_to_investigate.end())
@@ -46,6 +47,7 @@ public:
 
 
     p->for_each_trail([&](const position& pos) {
+      trail.insert(pos);
       at(pos).take(p->id());
       p->append_region({ pos });
     });
@@ -81,6 +83,9 @@ public:
       for (auto& movement : movements) {
         auto px = pos.first + movement.first;
         auto py = pos.second + movement.second;
+
+        if (trail.find({ px, py }) != trail.end())
+          continue;
 
         auto res = flood_fill(p->id(), { px, py }, been);
 
