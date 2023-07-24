@@ -143,6 +143,39 @@ public:
         }
       }
     }});
+
+    scenarios.insert({ "kill player in territory", {
+      Spawns{ position{ 2, 3 }, position{ 3, 6 }, position{ 8, 8 } },
+      Bots{ Bot{ id{ 1 }, position{ 2, 3 } }, Bot{ id{ 2 }, position{ 3, 6 } } },
+      Ticks{
+        actions{ { id{ 1 }, DOWN  }, { id{ 2 }, UP    } },
+        // actions{ { id{ 1 }, RIGHT }, { id{ 2 }, UP    } }
+
+        actions{ { id{ 2 }, UP    }, { id{ 1 }, RIGHT } }
+      },
+      Expectations{
+        expectation{
+          id{ 1 },
+          position{ 3, 4 },
+          alive{ 2 },
+          scores{ 9, 41 },
+          trail_pos{ position{ 3, 4 } },
+          region_pos{ position{ 1, 2 }, position{ 1, 3 }, position{ 1, 4 },
+                      position{ 2, 2 }, position{ 2, 3 }, position{ 2, 4 },
+                      position{ 3, 2 }, position{ 3, 3 } }
+        },
+        expectation{
+          id{ 2 },
+          position{ 8, 8 },
+          alive{ 0 },
+          scores{ 9, 18 },
+          trail_pos{},
+          region_pos{ position{ 7, 7 }, position{ 7, 8 }, position{ 7, 9 },
+                      position{ 8, 7 }, position{ 8, 8 }, position{ 8, 9 },
+                      position{ 9, 7 }, position{ 9, 8 }, position{ 9, 9 } }
+        }
+      }
+    }});
   }
 };
 
