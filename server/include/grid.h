@@ -38,13 +38,16 @@ public:
     std::unordered_map<uint32_t, std::unordered_set<position, pair_hash>> tiles_to_investigate{};
     std::unordered_set<position, pair_hash> trail{};
 
-    auto insert_tiles = [&](uint32_t owner, const position& pos) {
-      if (tiles_to_investigate.find(owner) == tiles_to_investigate.end())
-        tiles_to_investigate[owner] = std::unordered_set<position, pair_hash>{};
+    auto insert_tiles = [&](const position& pos) {
+      auto [statement, old_owner] = at(pos).take(p->id());
+      if (old_owner == 0 || old_owner == p->id())
+        return;
 
-      tiles_to_investigate[owner].insert(pos);
+      if (tiles_to_investigate.find(old_owner) == tiles_to_investigate.end())
+        tiles_to_investigate[old_owner] = std::unordered_set<position, pair_hash>{};
+
+      tiles_to_investigate[old_owner].insert(pos);
     };
-
 
     p->for_each_trail([&](const position& pos) {
       trail.insert(pos);
@@ -69,9 +72,7 @@ public:
       been[pos.first][pos.second] = true;
 
       p->append_region({ pos });
-      auto [statement, old_owner] = at(pos).take(p->id());
-      if (old_owner != 0 && old_owner != p->id())
-        insert_tiles(old_owner, pos);
+      insert_tiles(pos);
 
       auto movements = {
         std::make_pair(1, 0),
@@ -89,21 +90,19 @@ public:
 
         auto res = flood_fill(p->id(), { px, py }, been);
 
-        for (const auto& pos : res) {
-          auto [statement, old_owner] = at(pos).take(p->id());
-          if (old_owner != 0 && old_owner != p->id())
-            insert_tiles(old_owner, pos);
+        for (const auto& position : res) {
+          insert_tiles(position);
         }
 
         p->append_region(res);
-        neighbors.push_back({ px, py });
+        neighbors.emplace_back( px, py );
       }
     }
 
     return tiles_to_investigate;
   }
 
-  bool is_invalid_pos(const position& pos) const noexcept {
+  [[nodiscard]] bool is_invalid_pos(const position& pos) const noexcept {
     return pos.first >= ROWS || pos.second >= COLS;
   }
 
@@ -132,10 +131,10 @@ private:
       been[pos.first][pos.second] = true;
       filled.push_back(pos);
 
-      neighbors.push_back({ pos.first + 1, pos.second });
-      neighbors.push_back({ pos.first - 1, pos.second });
-      neighbors.push_back({ pos.first, pos.second + 1 });
-      neighbors.push_back({ pos.first, pos.second - 1 });
+      neighbors.emplace_back( pos.first + 1, pos.second );
+      neighbors.emplace_back( pos.first - 1, pos.second );
+      neighbors.emplace_back( pos.first, pos.second + 1 );
+      neighbors.emplace_back( pos.first, pos.second - 1 );
     }
 
     return { filled };
