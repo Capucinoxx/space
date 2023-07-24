@@ -7,6 +7,7 @@
 
 #include "tests_zone_completion.h"
 #include "tests_kill.h"
+#include "tests_steal_territory.h"
 
 int main() {
   std::unordered_map<std::string, Scenario> scenarios;
@@ -18,6 +19,7 @@ int main() {
 
   insert_scenarios(std::make_unique<zone_completion_scenarios>());
   insert_scenarios(std::make_unique<kill_scenarios>());
+  insert_scenarios(std::make_unique<steal_territory_scenarios>());
 
   scenarios.insert({ "dummy test", {
     Spawns{ position{ 10, 10 } },
@@ -40,35 +42,7 @@ int main() {
       }, 
     },
   }});
-
-
-
-  scenarios.insert({ "take region of other player on spawn", {
-    Spawns{ position{ 2, 2 }, position{ 4, 2 }, position{ 14, 14 } },
-    Bots{ Bot{ id{ 1 }, position{ 2, 2 } }, Bot{ id{ 2 }, position{ 4, 2 } } },
-    Ticks{ actions{ { id{ 1 }, UP }, { id{ 2 }, UP } } },
-    Expectations{
-      expectation{
-        id{ 1 },
-        position{ 2, 1 },
-        alive{ 1 },
-        scores{ 6 },
-        trail_pos{},
-        region_pos{ position{ 1, 1 }, position{ 1, 2 }, position{ 1, 3 },
-                    position{ 2, 1 }, position{ 2, 2 }, position{ 2, 3 } }
-      },
-      expectation{
-        id{ 2 },
-        position{ 4, 1 },
-        alive{ 1 },
-        scores{ 9 },
-        trail_pos{},
-        region_pos{ position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 },
-                    position{ 4, 1 }, position{ 4, 2 }, position{ 4, 3 },
-                    position{ 5, 1 }, position{ 5, 2 }, position{ 5, 3 } }
-      }
-    }
-  }});
+  
 
   for (auto& [name, scenario] : scenarios)
     scenario.run(name);
