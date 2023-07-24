@@ -191,5 +191,17 @@ private:
   }
 };
 
+struct scenarios_category {
+protected:
+  std::unordered_map<std::string, Scenario> scenarios;
+
+public:
+
+  virtual void init() = 0;
+
+  std::unordered_map<std::string, Scenario>::iterator begin() { return scenarios.begin(); }
+  std::unordered_map<std::string, Scenario>::iterator end() { return scenarios.end(); }
+};
+
 
 #endif // SPACE_TESTS_UTILS_H
