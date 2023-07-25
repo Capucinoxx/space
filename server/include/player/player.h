@@ -171,6 +171,7 @@ public:
   bool can_play(uint32_t tick) noexcept {
     bool ok = tick > last_tick;
     last_tick = tick;
+    teleport_stmt_.tick();
     return ok;
   }
 
