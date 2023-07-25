@@ -34,6 +34,9 @@ class Player:
                                         (en) List of the player's region positions. If another player passes over one of these
                                             positions, he removes this position from the player's region.
                                             Array of positions [[x, y], ...].
+
+        teleport_cooldown (int):        (fr) Nombre de de tick avant que le joueur puisse réutiliser son action de téléportation.
+                                        (en) Number of ticks before the player can use the teleport action again.
     """
 
     name: str
@@ -41,9 +44,10 @@ class Player:
     alive: int
     trail: List[Tuple[int, int]]
     region: List[Tuple[int, int]]
+    teleport_cooldown: int
 
     def __str__(self) -> str:
-        return f"Player(name={self.name}, pos={self.pos}, alive={self.alive}, trail={self.trail}, region={self.region})"
+        return f"Player(name={self.name}, pos={self.pos}, alive={self.alive}, trail={self.trail}, region={self.region}, teleport_cooldown={self.teleport_cooldown})"
 
 
 @dataclass
@@ -93,6 +97,9 @@ class GameState:
             pos_x, pos_y, tick_alive = struct.unpack_from('<III', data, offset)
             offset += 12
 
+            teleport_cooldown = struct.unpack_from('<B', data, offset)
+            offset += 1
+
             trail_length = struct.unpack_from('<I', data, offset)[0]
             offset += 4
 
@@ -105,10 +112,11 @@ class GameState:
             region = struct.unpack_from('<' + 'II' * region_length, data, offset)
             offset += region_length * 8
 
-        players.append(Player(name=name, pos=(pos_x, pos_y), 
-                              alive=tick_alive, 
-                              trail=list(zip(trail[::2], trail[1::2])), 
-                              region=list(zip(region[::2], region[1::2]))))
+            players.append(Player(name=name, pos=(pos_x, pos_y),
+                                  alive=tick_alive,
+                                  trail=list(zip(trail[::2], trail[1::2])),
+                                  region=list(zip(region[::2], region[1::2])),
+                                  teleport_cooldown=teleport_cooldown))
 
         return cls(rows=rows, cols=cols, players=players)
     
