@@ -6,6 +6,7 @@ interface Rectangle {
   height: number
 };
 
+const blue_teleport = [] as Array<Rectangle>;
 
 // { pos: { x: 0, y: 0 }, width: 0, height: 0 }
 const orange_teleport = [
@@ -40,10 +41,21 @@ const orange_teleport = [
 ] as Array<Rectangle>;
 
 const draw_teleport = (ctx: CanvasRenderingContext2D, color: 'orange' | 'blue', pos: Position) => {
-  ctx.fillStyle = '#FF6900';
-  orange_teleport.forEach((section) => {
-    ctx.fillRect(section.pos.x, section.pos.y, section.width, section.height);
-  });
+  switch (color) {
+    case 'blue':
+      ctx.fillStyle = '#0093FF';
+      blue_teleport.forEach((section) => {
+        ctx.fillRect(section.pos.x, section.pos.y, section.width, section.height);
+      });
+      break;
+
+    case 'orange':
+      ctx.fillStyle = '#FF6900';
+      orange_teleport.forEach((section) => {
+        ctx.fillRect(section.pos.x, section.pos.y, section.width, section.height);
+      });
+      break;
+  }
 };
 
 export { draw_teleport };
