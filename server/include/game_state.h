@@ -198,7 +198,7 @@ public:
     handle_teleportation(player, action, new_pos) || handle_move_result(player, action, new_pos) || handle_step_statement(player, new_pos);
   }
 
-  TileMap& cell(position pos) const {
+  tile_map& cell(position pos) const {
     return grid->at(pos);
   }
 
@@ -250,7 +250,7 @@ private:
           continue;
 
         auto victim = players.find(victim_id)->second;
-        if (statement == TileMap::stmt::DEATH || (p == victim->pos()))
+        if (statement == tile_map::stmt::DEATH || (p == victim->pos()))
             kill(player, victim);                 
         else if (victim_id != player->id())
           victim->remove_region(p);
