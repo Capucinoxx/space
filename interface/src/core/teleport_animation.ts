@@ -33,7 +33,6 @@ const blue_teleport = [
   { pos: { x: 13, y: 23 }, width: 1, height: 5 },
 ] as Array<Rectangle>;
 
-// { pos: { x: 0, y: 0 }, width: 0, height: 0 }
 const orange_teleport = [
   { pos: { x: 2, y: 8 }, width: 1, height: 5 },
   { pos: { x: 3, y: 6 }, width: 1, height: 13 },
