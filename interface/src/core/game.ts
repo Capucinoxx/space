@@ -4,6 +4,8 @@ import { get_index_array_sorted_by_values } from './util.js';
 import { Canvas } from './canvas.js';
 import { render_player, render_trail } from './player.js';
 
+import { draw_teleport } from './teleport_animation';
+
 interface BoardgameData {
   rows: number;
   cols: number;
@@ -136,6 +138,8 @@ class BoardGame {
     this.render_regions();
     this.render_trails();
     this.render_players();
+
+    draw_teleport(ctx, 'orange', { x: 3 * this.canvas.cell_size, y: 3 * this.canvas.cell_size });
 
     this.render_scoreboard(sorted_idx);
 
