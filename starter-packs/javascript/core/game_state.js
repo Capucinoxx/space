@@ -11,32 +11,36 @@
  * @property position (fr) Position du joueur. [x, y]
  *                    (en) Position of the player. [x, y]
  * 
- * @property alive    (fr) Nombre de ticks depuis lequel le joueur est en vie.
- *                    (en) Number of ticks since the player is alive.
+ * @property alive             (fr) Nombre de ticks depuis lequel le joueur est en vie.
+ *                             (en) Number of ticks since the player is alive.
  * 
- * @property trail    (fr) Liste des traces du joueur. Si un autre joueur passe sur une de ces
- *                         positions, il meurt. Tableau de positions [[x, y], ...].
- *                    (en) List of the player's traces. If another player passes over one of these
- *                         positions, he dies. Array of positions [[x, y], ...].
+ * @property trail             (fr) Liste des traces du joueur. Si un autre joueur passe sur une de ces
+ *                                  positions, il meurt. Tableau de positions [[x, y], ...].
+ *                             (en) List of the player's traces. If another player passes over one of these
+ *                                  positions, he dies. Array of positions [[x, y], ...].
  * 
- * @property region   (fr) Liste des positions de la région du joueur. Si un autre joueur passe
- *                         sur une de ces positions, il retire cette position de la région du joueur.
- *                         Tableau de positions [[x, y], ...].
- *                    (en) List of the player's region positions. If another player passes over one of these
- *                         positions, he removes this position from the player's region.
- *                         Array of positions [[x, y], ...].
+ * @property region            (fr) Liste des positions de la région du joueur. Si un autre joueur passe
+ *                                  sur une de ces positions, il retire cette position de la région du joueur.
+ *                                  Tableau de positions [[x, y], ...].
+ *                             (en) List of the player's region positions. If another player passes over one of these
+ *                                  positions, he removes this position from the player's region.
+ *                                  Array of positions [[x, y], ...].
+ *
+ * @property teleportCooldown  (fr) Nombre de de tick avant que le joueur puisse réutiliser son action de téléportation.
+ *                             (en) Number of ticks before the player can use the teleport action again.
  */
 class Player {
-  constructor(name, pos, alive, trail, region) {
+  constructor(name, pos, alive, trail, region, teleportCooldown) {
     this.name = name;
     this.pos = pos;
     this.alive = alive;
     this.trail = trail;
     this.region = region;
+    this.teleportCooldown = teleportCooldown;
   }
 
   toString() {
-    return `Player(name=${this.name}, pos=${this.pos}, alive=${this.alive}, trail=${this.trail}, region=${this.region})`;
+    return `Player(name=${this.name}, pos=${this.pos}, alive=${this.alive}, trail=${this.trail}, region=${this.region}, teleportCooldown=${this.teleportCooldown})`;
   }
 }
 
@@ -87,6 +91,9 @@ class GameState {
       const [posX, posY, tickAlive] = new Uint32Array(data.slice(offset, offset + 12));
       offset += 12;
 
+      const teleportCooldown = new Uint8Array(data.slice(offset, offset + 1))[0];
+      offset += 1;
+
       const trailLength = new Uint32Array(data.slice(offset, offset + 4))[0];
       offset += 4;
 
@@ -107,9 +114,7 @@ class GameState {
         offset += 8;
       }
 
-      console.log(`Player ${name} at (${posX}, ${posY})`);
-
-      players.push(new Player(name, [posX, posY], tickAlive, trail, region));
+      players.push(new Player(name, [posX, posY], tickAlive, trail, region, teleportCooldown));
     }
 
     return new GameState(frame, rows, cols, players);
