@@ -223,6 +223,7 @@ public:
     serialize_value<uint32_t>(data, pos().first);
     serialize_value<uint32_t>(data, pos().second);
     serialize_value<uint32_t>(data, tick_alive());
+    serialize_value<uint8_t>(data, teleport_stmt_.cooldown());
 
     serialize_value<uint32_t>(data, static_cast<uint32_t>(trail.size()));
     std::for_each(trail.begin(), trail.end(), [&data](const position& p) {
