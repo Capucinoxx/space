@@ -181,7 +181,7 @@ public:
           id{ 1 },
           position{ 4, 4 },
           alive{ 45 },
-          scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 144, 153, 162, 171, 180, 189, 198, 207, 216, 225, 234, 243, 252, 261, 270, 279, 288, 297, 306, 315, 324, 333, 342, 351, 360, 369, 378, 387, 396, 588 },
+          scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 144, 153, 162, 171, 180, 189, 198, 207, 216, 225, 234, 243, 252, 261, 270, 279, 288, 297, 306, 315, 324, 333, 342, 351, 360, 369, 378, 387, 396, 592 },
           trail_pos{},
           region_pos{ position{ 3, 4 }, position{ 3, 5 }, position{ 3, 6 }, 
                       position{ 4, 2 }, position{ 4, 3 }, position{ 4, 4 }, position{ 4, 5 }, position{ 4, 6 }, position{ 4, 7 }, 
@@ -191,7 +191,8 @@ public:
                       position{ 8, 0 }, position{ 8, 1 }, position{ 8, 2 }, position{ 8, 4 }, position{ 8, 5 }, position{ 8, 6 },
                       position{ 9, 0 }, position{ 9, 1 }, position{ 9, 2 }, position{ 9, 4 }, position{ 9, 5 }, position{ 9, 6 },
                       position{10, 0 }, position{10, 1 }, position{10, 2 }, position{10, 3 }, position{10, 4 }, position{10, 5 }, 
-                      position{11, 0 }, position{11, 1 }, position{11, 2 }, position{11, 3 }, position{11, 4 }, position{11, 5 }, 
+                      position{11, 0 }, position{11, 1 }, position{11, 2 }, position{11, 3 }, position{11, 4 }, position{11, 5 },
+                      position{ 6, 2 }, position{ 7, 2 }, position{ 8, 3 }, position{ 9, 3 }
                       }
       }
     }
@@ -338,7 +339,7 @@ public:
                       position{ 5, 2 }, position{ 5, 3 }, position{ 5, 4 }, position{ 5, 5 }, position{ 5, 6 }, position{ 5, 7 }, position{ 5, 8 }, 
                       position{ 6, 2 }, position{ 6, 3 }, position{ 6, 4 }, position{ 6, 5 }, position{ 6, 6 }, position{ 6, 7 }, position{ 6, 8 }, 
                       position{ 7, 2 }, position{ 7, 3 }, position{ 7, 4 }, position{ 7, 5 }, position{ 7, 6 }, position{ 7, 7 }, position{ 7, 8 }, 
-                      position{ 8, 2 }, position{ 8, 3 }, position{ 8, 4 }, position{ 8, 5 }, position{ 8, 6 }, position{ 8, 7 }, position{ 8, 7 }} 
+                      position{ 8, 2 }, position{ 8, 3 }, position{ 8, 4 }, position{ 8, 5 }, position{ 8, 6 }, position{ 8, 7 }, position{ 8, 8 }}
       }
     }
     }});
