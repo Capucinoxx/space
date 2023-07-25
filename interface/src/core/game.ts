@@ -24,7 +24,13 @@ class Deserializer {
 
   private deserialize_int = (size: number = 4): number => {
     const bytes = new Uint8Array(this.data!.slice(this.offset, this.offset + size));
-    const value = new Int32Array(bytes.buffer)[0];
+    let value = 0;
+
+    if (size == 4)
+      value = new Int32Array(bytes.buffer)[0];
+    else if (size == 1)
+      value = new Uint8Array(bytes.buffer)[0];
+
     this.offset += size;
     return value;
   }
@@ -53,6 +59,7 @@ class Deserializer {
     const px = this.deserialize_int();
     const py = this.deserialize_int();
     const tick_alive = this.deserialize_int();
+    const teleport_cooldown = this.deserialize_int(1);
 
     const trail_length = this.deserialize_int();
     const trail: Position[] = new Array<Position>(trail_length);

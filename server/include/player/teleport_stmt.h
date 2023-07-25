@@ -11,7 +11,11 @@ private:
 public:
   teleport_stmt() noexcept = default;
 
-  bool can_teleport() const noexcept {
+  [[nodiscard]] uint8_t cooldown() const noexcept {
+    return ttl;
+  }
+
+  [[nodiscard]] bool can_teleport() const noexcept {
     return ttl == 0;
   }
 
