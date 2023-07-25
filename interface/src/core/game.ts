@@ -16,6 +16,7 @@ interface BoardgameData {
   trails: Array<Array<Position>>;
   regions: Array<Array<Position>>;
   regions_length: Array<number>;
+  teleports_cooldown: Array<number>;
 }
 
 class Deserializer {
@@ -51,7 +52,7 @@ class Deserializer {
     return str;
   }
 
-  private deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>] => {
+  private deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>, number] => {
     const name_size = this.deserialize_int();
 
     const name = this.deserialize_string(name_size);
@@ -73,7 +74,7 @@ class Deserializer {
     for (let i = 0; i != region_length; i++)
       region[i] = {x: this.deserialize_int(), y: this.deserialize_int()};
 
-    return [name, new HSL(color_l, color_s, color_h), { x: px, y: py }, trail, region];
+    return [name, new HSL(color_l, color_s, color_h), { x: px, y: py }, trail, region, teleport_cooldown];
   };
 
   public deserialize = (data: Uint8Array): BoardgameData => {
@@ -90,17 +91,19 @@ class Deserializer {
       trails: [],
       regions: [],
       regions_length: [],
+      teleports_cooldown: [],
     };
 
     const length = data.length;
     while (this.offset < length) {      
-      const [name, color, pos, trail, region] = this.deserialize_player();
+      const [name, color, pos, trail, region, tp_cooldown] = this.deserialize_player();
       result.names.push(name.trim());
       result.colors.push(color);
       result.positions.push(pos);
       result.trails.push(trail);
       result.regions.push(region);
       result.regions_length.push(region.length);
+      result.teleports_cooldown.push(tp_cooldown);
     }
 
     return result;
@@ -117,6 +120,8 @@ class BoardGame {
   private vancant_tile: HTMLElement;
   private current_tick: HTMLElement;
 
+  private player_position: { [key: string]: { last_pos: Position, tp_cooldown: number } };
+
   private data: BoardgameData | undefined = undefined;
 
   constructor(canvas: Canvas, scoreboard: HTMLElement, vancant_tile: HTMLElement, current_tick: HTMLElement) {
@@ -124,6 +129,7 @@ class BoardGame {
     this.scoreboard = scoreboard;
     this.vancant_tile = vancant_tile;
     this.current_tick = current_tick;
+    this.player_position = {};
   }
 
   public render(message: ArrayBuffer): void {
@@ -137,13 +143,25 @@ class BoardGame {
 
     this.render_regions();
     this.render_trails();
-    this.render_players();
 
-    draw_teleport(ctx, 'orange', { x: 3 * this.canvas.cell_size, y: 3 * this.canvas.cell_size });
+    this.render_players();
 
     this.render_scoreboard(sorted_idx);
 
     this.render_current_frame();
+
+    this.data.names.forEach((name, i) => {
+      const info = this.player_position[name];
+      const tp_cooldown = this.data!.teleports_cooldown[i];
+      const current_pos = this.data!.positions[i];
+
+      if (info !== undefined && info.tp_cooldown < tp_cooldown) {
+        draw_teleport(ctx, 'orange', this.data!.positions[i], this.canvas.cell_size);
+        draw_teleport(ctx, 'blue', this.player_position[name].last_pos, this.canvas.cell_size);
+      }
+
+      this.player_position[name] = { last_pos: this.data!.positions[i], tp_cooldown: this.data!.teleports_cooldown[i] };
+    });
   }
 
   private render_regions = (): void => {
