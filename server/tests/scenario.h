@@ -15,12 +15,20 @@
 
 enum { ROWS = 100, COLS = 100 }; 
 
-enum direction { UP, DOWN, LEFT, RIGHT };
+std::string TELEPORT(uint32_t x, uint32_t y) {
+  std::vector<uint8_t> data{};
+  serialize_value(data, uint8_t{ 0x05 });
+  serialize_value(data, uint32_t{ x });
+  serialize_value(data, uint32_t{ y });
 
-std::string direction_to_str(direction d) {
-  char bytes[] = { d };
-  return std::string(bytes, bytes + sizeof(bytes));
+  return std::string(data.begin(), data.end());
 }
+
+auto UP = std::string{ 0x00 };
+auto DOWN = std::string{ 0x01 };
+auto LEFT = std::string{ 0x02 };
+auto RIGHT = std::string{ 0x03 };
+
 
 using position = std::pair<uint32_t, uint32_t>;
 using id = uint32_t;
@@ -31,7 +39,7 @@ struct Bot {
   position spawn_pos;
 };
 
-using action = std::pair<uint32_t, direction>;
+using action = std::pair<uint32_t, std::string>;
 using actions = std::vector<action>;
 
 using scores = std::vector<uint64_t>;
@@ -106,7 +114,7 @@ public:
       // ----------------- run game
       for (const auto& tick : ticks) {
         for (const auto& [uuid, dir] : tick) {
-          game.push({ players[uuid], direction_to_str(dir) });
+          game.push({ players[uuid], dir });
         }
 
         game.tick();
