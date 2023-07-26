@@ -16,7 +16,7 @@
 
 constexpr std::size_t rows = 100;
 constexpr std::size_t cols = 100;
-constexpr std::size_t tick = 100;
+constexpr std::size_t tick = 300;
 constexpr std::size_t max_tick = 1000;
 
 
@@ -74,6 +74,8 @@ std::optional<std::tuple<double, double, double>> parse_color(const std::string&
 std::size_t count_unicode_chars(const std::string& str);
 
 std::string_view retrieve_channel(const std::string& str);
+
+std::string retrieve_field(const std::string& body, const std::string& field);
 
 uint64_t parse_string_to_epoch(const std::string& str);
 

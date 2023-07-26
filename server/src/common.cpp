@@ -38,6 +38,19 @@ std::string_view retrieve_channel(const std::string& str) {
   return std::string_view(str.data() + start + 1, end - start - 1);
 }
 
+std::string retrieve_field(const std::string& body, const std::string& field) {
+    std::size_t pos = body.find(field);
+    if (pos == std::string::npos)
+      return "";
+
+    std::size_t start = pos + field.size() + 1;
+    std::size_t end = body.find('&', start);
+    if (end == std::string::npos)
+      end = body.size();
+
+    return body.substr(start, end - start);
+  };
+
 uint64_t parse_string_to_epoch(const std::string& str) {
   std::tm tm = {};
   std::istringstream iss(str);
