@@ -12,10 +12,8 @@ private:
   uint32_t current_owner;
   uint32_t current_stepper;
 
-  bool stepping;
-
 public:
-  tile_map() : current_owner{ 0 }, current_stepper{ 0 }, stepping{ false } { }
+  tile_map() : current_owner{ 0 }, current_stepper{ 0 } { }
 
   std::pair<stmt, uint32_t> step(uint32_t id) noexcept;
 

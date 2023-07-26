@@ -54,6 +54,5 @@ void tile_map::reset(uint32_t id) noexcept {
 
 void tile_map::clear() noexcept {
   current_owner = 0;
-  stepping = false;
   current_stepper = 0;
 }
