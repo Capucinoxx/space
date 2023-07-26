@@ -1,5 +1,6 @@
 import { Action, Direction, Pattern, Teleport } from '../core/action.js';
-import { GameState } from '../types/game_state.d.ts'
+import { GameState } from '../core/game_state.js';
+
 /**
  * (fr)
  * Cette classe représente votre bot. Vous pouvez y définir des attributs et des méthodes qui
