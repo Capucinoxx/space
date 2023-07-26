@@ -4,7 +4,7 @@ import { get_index_array_sorted_by_values } from './util.js';
 import { Canvas } from './canvas.js';
 import { render_player, render_trail } from './player.js';
 
-import { draw_teleport } from './teleport_animation';
+import { draw_teleport } from './teleport_animation.js';
 
 interface BoardgameData {
   rows: number;
