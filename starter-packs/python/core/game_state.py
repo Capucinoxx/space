@@ -24,16 +24,16 @@ class Player:
                                         (en) Number of ticks since the player is alive.
 
         trail (Set[Tuple[int, int]]):   (fr) Liste des traces du joueur. Si un autre joueur passe sur une de ces
-                                            positions, il meurt. Tableau de positions [[x, y], ...].
+                                            positions, il meurt. Set de positions [[x, y], ...].
                                         (en) List of the player's traces. If another player passes over one of these
-                                            positions, he dies. Array of positions [[x, y], ...].
+                                            positions, he dies. Set of positions [[x, y], ...].
 
         region (Set[Tuple[int, int]]):  (fr) Liste des positions de la région du joueur. Si un autre joueur passe
                                             sur une de ces positions, il retire cette position de la région du joueur.
-                                            Tableau de positions [[x, y], ...].
+                                            Set de positions [[x, y], ...].
                                         (en) List of the player's region positions. If another player passes over one of these
                                             positions, he removes this position from the player's region.
-                                            Array of positions [[x, y], ...].
+                                            Set of positions [[x, y], ...].
 
         teleport_cooldown (int):        (fr) Nombre de de tick avant que le joueur puisse réutiliser son action de téléportation.
                                         (en) Number of ticks before the player can use the teleport action again.
@@ -69,8 +69,8 @@ class GameState:
         tick(int):                      (fr) Numéro du tick actuel.
                                         (en) Number of the current tick.
 
-        players (Dict[str, Player]):    (fr) Liste des joueurs. Clé: nom du joueur, Valeur: joueur.
-                                        (en) List of players. Key: player name, Value: player.
+        players (Dict[str, Player]):    (fr) Dictionnaire des joueurs. Clé: nom du joueur, Valeur: joueur.
+                                        (en) Dictionnary of players. Key: player name, Value: player.
     """
 
     rows: int
