@@ -10,10 +10,10 @@ public:
 
 private:
   uint32_t current_owner;
-  uint32_t current_stepper;
+  uint32_t current_walker;
 
 public:
-  tile_map() : current_owner{ 0 }, current_stepper{ 0 } { }
+  tile_map() : current_owner{ 0 }, current_walker{ 0 } { }
 
   std::pair<stmt, uint32_t> step(uint32_t id) noexcept;
 
