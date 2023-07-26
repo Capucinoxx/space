@@ -33,9 +33,9 @@ class MyBot:
                             (en) The state of the game.
     """
     def tick(self, state: GameState) -> Action:
-       if self.__first_turn:
-           self.__first_turn = False
-           return Action(Pattern([Direction.UP, Direction.RIGHT]))
+        if self.__first_turn:
+            self.__first_turn = False
+            return Action(Pattern([Direction.UP, Direction.RIGHT]))
        
 
-       return self.__random_action()
+        return self.__random_action()
