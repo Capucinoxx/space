@@ -22,7 +22,7 @@ public:
   enum direction { UP, DOWN, LEFT, RIGHT };
 
   using hsl_color = std::tuple<boost::float64_t, boost::float64_t, boost::float64_t>;
-  using action_stmt = TileMap::stmt;
+  using action_stmt = tile_map::stmt;
 
 
 private:

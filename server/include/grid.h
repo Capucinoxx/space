@@ -16,7 +16,7 @@ public:
   using player_ptr = std::shared_ptr<player>;
 
 private:
-  std::array<std::array<TileMap, COLS>, ROWS> grid;
+  std::array<std::array<tile_map, COLS>, ROWS> grid;
 
 public:
   Grid() = default;
@@ -27,7 +27,7 @@ public:
         tile.clear();
   }
 
-  TileMap& at(const position& pos) {
+  tile_map& at(const position& pos) {
     return grid[pos.first][pos.second];
   }
 

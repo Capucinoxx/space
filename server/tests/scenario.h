@@ -147,15 +147,15 @@ private:
 
     for (uint32_t row = 0; row != ROWS; ++row) {
       for (uint32_t col = 0; col != COLS; ++col) {
-        auto owner = game.cell({row, col}).owner();
+        auto cell = game.cell({row, col});
+
+        if (cell.is_step())
+          grid_trail_context[cell.walker()].push_back({row, col});
+        
+        auto owner = cell.owner();
         if (owner == 0)
           continue;
-
-        if (game.cell({row, col}).is_step()) {
-          grid_trail_context[owner].push_back({row, col});
-        } else {
-          grid_region_context[owner].push_back({row, col});
-        }
+        grid_region_context[owner].push_back({row, col});
       }
     }
 
@@ -179,6 +179,8 @@ private:
     }
 
     for (const auto& [uuid, grid_context] : grid_trail_context) {
+      for (const auto& pos : grid_context)
+        std::cout << uuid << "   " << pos.first << " " << pos.second << std::endl;
       assert::is_true(player_trail_context.find(uuid) != player_trail_context.end(), std::to_string(uuid) + " not found in player_trail_context");
       if (player_trail_context.find(uuid) != player_trail_context.end())
         assert::equal_unordered(grid_context, player_trail_context[uuid], "grid_trail_context and player_trail_context are not equal");

@@ -143,6 +143,94 @@ public:
         }
       }
     }});
+
+    scenarios.insert({ "kill player in territory", {
+      Spawns{ position{ 2, 3 }, position{ 3, 6 }, position{ 8, 8 } },
+      Bots{ Bot{ id{ 1 }, position{ 2, 3 } }, Bot{ id{ 2 }, position{ 3, 6 } } },
+      Ticks{
+        actions{ { id{ 1 }, DOWN  }, { id{ 2 }, UP    } },
+        // actions{ { id{ 1 }, RIGHT }, { id{ 2 }, UP    } }
+
+        actions{ { id{ 2 }, UP    }, { id{ 1 }, RIGHT } }
+      },
+      Expectations{
+        expectation{
+          id{ 1 },
+          position{ 3, 4 },
+          alive{ 2 },
+          scores{ 9, 30 },
+          trail_pos{ },
+          region_pos{ position{ 1, 2 }, position{ 1, 3 }, position{ 1, 4 },
+                      position{ 2, 2 }, position{ 2, 3 }, position{ 2, 4 },
+                      position{ 3, 2 }, position{ 3, 3 }, position{ 3, 4 } }
+        },
+        expectation{
+          id{ 2 },
+          position{ 8, 8 },
+          alive{ 0 },
+          scores{ 9, 18 },
+          trail_pos{},
+          region_pos{ position{ 7, 7 }, position{ 7, 8 }, position{ 7, 9 },
+                      position{ 8, 7 }, position{ 8, 8 }, position{ 8, 9 },
+                      position{ 9, 7 }, position{ 9, 8 }, position{ 9, 9 } }
+        }
+      }
+    }});
+
+
+    scenarios.insert({ "kill player in territory 2", {
+      Spawns{ position{ 2, 2 }, position{ 4, 7 }, position{ 14, 14 } },
+      Bots{ Bot{ id{ 1 }, position{ 2, 2 } }, Bot{ id{ 2 }, position{ 4, 7 } } },
+      Ticks{
+        actions{ { id{ 1 }, DOWN  }, { id{ 2 }, UP    } },
+        actions{ { id{ 1 }, DOWN  }, { id{ 2 }, DOWN  } },
+        actions{ { id{ 1 }, DOWN  }, { id{ 2 }, UP    } },
+        actions{ { id{ 1 }, RIGHT }, { id{ 2 }, DOWN  } },
+        actions{ { id{ 1 }, RIGHT }, { id{ 2 }, UP    } },
+        actions{ { id{ 1 }, RIGHT }, { id{ 2 }, DOWN  } },
+        actions{ { id{ 1 }, RIGHT }, { id{ 2 }, UP    } },
+        actions{ { id{ 1 }, UP    }, { id{ 2 }, DOWN  } },
+        actions{ { id{ 1 }, UP    }, { id{ 2 }, UP    } },
+        actions{ { id{ 1 }, UP    }, { id{ 2 }, DOWN  } },
+        actions{ { id{ 1 }, UP    }, { id{ 2 }, UP    } },
+        actions{ { id{ 1 }, LEFT  }, { id{ 2 }, DOWN  } },
+        actions{ { id{ 1 }, LEFT  }, { id{ 2 }, UP    } },
+        actions{ { id{ 1 }, LEFT  }, { id{ 2 }, UP    } },
+
+        actions{ { id{ 1 }, LEFT  }, { id{ 2 }, UP    } },
+        actions{ { id{ 1 }, DOWN  }, { id{ 2 }, UP    } },
+        actions{ { id{ 1 }, LEFT  }, { id{ 2 }, RIGHT } },
+        actions{ { id{ 1 }, DOWN  }, { id{ 2 }, DOWN  } },
+        actions{ { id{ 1 }, RIGHT }, { id{ 2 }, DOWN  } },
+        actions{ { id{ 1 }, RIGHT }, { id{ 2 }, RIGHT  } },
+        actions{ { id{ 1 }, RIGHT }, { id{ 2 }, RIGHT } }
+      },
+      Expectations{
+        expectation{
+          id{ 1 },
+          position{ 4, 3 },
+          alive{ 21 },
+          scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 184, 212, 240, 268, 296, 324, 352, 392 },
+          trail_pos{},
+          region_pos{ position{ 1, 1 }, position{ 1, 2 }, position{ 1, 3 },
+                      position{ 2, 1 }, position{ 2, 2 }, position{ 2, 3 }, position{ 2, 4 }, position{ 2, 5 },
+                      position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 }, position{ 3, 4 }, position{ 3, 5 },
+                      position{ 4, 1 }, position{ 4, 2 }, position{ 4, 3 }, position{ 4, 4 }, position{ 4, 5 },
+                      position{ 5, 1 }, position{ 5, 2 }, position{ 5, 3 }, position{ 5, 4 }, position{ 5, 5 },
+                      position{ 6, 1 }, position{ 6, 2 }, position{ 6, 3 }, position{ 6, 4 }, position{ 6, 5 } },
+        },
+        expectation{
+          id{ 2 },
+          position{ 15, 14 },
+          alive{ 0 },
+          scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 144, 153, 162, 171, 180, 189 },
+          trail_pos{},
+          region_pos{ position{ 13, 13 }, position{ 13, 14 }, position{ 13, 15 },
+                      position{ 14, 13 }, position{ 14, 14 }, position{ 14, 15 },
+                      position{ 15, 13 }, position{ 15, 14 }, position{ 15, 15 } }
+        }
+      }
+    } });
   }
 };
 
