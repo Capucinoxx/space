@@ -6,7 +6,8 @@ std::pair<tile_map::stmt, uint32_t> tile_map::step(uint32_t id) noexcept {
   auto old_walker = current_walker;
 
   if (is_step()) {
-    current_walker = id;
+    if (current_owner != id)
+      current_walker = id;
     return { stmt::DEATH, old_walker };
   }
 
