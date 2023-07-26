@@ -3,6 +3,7 @@
 #include "handler/spectator_handler.h"
 #include "handler/controller_handler.h"
 #include "handler/game_handler.h"
+#include "handler/subscription_handler.h"
 
 #include "configuration.h"
 #include "postgres_connector.h"
@@ -61,6 +62,8 @@ int main() {
   auto start_controller = std::make_shared<start_game_handler>(state, ranked, unranked);
   state->add_http_handler("/start_game", start_controller);
   state->add_http_handler("/stop_game", std::make_shared<stop_game_handler>(ranked, unranked));
+
+  state->add_http_handler("/subscribe", std::make_shared<subscription_handler>(postgres));
 
   std::make_shared<listener>(ioc, tcp::endpoint{ address, port }, state)->run();
 

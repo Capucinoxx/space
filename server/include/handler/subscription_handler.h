@@ -8,7 +8,7 @@
 class subscription_handler : public handler {
 private:
   psql_sptr postgres;
-  UniqueIDGenerator<16> id_generator;
+  UniqueIDGenerator<15> id_generator;
 
   static constexpr const char* query = R"(
     INSERT INTO player (name, secret, h, s, l) VALUES ($1, $2, $3, $4, $5)

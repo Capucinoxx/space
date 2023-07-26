@@ -6,7 +6,7 @@ void subscription_handler::operator()(http::request<http::string_body>& req, htt
   resp.body() = std::move(body);
   resp.keep_alive(req.keep_alive());
   resp.set(http::field::server, "Space");
-  resp.set(http::field::content_type, "application/octet-stream");
+  resp.set(http::field::content_type, "text/plain");
   resp.set(http::field::access_control_allow_origin, "*");
   resp.prepare_payload();
 }
@@ -31,6 +31,6 @@ std::pair<http::status, std::string> subscription_handler::handle(http::request<
   auto result = postgres->execute(query, name, secret, std::get<0>(*hsl), std::get<1>(*hsl), std::get<2>(*hsl));
 
   return result.affected_rows() == 1 
-    ? std::make_pair(http::status::ok, secret) 
+    ? std::make_pair(http::status::created, secret) 
     : std::make_pair(http::status::bad_request, "Name already taken");
 }
