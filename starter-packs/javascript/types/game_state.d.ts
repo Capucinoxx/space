@@ -39,8 +39,8 @@ declare class Player {
   name: string;
   pos: Position;
   alive: number;
-  trail: Position[];
-  region: Position[];
+  trail: Set<Position>;
+  region: Set<Position>;
 
   constructor(name: string, pos: Position, alive: number, trail: Position[], region: Position[]);
   toString(): string;
@@ -62,14 +62,14 @@ declare class Player {
  * @property tick     (fr) Numéro du tick actuel.
  *                    (en) Number of the current tick.
  * 
- * @property players  (fr) Liste des joueurs.
- *                    (en) List of players.
+ * @property players  (fr) Dictionnaire des joueurs. Clé: nom du joueur, Valeur: joueur.
+ *                    (en) Dictionary of players. Key: player name, Value: player.
  */
 declare class GameState {
   frame: number;
   rows: number;
   cols: number;
-  players: Player[];
+  players: { [name: string]: Player };
 
   constructor(frame: number, rows: number, cols: number, players: Player[]);
   static deserialize(data: ArrayBuffer): GameState;

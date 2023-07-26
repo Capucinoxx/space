@@ -15,16 +15,16 @@
  *                             (en) Number of ticks since the player is alive.
  * 
  * @property trail             (fr) Liste des traces du joueur. Si un autre joueur passe sur une de ces
- *                                  positions, il meurt. Tableau de positions [[x, y], ...].
+ *                                  positions, il meurt. Set de positions [[x, y], ...].
  *                             (en) List of the player's traces. If another player passes over one of these
- *                                  positions, he dies. Array of positions [[x, y], ...].
+ *                                  positions, he dies. Set of positions [[x, y], ...].
  * 
  * @property region            (fr) Liste des positions de la région du joueur. Si un autre joueur passe
  *                                  sur une de ces positions, il retire cette position de la région du joueur.
- *                                  Tableau de positions [[x, y], ...].
+ *                                  Set de positions [[x, y], ...].
  *                             (en) List of the player's region positions. If another player passes over one of these
  *                                  positions, he removes this position from the player's region.
- *                                  Array of positions [[x, y], ...].
+ *                                  Set of positions [[x, y], ...].
  *
  * @property teleportCooldown  (fr) Nombre de de tick avant que le joueur puisse réutiliser son action de téléportation.
  *                             (en) Number of ticks before the player can use the teleport action again.
@@ -60,8 +60,8 @@ class Player {
  * @property tick     (fr) Numéro du tick actuel.
  *                    (en) Number of the current tick.
  * 
- * @property players  (fr) Liste des joueurs.
- *                    (en) List of players.
+ * @property players  (fr) Dictionnaire des joueurs. Clé: nom du joueur, Valeur: joueur.
+ *                    (en) Dictionary of players. Key: player name, Value: player.
  */
 class GameState {
   constructor(frame, rows, cols, players) {
@@ -78,7 +78,7 @@ class GameState {
 
     const decoder = new TextDecoder('unicode-1-1-utf-8');
 
-    const players = [];
+    const players = {};
     while (offset < data.byteLength) {
       const nameSize = new Uint32Array(data.slice(offset, offset + 4))[0];
       offset += 4;
@@ -97,24 +97,24 @@ class GameState {
       const trailLength = new Uint32Array(data.slice(offset, offset + 4))[0];
       offset += 4;
 
-      const trail = [];
+      const trail = new Set();
       for (let i = 0; i < trailLength; i++) {
         const [x, y] = new Uint32Array(data.slice(offset, offset + 8));
-        trail.push([x, y]);
+        trail.add([x, y]);
         offset += 8;
       }
 
       const regionLength = new Uint32Array(data.slice(offset, offset + 4))[0];
       offset += 4;
 
-      const region = [];
+      const region = new Set();
       for (let i = 0; i < regionLength; i++) {
         const [x, y] = new Uint32Array(data.slice(offset, offset + 8));
-        region.push([x, y]);
+        region.add([x, y]);
         offset += 8;
       }
 
-      players.push(new Player(name, [posX, posY], tickAlive, trail, region, teleportCooldown));
+      players[name] = new Player(name, [posX, posY], tickAlive, trail, region, teleportCooldown);
     }
 
     return new GameState(frame, rows, cols, players);
