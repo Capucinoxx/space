@@ -10,16 +10,19 @@ public:
 
 private:
   uint32_t current_owner;
+  uint32_t current_stepper;
+
   bool stepping;
 
 public:
-  tile_map() : current_owner{ 0 }, stepping{ false } { }
+  tile_map() : current_owner{ 0 }, current_stepper{ 0 }, stepping{ false } { }
 
   std::pair<stmt, uint32_t> step(uint32_t id) noexcept;
 
   std::pair<stmt, uint32_t> take(uint32_t id) noexcept;
 
   uint32_t owner() const noexcept;
+  uint32_t walker() const noexcept;
 
   bool is_step() const noexcept;
 

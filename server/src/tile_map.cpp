@@ -3,48 +3,57 @@
 #include <iostream>
 
 std::pair<tile_map::stmt, uint32_t> tile_map::step(uint32_t id) noexcept {
-  auto old_owner = current_owner;
+  auto old_stepper = current_stepper;
 
-  if (stepping && current_owner != id && current_owner != 0) {
-    current_owner = id;
-    stepping = true;
-    return { stmt::DEATH, old_owner };
+  if (is_step()) {
+    current_stepper = id;
+    return { stmt::DEATH, old_stepper };
   }
 
   if (current_owner == id)
-    return { stmt::COMPLETE, old_owner };
+    return { stmt::COMPLETE, old_stepper };
 
-  stepping = true;
-  current_owner = id;
-  return { stmt::STEP, old_owner };
+  current_stepper = id;
+  return { stmt::STEP, old_stepper };
 }
 
 std::pair<tile_map::stmt, uint32_t> tile_map::take(uint32_t id) noexcept {
   auto statement = stmt::STEP;
-
-  if (current_owner != id && current_owner != 0 && stepping)
+  auto old = current_owner;
+  
+  if (current_stepper != id && current_stepper != 0) {
     statement = stmt::DEATH;
-
-  auto old_owner = current_owner;
+    old = current_stepper;
+  }
+    
+  current_stepper = 0;
   current_owner = id;
-  stepping = false;
-  return { statement, old_owner };
+
+  return { statement, old };
 }
 
 uint32_t tile_map::owner() const noexcept {
   return current_owner;
 }
 
+uint32_t tile_map::walker() const noexcept {
+  return current_stepper;
+}
+
 bool tile_map::is_step() const noexcept {
-  return stepping;
+  return current_stepper != 0;
 }
 
 void tile_map::reset(uint32_t id) noexcept {
   if (current_owner == id)
-    clear();
+    current_owner = 0;
+
+  if (current_stepper == id)
+    current_stepper = 0;
 }
 
 void tile_map::clear() noexcept {
   current_owner = 0;
   stepping = false;
+  current_stepper = 0;
 }
