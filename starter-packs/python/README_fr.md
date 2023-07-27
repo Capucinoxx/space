@@ -65,3 +65,22 @@ Si vous n'avez pas encore jouer votre tour lorsqu'un autre agent vous tue, votre
 
 À la fin de ce tick, votre agent sera téléporter à une nouvelle destination et pourra recommencer à jouer comme si de rien était. 
 
+
+## Score et classement
+À chaque tick du jeu, votre score sera augmenté selon la formule suivante:
+
+**Score pour le tick tick** : (zone_score + kill_bonus + capture_bonus) * multiplicateur
+
+**🏞️ Score de zone** : Le score de zone sera calculé selon le nombre de tuiles qui composent le territoire du joueur. (La trail ne compte pas)
+
+**🗡️ Bonus de Kill** : Si vous avez tué quelqu'un durant le tick, vous obtenez un bonus. Le calcul est le suivant:
+
+💀 12 * (1 + longueur de sa trail au moment du meurtre)
+
+**🏰 Bonus de Capture** : Si vous capturez une nouvelle région pendant le tour, vous recevez un bonus selon la formule suivante:
+
+🚩 3 * (1 + longueur de la trail lors de la capture)
+
+**🌟 Multiplicateur** : Un multiplicateur sera utilisé durant la journée. Il commencera avec une valeur de 1 en début de journée pour augmenter progressivement jusqu'à atteindre un facteur de 5 en fin de journée.
+
+**🏆 Classement** : Un classement sera présent montrant l'avancement total de chaque équipe durant la journée. Le classement global sera utilisé pour déterminer les équipes gagnantes.
