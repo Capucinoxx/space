@@ -7,6 +7,8 @@
         - [Déplacement](#déplacement)
         - [Téléportation](#téléportation)
         - [Pattern de déconnexion](#pattern-de-déconnexion)
+    - [Expansion de terroire](#expansion-du-territoire)
+    - [Interaction avec les autres joueurs](#interaction-avec-les-autres-joueurs)
 
 ## Objectif
 L'objectif principal de Space est de conquérir le plus de territoire possible en traçant 
@@ -43,3 +45,23 @@ vous avez la possibilité d'envoyer un pattern de déconnexion au serveur. Ce pa
 En planifiant soigneusement le pattern de déconnexion, vous pouvez anticiper différentes situations et permettre à votre personnage de prendre les meilleures décisions en votre absence. 📈
 
 Assurez-vous de mettre en place un pattern de déconnexion réfléchi pour optimiser les actions de votre personnage pendant ces moments critiques.
+
+## Expansion de territoire
+Lorsque votre personnage boucle une zone en traçant une ligne, celle-ci sera coloriée à votre couleur, vous donnant ainsi le contrôle sur cette zone. Cette mécanique vous permet de conquérir progressivement de nouveaux territoires 🎨.
+
+## Interaction avec les autres joueurs
+
+### Comment tuer ou se faire tuer ?
+
+Vous pouvez tuer d'autres agents en marchant sur leurs traces qu'ils laissent derrière eux. 🚶‍♂️💨
+
+Lorsque vous sortez de votre territoire, vous laissez une trail colorée. Si un autre joueur marche dessus, vous mourrez. 🕳️😵
+
+Planifier astucieusement vos déplacement, tracez votre chemin et assurez-vous de ne pas vous piéger vous-même
+en évitant vos propres traces. 💥🎯
+
+### Qu'arrive-t-il lorsque l'on meurt ?
+Si vous n'avez pas encore jouer votre tour lorsqu'un autre agent vous tue, votre action ne sera pas prise en compte ❌.
+
+À la fin de ce tick, votre agent sera téléporter à une nouvelle destination et pourra recommencer à jouer comme si de rien était. 
+
