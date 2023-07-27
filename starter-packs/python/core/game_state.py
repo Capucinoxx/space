@@ -75,7 +75,7 @@ class GameState:
 
     rows: int
     cols: int
-    players: List[Player]
+    players: Dict[str, Player]
 
     @classmethod
     def deserialize(cls, data: bytes) -> 'GameState':
