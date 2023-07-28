@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <utility>
 #include <optional>
+#include <mutex>
 
 
 
@@ -24,6 +25,32 @@ class Spawner {
   public:
     virtual std::pair<uint32_t, uint32_t> operator()() = 0;
     virtual ~Spawner() = default;
+};
+
+
+class multiplier_statement {
+private:
+  uint64_t value{ 1 };
+  std::mutex mu;
+
+public:
+  void operator++() { 
+    std::lock_guard<std::mutex> lock(mu);
+    ++value;
+  }
+
+  void operator--() { 
+    std::lock_guard<std::mutex> lock(mu);
+    if (value == 1)
+      return;
+
+    --value;
+  }
+
+  uint64_t operator()() noexcept { 
+    std::lock_guard<std::mutex> lock(mu);
+    return value;
+  }
 };
 
 template<uint32_t ROWS, uint32_t COLS>
@@ -95,6 +122,7 @@ private:
   bool score_insert;
 
   static UniqueIDGenerator<15> uuid_generator;
+  multiplier_statement multiplier{ };
 
 
 public:
@@ -129,8 +157,20 @@ public:
     return p;
   }
 
+  uint64_t increase_multiplier() {
+    ++multiplier;
+    return multiplier();
+  }
+
+  uint64_t decrease_multiplier() {
+    --multiplier;
+    return multiplier();
+  }
+
   static std::string generate_secret() { return uuid_generator(); }
+  
   void push(T&& action) { actions.push(std::move(action)); }
+  
   uint32_t frame() const noexcept { return frame_count; }
 
   void disconnect_player(uint32_t id) {
@@ -283,7 +323,7 @@ private:
 
     for (auto& player : players) {
       arguments.emplace_back(std::to_string(player.second->id()));
-      arguments.emplace_back(std::to_string(player.second->tick_score()));
+      arguments.emplace_back(std::to_string(player.second->tick_score(multiplier())));
 
       if (with_insert) {
         query += "($" + std::to_string(i * 2 + 1) + ", $" + std::to_string(i * 2 + 2) + ")";
