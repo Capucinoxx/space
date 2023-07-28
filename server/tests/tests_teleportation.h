@@ -78,6 +78,44 @@ public:
         }
       }
     } });
+
+    scenarios.insert({ "teleport on trail", { 
+      Spawns{ position{ 2, 2 }, position{ 5, 2 }, position{ 14, 14 } },
+      Bots{ Bot{ id{ 1 }, position{ 2, 2 } }, Bot{ id{ 2 }, position{ 5, 2 } } },
+      Ticks{
+        actions{ { id{ 1 }, DOWN }, { id{ 2 }, LEFT } },
+        actions{ { id{ 1 }, DOWN }, { id{ 2 }, LEFT } },
+        actions{ { id{ 1 }, DOWN }, { id{ 2 }, LEFT } },
+        actions{ { id{ 1 }, DOWN }, { id{ 2 }, LEFT } },
+        actions{ { id{ 1 }, TELEPORT(3, 2) }, { id{ 2 }, LEFT } },
+      },
+      Expectations{
+        expectation{
+          id{ 1 },
+          position{ 2, 6 },
+          alive{ 5 },
+          scores{ 9, 18, 27, 36, 45 },
+          trail_pos{ position{ 2, 4 }, position{ 2, 5 }, position{ 2, 6 } },
+          region_pos{
+            position{ 1, 1 }, position{ 1, 2 }, position{ 1, 3 },
+            position{ 2, 1 }, position{ 2, 2 }, position{ 2, 3 },
+            position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 },
+          }
+        },
+        expectation{
+          id{ 2 },
+          position{ 0, 2 },
+          alive{ 5 },
+          scores{ 9, 18, 27, 36, 45 },
+          trail_pos{ position{ 3, 2 }, position{ 2, 2 }, position{ 1, 2 }, position{ 0, 2 } },
+          region_pos{
+            position{ 4, 1 }, position{ 4, 2 }, position{ 4, 3 },
+            position{ 5, 1 }, position{ 5, 2 }, position{ 5, 3 },
+            position{ 6, 1 }, position{ 6, 2 }, position{ 6, 3 },
+          }
+        }
+      }
+     } });
   }
 };
 
