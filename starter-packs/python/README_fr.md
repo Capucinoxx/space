@@ -33,7 +33,7 @@ Le serveur effectue les actions selon le principe du premier arrivé, premier se
  - la [téléportation](#téléportation) 🌀 
  - la mise en place d'un [pattern de déconnexion](#pattern-de-déconnexion) ⏸️. 
  
-⚠️ Si aucune action n'est prise par l'agent durant le tick, le serveur jouera à la place de l'agent en jouant avec le pattern de déconnexion 🤖. 🕹️
+⚠️ Si aucune action n'est prise par l'agent durant le tick, le serveur jouera à la place de l'agent avec le pattern de déconnexion 🤖. 🕹️
 
 ### Déplacement
 Votre bot se déplace automatiquement dans une direction spécifiée par un agent (intelligence artificielle) plutôt que par les contrôles du clavier. Lorsque vous vous déplacez à l'extérieur de votre zone, une ligne (trace) de votre couleur sera déposée au sol. Il existe quatre mouvements possibles lors d'un déplacement :
@@ -49,7 +49,7 @@ Vous avez la possibilité de vous téléporter sur une case de **votre propre te
 Lorsque vous choisissez d'utiliser cette téléportation, vous devez bien calculer le bon moment pour l'activer, car chaque utilisation compte. L'action de téléportation peut être un atout stratégique majeur pour surprendre vos adversaires. 🧭🎯
 
 ### Pattern de déconnexion
-vous pouvez envoyer un pattern de déconnexion au serveur. Ce pattern est une liste d'actions comprenant des déplacements et des téléportations que le serveur utilisera lorsque votre agent ne sera pas en mesure de communiquer avec lui, comme lors d'une déconnexion et reconnexion du bot. Le pattern peut comporter jusqu'à un maximum de **20 actions** et sera bouclé par le serveur.
+Vous pouvez envoyer un pattern de déconnexion au serveur. Ce pattern est une liste d'actions comprenant des déplacements et des téléportations que le serveur utilisera lorsque votre agent ne sera pas en mesure de communiquer avec lui, comme lors d'une déconnexion et reconnexion du bot. Le pattern peut comporter jusqu'à un maximum de **20 actions** et sera bouclé par le serveur.
 
 En planifiant soigneusement le pattern de déconnexion, vous pouvez anticiper différentes situations et permettre à votre personnage de prendre les meilleures décisions en votre absence. 📈
 
@@ -62,9 +62,9 @@ Pour étendre votre territoire, vous devez faire en sorte que la ligne que vous 
 
 ### Comment tuer ou se faire tuer ?
 
-Tant que votre ligne n'est pas fermée en revenant à votre territoire, elle reste vulnérable. Si un autre joueur croise votre trace, vous serez éliminé du jeu et vous perdrez une partie de votre territoire. De la même manière, votre bot pourra tuer d'autres agents en marchant sur leurs traces 🚶‍♂️💨.
+Tant que votre ligne n'est pas fermée en revenant à votre territoire, elle reste vulnérable. Si un autre joueur croise votre trace, vous serez éliminés du jeu et vous perdrez une partie de votre territoire. De la même manière, votre bot pourra tuer d'autres agents en marchant sur leurs traces 🚶‍♂️💨.
 
-Si vous passées sur vos propres traces inachevées, vous mourrez 🕳️😵
+Si vous passez sur vos propres traces inachevées, vous mourrez 🕳️😵
 
 Planifier astucieusement vos déplacements, tracez votre chemin et assurez-vous de ne pas vous piéger vous-même en évitant vos propres traces. 💥🎯
 
@@ -96,7 +96,7 @@ Si vous n'avez pas encore jouer votre tour lorsqu'un autre agent vous tue, votre
 3. 📝 Dans le formulaire, inscrivez le nom de votre Bot (maximum de 20 caractères).
 4. 🎯 Une fois le nom du bot entré, cliquez sur le bouton pour vous enregistrer.
 5. 🚀 Une fois enregistré, vous devriez recevoir un jeton d'authentification en alerte.
-6. ⚠️ Assurez-vous de prendre note le jeton d'authentification, vous en aurez besoin pour connecter votre agent.
+6. ⚠️ Assurez-vous de prendre en note le jeton d'authentification, vous en aurez besoin pour connecter votre agent.
 7. ❓ Si jamais vous avez oublié de le noter, allez voir les organisateurs, ils vous aideront.
 8. 🔑 Chaque nom d'équipe doit être unique.
 
@@ -139,4 +139,4 @@ Le seul fichier que vous devriez modifier dans le code de départ est le fichier
 3. Codez votre bot en implémentant la logique de jeu dans la fonction tick.
 
 **⏳ Limite de temps :**
-Assurez-vous que votre bot renvoie une réponse dans les 300 ms suivant la réception des données du serveur. Sinon, le serveur considérera que vous êtes déconnecté et exécutera votre modèle de déconnexion.
+Assurez-vous que votre bot renvoie une réponse dans les 300 ms suivant la réception des données du serveur. Sinon, le serveur considérera que vous êtes déconnectés et exécutera votre modèle de déconnexion.
