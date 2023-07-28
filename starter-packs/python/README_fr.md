@@ -18,14 +18,16 @@
 
 ## Objectif
 L'objectif principal de Space est de conquérir le plus de territoire possible en traçant 
-des lignes avec votre personnage.
+des lignes avec votre agent.
 
 ## Déroulement d'une partie
+Le jeu est sous format _"Long running"_. Cela signifie que le jeu n'arrête jamais. Vous devez prévoir les meilleur moment pour déconnecter votre agent pour y mettre une nouvelle version.
+
 Une partie de space se déroule sur une durée de 1200 ticks, où chaque tick a une durée
 de 300 millisecondes.
 
 ## Actions
-À chaque tick, les joueurs peuvent effectuer une action parmi 
+À chaque tick, les bots peuvent effectuer une action parmi 
  - le [déplacement](#déplacement) 🚶‍♂️
  - la [téléportation](#téléportation) 🌀 
  - la mise en place d'un [pattern de déconnexion](#pattern-de-déconnexion) ⏸️. 
@@ -33,7 +35,7 @@ de 300 millisecondes.
 ⚠️ Si aucune action n'est prise durant le tick par l'agent, le serveur jouera à la place de l'agent en jouant avec le pattern de déconnexion 🤖. 🕹️
 
 ### Déplacement
-Votre personnage se déplace automatiquement dans une direction spécifiée par un agent (intelligence artificielle) plutôt que par les contrôles du clavier. Lorsque vous vous déplacez à l'extérieur de votre zone, une ligne (trace) de votre couleur sera déposée au sol. Il existe quatre mouvements possibles lors d'un déplacement :
+Votre bot se déplace automatiquement dans une direction spécifiée par un agent (intelligence artificielle) plutôt que par les contrôles du clavier. Lorsque vous vous déplacez à l'extérieur de votre zone, une ligne (trace) de votre couleur sera déposée au sol. Il existe quatre mouvements possibles lors d'un déplacement :
 
 - Haut ⬆️
 - Bas ⬇️
@@ -41,7 +43,7 @@ Votre personnage se déplace automatiquement dans une direction spécifiée par 
 - Droite ➡️
 
 ### Téléportation
-Dans ce jeu, vous avez la possibilité de vous téléporter sur une case de votre propre territoire. Cette action de téléportation est extrêmement utile pour échapper aux dangers ou pour atteindre rapidement des endroits clés sur la carte. Cependant, cette capacité est soumise à un temps de recharge **(cooldown) de 8 tours** avant de pouvoir l'utiliser à nouveau.
+Vous avez la possibilité de vous téléporter sur une case de votre propre territoire. Cette action de téléportation est extrêmement utile pour échapper aux dangers ou pour atteindre rapidement des endroits clés sur la carte. Cependant, cette capacité est soumise à un temps de recharge **(cooldown) de 8 tours** avant de pouvoir l'utiliser à nouveau.
 
 Lorsque vous choisissez d'utiliser cette téléportation, vous devez bien calculer le bon moment pour l'activer, car chaque utilisation compte. L'action de téléportation peut être un atout stratégique majeur pour surprendre vos adversaires ou pour capturer des zones éloignées en un clin d'œil. 🧭🎯
 
