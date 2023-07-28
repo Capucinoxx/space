@@ -343,6 +343,9 @@ private:
       if (!player->can_teleport(new_pos))
         return true;
 
+      if (grid->at(new_pos).is_step())
+        return true;
+
       player->for_each_trail([grid = grid, player_id = player->id()](position p) { 
         grid->at(p).reset(player_id); });
 
