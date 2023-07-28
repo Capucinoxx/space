@@ -22,6 +22,11 @@ public:
         : state(state), game_loops{ std::forward<Args>(args)... } {}
 
     void operator()(http::request<http::string_body>& req, http::response<http::string_body>& resp) override {
+        if (!check_middleware(req)) {
+            resp.result(http::status::unauthorized);
+            return;
+        }
+
         std::for_each(game_loops.begin(), game_loops.end(), [this](auto& game_loop) {
             game_loop->start(state.get(), &shared_state::send);
         });
@@ -41,6 +46,11 @@ public:
   explicit stop_game_handler(Args&&... args) : game_loops{ std::forward<Args>(args)... } {}
 
   void operator()(http::request<http::string_body>& req, http::response<http::string_body>& resp) override {
+    if (!check_middleware(req)) {
+      resp.result(http::status::unauthorized);
+      return;
+    }
+
     std::for_each(game_loops.begin(), game_loops.end(), [](auto& game_loop) {
       game_loop->stop();
     });
