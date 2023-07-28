@@ -197,6 +197,9 @@ public:
 
     actions.for_each([this, &ids](const T& tick_action) {
       auto& [player, payload] = tick_action;
+      if (inactive_players.contains(player->id()))
+        return;
+
       ids.insert(player->id());
       play_tick(tick_action);
       player->has_played();
@@ -398,7 +401,8 @@ private:
       case player_t::action_stmt::STEP:
         if (victim_id != 0 && victim_id != player->id())
           players.find(victim_id)->second->remove_region(player->pos());
-        
+      
+
         player->go_to(new_pos);
         return true;
 
