@@ -89,10 +89,9 @@ public:
   // methods for score
   // ==================================================================================
 
-  uint64_t tick_score() noexcept {
+  uint64_t tick_score(uint64_t multiplier) noexcept {
     score.add_zone_score(region.size());
-    std::cout << score << std::endl;
-    return score.score();
+    return score.score(multiplier);
   }
 
   void zone_captured_bonus() noexcept { 
