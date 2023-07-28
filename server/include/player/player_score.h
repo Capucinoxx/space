@@ -14,7 +14,7 @@ public:
   explicit player_score(uint64_t score) 
     : total_score(score), tick_score(std::make_tuple(0, 0, 0)) {}
 
-  uint64_t score() noexcept;
+  uint64_t score(uint64_t multiplier) noexcept;
 
   void add_zone_score(uint64_t n_tiles) noexcept;
 

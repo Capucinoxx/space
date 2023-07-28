@@ -1,7 +1,7 @@
 #include "player/player_score.h"
 
-uint64_t player_score::score() noexcept {
-  total_score += std::get<0>(tick_score) + std::get<1>(tick_score) + std::get<2>(tick_score);
+uint64_t player_score::score(uint64_t multiplier) noexcept {
+  total_score += (std::get<0>(tick_score) + std::get<1>(tick_score) + std::get<2>(tick_score)) * multiplier;
   tick_score = std::make_tuple(0, 0, 0);
   return total_score;
 }
