@@ -5,6 +5,8 @@
 #include "handler/game_handler.h"
 #include "handler/subscription_handler.h"
 
+#include "middleware/admin_middleware.h"
+
 #include "configuration.h"
 #include "postgres_connector.h"
 #include "game_loop.h"
@@ -23,6 +25,8 @@
 #include <atomic>
 #include <memory>
 
+
+
 game_loop_sptr create_game(const std::string& base_path, std::shared_ptr<shared_state> state, std::shared_ptr<PostgresConnector> postgres, bool with_score_insertion) {
   auto game_state = std::make_shared<GameState<std::pair<player_sptr, std::string>, rows, cols>>(postgres, with_score_insertion);
   auto game_loop = std::make_shared<GameLoop<std::pair<player_sptr, std::string>, tick, max_tick, rows, cols>>(game_state, base_path.substr(1));
@@ -36,7 +40,9 @@ game_loop_sptr create_game(const std::string& base_path, std::shared_ptr<shared_
 }
 
 int main() {
-    Config cfg = load_config(".env");
+  Config cfg = load_config(".env");
+
+  auto is_admin = std::make_shared<admin_middleware>(cfg["ADMIN_PASSWORD"]);
 
   auto postgres = PostgresConnector::get_instance(cfg);
   if (!postgres->connected()) {
@@ -60,8 +66,12 @@ int main() {
   auto unranked = create_game("/unranked", state, postgres, false);
 
   auto start_controller = std::make_shared<start_game_handler>(state, ranked, unranked);
+  start_controller->add_middleware(is_admin);
   state->add_http_handler("/start_game", start_controller);
-  state->add_http_handler("/stop_game", std::make_shared<stop_game_handler>(ranked, unranked));
+
+  auto stop_controller = std::make_shared<stop_game_handler>(ranked, unranked);
+  stop_controller->add_middleware(is_admin);
+  state->add_http_handler("/stop_game", stop_controller);
 
   state->add_http_handler("/subscribe", std::make_shared<subscription_handler>(postgres));
 
