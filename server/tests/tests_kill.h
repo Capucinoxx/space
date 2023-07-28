@@ -221,9 +221,79 @@ public:
         },
         expectation{
           id{ 2 },
-          position{ 15, 14 },
+          position{ 14, 14 },
           alive{ 0 },
           scores{ 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 144, 153, 162, 171, 180, 189 },
+          trail_pos{},
+          region_pos{ position{ 13, 13 }, position{ 13, 14 }, position{ 13, 15 },
+                      position{ 14, 13 }, position{ 14, 14 }, position{ 14, 15 },
+                      position{ 15, 13 }, position{ 15, 14 }, position{ 15, 15 } }
+        }
+      }
+    } });
+
+    scenarios.insert({ "face to face in the first player's zone", {
+      Spawns{ position{ 2, 2 }, position{ 5, 2 }, position{ 14, 14 } },
+      Bots{ Bot{ id{ 1 }, position{ 2, 2 } }, Bot{ id{ 2 }, position{ 5, 2 } } },
+      Ticks{
+        actions{ { id{ 1 }, DOWN }, { id{ 2 }, RIGHT } },
+        actions{ { id{ 1 }, LEFT }, { id{ 2 }, UP } },
+        actions{ { id{ 1 }, UP }, { id{ 2 }, LEFT } },
+        actions{ { id{ 1 }, UP }, { id{ 2 }, LEFT } },
+        actions{ { id{ 1 }, RIGHT }, { id{ 2 }, LEFT } },
+        actions{ { id{ 1 }, RIGHT }, { id{ 2 }, LEFT } },
+      },
+      Expectations{
+        expectation{
+          id{ 1 },
+          position{ 3, 1 },
+          alive{ 6 },
+          scores{ 9, 18, 27, 36, 45 },
+          trail_pos{},
+          region_pos{ position{ 1, 1 }, position{ 1, 2 }, position{ 1, 3 },
+                      position{ 2, 1 }, position{ 2, 2 }, position{ 2, 3 },
+                      position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 } }
+        },
+        expectation{
+          id{ 2 },
+          position{ 14, 14 },
+          alive{ 0 },
+          scores{ 9, 18, 27, 36, 45 },
+          trail_pos{},
+          region_pos{ position{ 13, 13 }, position{ 13, 14 }, position{ 13, 15 },
+                      position{ 14, 13 }, position{ 14, 14 }, position{ 14, 15 },
+                      position{ 15, 13 }, position{ 15, 14 }, position{ 15, 15 } }
+        }
+      }
+    } });
+
+    scenarios.insert({ "face to face in the first player's zone - 2", {
+      Spawns{ position{ 2, 2 }, position{ 5, 2 }, position{ 14, 14 } },
+      Bots{ Bot{ id{ 1 }, position{ 2, 2 } }, Bot{ id{ 2 }, position{ 5, 2 } } },
+      Ticks{
+        actions{ { id{ 2 }, RIGHT }, { id{ 1 }, DOWN }, },
+        actions{ { id{ 2 }, UP }, { id{ 1 }, LEFT } },
+        actions{ { id{ 2 }, LEFT }, { id{ 1 }, UP } },
+        actions{ { id{ 2 }, LEFT } , { id{ 1 }, UP } },
+        actions{ { id{ 2 }, LEFT }, { id{ 1 }, RIGHT } },
+        actions{ { id{ 2 }, LEFT }, { id{ 1 }, RIGHT } },
+      },
+      Expectations{
+        expectation{
+          id{ 1 },
+          position{ 3, 1 },
+          alive{ 6 },
+          scores{ 9, 18, 27, 36, 45 },
+          trail_pos{},
+          region_pos{ position{ 1, 1 }, position{ 1, 2 }, position{ 1, 3 },
+                      position{ 2, 1 }, position{ 2, 2 }, position{ 2, 3 },
+                      position{ 3, 1 }, position{ 3, 2 }, position{ 3, 3 } }
+        },
+        expectation{
+          id{ 2 },
+          position{ 14, 14 },
+          alive{ 0 },
+          scores{ 9, 18, 27, 36, 45 },
           trail_pos{},
           region_pos{ position{ 13, 13 }, position{ 13, 14 }, position{ 13, 15 },
                       position{ 14, 13 }, position{ 14, 14 }, position{ 14, 15 },

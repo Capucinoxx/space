@@ -8,6 +8,7 @@
 #include "tests_zone_completion.h"
 #include "tests_kill.h"
 #include "tests_steal_territory.h"
+#include "tests_teleportation.h"
 
 int main() {
   std::unordered_map<std::string, Scenario> scenarios;
@@ -20,6 +21,7 @@ int main() {
   insert_scenarios(std::make_unique<zone_completion_scenarios>());
   insert_scenarios(std::make_unique<kill_scenarios>());
   insert_scenarios(std::make_unique<steal_territory_scenarios>());
+  insert_scenarios(std::make_unique<teleportation_scenarios>());
 
   scenarios.insert({ "dummy test", {
     Spawns{ position{ 10, 10 } },
