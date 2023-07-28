@@ -27,9 +27,15 @@
 
 
 
-game_loop_sptr create_game(const std::string& base_path, std::shared_ptr<shared_state> state, std::shared_ptr<PostgresConnector> postgres, bool with_score_insertion) {
+game_loop_sptr create_game(const std::string& base_path, std::shared_ptr<shared_state> state, std::shared_ptr<PostgresConnector> postgres, std::shared_ptr<admin_middleware> is_admin, bool with_score_insertion) {
   auto game_state = std::make_shared<GameState<std::pair<player_sptr, std::string>, rows, cols>>(postgres, with_score_insertion);
   auto game_loop = std::make_shared<GameLoop<std::pair<player_sptr, std::string>, tick, max_tick, rows, cols>>(game_state, base_path.substr(1));
+
+  if (with_score_insertion) {
+    auto increate_multiplier = std::make_shared<increase_multiplier_handler>(game_state);
+    increate_multiplier->add_middleware(is_admin);
+    state->add_http_handler(base_path + "/increase_multiplier", increate_multiplier);
+  }
 
   auto gh = std::make_shared<game_handler>(game_state, postgres);
   state->add_channel(base_path + "/game", [game_state, postgres]() { return std::make_shared<game_handler>(game_state, postgres); });
@@ -62,8 +68,8 @@ int main() {
   auto h_scoreboard = std::make_shared<scoreboard_handler>(postgres);
   state->add_http_handler("/scoreboard", h_scoreboard);
 
-  auto ranked = create_game("/ranked", state, postgres, true);
-  auto unranked = create_game("/unranked", state, postgres, false);
+  auto ranked = create_game("/ranked", state, postgres, is_admin, true);
+  auto unranked = create_game("/unranked", state, postgres, is_admin, false);
 
   auto start_controller = std::make_shared<start_game_handler>(state, ranked, unranked);
   start_controller->add_middleware(is_admin);
