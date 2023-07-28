@@ -35,6 +35,10 @@ game_loop_sptr create_game(const std::string& base_path, std::shared_ptr<shared_
     auto increate_multiplier = std::make_shared<increase_multiplier_handler>(game_state);
     increate_multiplier->add_middleware(is_admin);
     state->add_http_handler(base_path + "/increase_multiplier", increate_multiplier);
+
+    auto decrease_multiplier = std::make_shared<decrease_multiplier_handler>(game_state);
+    decrease_multiplier->add_middleware(is_admin);
+    state->add_http_handler(base_path + "/decrease_multiplier", decrease_multiplier);
   }
 
   auto gh = std::make_shared<game_handler>(game_state, postgres);

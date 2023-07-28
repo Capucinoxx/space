@@ -59,4 +59,42 @@ public:
   }
 };
 
+class increase_multiplier_handler : public handler {
+private:
+  game_sptr game;
+
+public:
+  explicit increase_multiplier_handler(game_sptr game) : game{ game } {}
+
+  void operator()(http::request<http::string_body>& req, http::response<http::string_body>& resp) override {
+    if (!check_middleware(req)) {
+      resp.result(http::status::unauthorized);
+      return;
+    }
+
+    auto current_multiplier = game->increase_multiplier();
+    resp.body() = std::to_string(current_multiplier);
+    resp.result(http::status::ok);
+  }
+};
+
+class decrease_multiplier_handler : public handler {
+private:
+  game_sptr game;
+
+public:
+  explicit decrease_multiplier_handler(game_sptr game) : game{ game } {}
+
+  void operator()(http::request<http::string_body>& req, http::response<http::string_body>& resp) override {
+    if (!check_middleware(req)) {
+      resp.result(http::status::unauthorized);
+      return;
+    }
+
+    auto current_multiplier = game->decrease_multiplier();
+    resp.body() = std::to_string(current_multiplier);
+    resp.result(http::status::ok);
+  }
+};
+
 #endif //SPACE_HANDLER_CONTROLLER_HANDLER_H
