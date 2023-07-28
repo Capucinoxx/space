@@ -95,6 +95,7 @@ private:
   bool score_insert;
 
   static UniqueIDGenerator<15> uuid_generator;
+  uint64_t multiplier{ 1 };
 
 
 public:
@@ -283,7 +284,7 @@ private:
 
     for (auto& player : players) {
       arguments.emplace_back(std::to_string(player.second->id()));
-      arguments.emplace_back(std::to_string(player.second->tick_score()));
+      arguments.emplace_back(std::to_string(player.second->tick_score(multiplier)));
 
       if (with_insert) {
         query += "($" + std::to_string(i * 2 + 1) + ", $" + std::to_string(i * 2 + 2) + ")";
