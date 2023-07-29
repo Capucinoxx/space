@@ -3,13 +3,41 @@ class HSL {
   private saturation: number;
   private lightness: number;
 
-  public static from_name(name: string): HSL {
-    const hash = name.split('').reduce((hash, char) => char.charCodeAt(0) + ((hash << 5) - hash), 0);
-    const h = Math.abs(hash % 360);
-    const s = Math.abs(hash % 100) / 100;
-    const l = Math.abs(hash % 50) / 100 + 0.25;
+  public static async from_name(
+    name: string, 
+    h_c: [number, number] = [0, 360], 
+    s_c: [number, number] = [0, 1], 
+    l_c: [number, number] = [0, 1]
+  ): Promise<HSL> {
+    let h, s, l;
+    let hash = await HSL.shaToInt(name);
+    const hueResolution = 727;
+
+    const values = [.35, .5, .65];
+
+    h = (hash % hueResolution) * (h_c[1] - h_c[0]) / hueResolution + h_c[0];
+
+    hash = Math.ceil(hash / 360);
+    s = s_c[0] + (s_c[1] - s_c[0]) * values[hash % 3];
+
+    hash = Math.ceil(hash / 3);
+    l = l_c[0] + (l_c[1] - l_c[0]) * values[hash % 3];
 
     return new HSL(h, s, l);
+  }
+
+  private static async  shaToInt(str: string): Promise<number> {
+    const sha256 = async (str: string) => {
+      const crypto = window.crypto;
+
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
+        .then((buf) => {
+          const hashArray = Array.from(new Uint8Array(buf));
+          return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+        });
+    }
+
+    return parseInt(await sha256(str), 16);
   }
 
   public static from_hex(hex: string): HSL {
