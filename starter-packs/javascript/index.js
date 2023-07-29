@@ -2,7 +2,7 @@ import { ArgumentParser } from 'argparse';
 
 import { Socket } from './network/network.js';
 
-const DEFAULT_BASE_URL = 'ws://localhost:8080/unranked/game';
+const DEFAULT_BASE_URL = 'ws://jdis-ia.dinf.fsci.usherbrooke.ca';
 
 async function loop(secret, url) {
   await new Socket(url, secret).run();
