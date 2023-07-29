@@ -16,11 +16,11 @@ const handling_subscription = () => {
 	const canvas_preview = document.getElementById('bot-preview') as HTMLCanvasElement;
 	const ctx = canvas_preview.getContext('2d') as CanvasRenderingContext2D;
 
-	submit_btn.onclick = () => {
+	submit_btn.onclick = async () => {
 		const name = name_input.value;
 		if (name.length == 0 || name.length > 20) return;
 
-		const color = HSL.from_name(name).to_array();
+		const color = (await HSL.from_name(name, [0, 360], [0.35, 1], [0.3, 0.7])).to_array();
 
 		const data = new FormData();
 		data.set('name', name);
@@ -66,10 +66,10 @@ const handling_subscription = () => {
 	};
 }
 
-const bot_preview = (canvas: HTMLCanvasElement,ctx: CanvasRenderingContext2D, name: string) => {
+const bot_preview = async (canvas: HTMLCanvasElement,ctx: CanvasRenderingContext2D, name: string) => {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	const hsl = HSL.from_name(name);
+	const hsl = await HSL.from_name(name, [0, 360], [0.35, 1], [0.3, 0.7]);
 
 	render_player(ctx, 20, name, hsl, { x: 7, y: 2 });
 	render_trail(ctx, 20, hsl.adjust_luminosity(0.74).to_rgba(0.8), [{ x: 7, y: 3 }, { x: 7, y: 4 }, { x: 8, y: 4 }, { x: 9, y: 4 }, { x: 9, y: 3 }, { x: 10, y: 3 }]);
