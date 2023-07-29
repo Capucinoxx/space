@@ -57,7 +57,7 @@ class Pattern:
     Crée une action de type `Pattern`. Cette action permet de définir une liste d'actions à effectuer
     lorsque votre agent est déconnecté du serveur.
 
-    /!\ Si vous ne spécifiez pas de pattern de déconnexion, lorsque vous vous déconnectez,
+    /!\ Si vous ne spécifiez pas de pattern de déconnexion lorsque vous vous déconnectez,
         votre agent prendra toujours l'action d'aller vers le bas.
   
     /!\ Si dans votre pattern de déconnexion vous spécifiez un autre pattern de déconnexion,
@@ -84,6 +84,7 @@ class Pattern:
         serialized_actions = b''.join([action.serialize() for action in self.actions])
         return b'\x07' + serialized_actions
 
+
 @dataclass
 class Action:
     """
@@ -98,13 +99,13 @@ class Action:
                                                             (en) The action to perform.
 
     Example:
-        >>> # (fr) Téléporte vers la position (0, 0)
-        >>> # (en) Teleports to the position (0, 0)
+        >>> # (fr) Téléporte vers la position (0, 0).
+        >>> # (en) Teleports to the position (0, 0).
         >>> action = Action(Teleport(0, 0))
 
     Example:
-        >>> # (fr) Déplace l'agent vers le haut
-        >>> # (en) Moves the agent up
+        >>> # (fr) Déplace l'agent vers le haut.
+        >>> # (en) Moves the agent up.
         >>> action = Action(Direction.UP)
 
     Example:

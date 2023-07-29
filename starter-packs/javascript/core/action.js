@@ -64,7 +64,7 @@ class Teleport {
  * Crée une action de type `Pattern`. Cette action permet de définir une liste d'actions 
  * à effectuer lorsque votre agent est déconnecté du serveur.
  * 
- * /!\ Si vous ne spécifiez pas de pattern de déconnexion, lorsque vous vous déconnectez,
+ * /!\ Si vous ne spécifiez pas de pattern de déconnexion lorsque vous vous déconnectez,
  *     votre agent prendra toujours l'action d'aller vers le bas.
  * 
  * /!\ Si dans votre pattern de déconnexion vous spécifiez un autre pattern de déconnexion,
