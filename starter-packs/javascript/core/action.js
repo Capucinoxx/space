@@ -23,7 +23,8 @@ class Direction {
 
   serialize() {
     const buffer = new Uint8Array(1);
-    buffer[0] = this.value;
+    const data_view = new DataView(buffer.buffer);
+    data_view.setUint8(0, this.value);
     return buffer;
   }
 }
@@ -52,7 +53,7 @@ class Teleport {
   serialize() {
     const buffer = new ArrayBuffer(9);
     const data_view = new DataView(buffer);
-    data_view.setUint8(0, 5, true);
+    data_view.setUint8(0, 5);
     data_view.setUint32(1, this.x, true);
     data_view.setUint32(5, this.y, true);
     return new Uint8Array(buffer);
@@ -88,12 +89,18 @@ class Pattern {
   }
   
   serialize() {
-    const serializedActions = Uint8Array.from(
-      this.actions.flatMap(action => action.serialize())
-    );
-    const buffer = new Uint8Array(serializedActions.length + 1);
+    const serialized_actions = this.actions.reduce((acc, action) => {
+      const serialized_action = action.serialize();
+      const combined = new Uint8Array(acc.length + serialized_action.length);
+      combined.set(acc);
+      combined.set(serialized_action, acc.length);
+      return combined;
+    }, new Uint8Array());
+
+    const buffer = new Uint8Array(serialized_actions.length + 1);
     buffer[0] = 7;
-    buffer.set(serializedActions, 1);
+    buffer.set(serialized_actions, 1);
+
     return buffer;
   }
 }

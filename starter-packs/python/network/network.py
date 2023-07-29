@@ -22,7 +22,6 @@ class Socket:
                 while True:
                     message = await self.__ws.recv()
                     state = GameState.deserialize(message)
-                    print(f"Received {len(message)}")
                     try:
                         self.__queue.put_nowait(state)
                     except asyncio.QueueFull:
@@ -30,13 +29,12 @@ class Socket:
                         self.__queue.put_nowait(state)
 
         except Exception as e:
-            print(f"Erreur de lecture incomplète depuis le serveur WebSocket : {str(e)}")
+            print(e)
 
     async def __process_queue(self):
         while True:
             state = await self.__queue.get()
             action = self.__bot.tick(state)
-            print(f"Sending {action.serialize()}")
             await self.__ws.send(action.serialize())
 
     async def run(self):
