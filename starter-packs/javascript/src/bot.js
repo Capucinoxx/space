@@ -23,7 +23,7 @@ class MyBot {
 
   /**
    * (fr)
-   * Cette méthode est appelée à chaque tic de jeu. Vous pouvez y définir le comportement de
+   * Cette méthode est appelée à chaque tick de jeu. Vous pouvez y définir le comportement de
    * votre bot. Elle doit retourner une instance de `Action` qui sera exécutée par le serveur.
    * 
    * (en)

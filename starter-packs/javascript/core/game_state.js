@@ -11,10 +11,10 @@
  * @property position (fr) Position du joueur. [x, y]
  *                    (en) Position of the player. [x, y]
  * 
- * @property alive             (fr) Nombre de ticks depuis lequel le joueur est en vie.
+ * @property alive             (fr) Nombre de ticks depuis que le joueur est en vie.
  *                             (en) Number of ticks since the player is alive.
  * 
- * @property trail             (fr) Liste des traces du joueur. Si un autre joueur passe sur une de ces
+ * @property trail             (fr) Liste des positions des traces du joueur. Si un autre joueur passe sur une de ces
  *                                  positions, il meurt. Set de positions [[x, y], ...].
  *                             (en) List of the player's traces. If another player passes over one of these
  *                                  positions, he dies. Set of positions [[x, y], ...].
@@ -26,7 +26,7 @@
  *                                  positions, he removes this position from the player's region.
  *                                  Set of positions [[x, y], ...].
  *
- * @property teleportCooldown  (fr) Nombre de de tick avant que le joueur puisse réutiliser son action de téléportation.
+ * @property teleportCooldown  (fr) Nombre de de ticks avant que le joueur puisse réutiliser son action de téléportation.
  *                             (en) Number of ticks before the player can use the teleport action again.
  */
 class Player {
