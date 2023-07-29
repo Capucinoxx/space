@@ -11,14 +11,40 @@
 class scoreboard_handler : public handler {
 private:
   static constexpr const char * query = R"(WITH ranked_scores AS (
-      SELECT player_id, timestamp, score,
-      ROW_NUMBER() OVER (PARTITION BY player_id, date_trunc('minute', timestamp) ORDER BY timestamp) AS row_num
-      FROM player_scores
-      ) SELECT p.name, p.h, p.s, p.l, rs.timestamp, rs.score FROM ranked_scores rs
-      JOIN player p ON rs.player_id = p.id
-      WHERE rs.row_num = 1
-      AND EXTRACT('minute' FROM rs.timestamp) % 3 = 0
-      ORDER BY rs.player_id)";
+  SELECT 
+    player_id,
+    timestamp,
+    score,
+    ROW_NUMBER() OVER (PARTITION BY player_id, date_trunc('minute', timestamp) ORDER BY timestamp) AS row_num
+  FROM player_scores
+)
+
+SELECT 
+  p.name, 
+  p.h, 
+  p.s, 
+  p.l, 
+  rs.timestamp, 
+  rs.score 
+FROM 
+  ranked_scores rs
+JOIN 
+  player p ON rs.player_id = p.id
+WHERE 
+  (rs.player_id, date_trunc('minute', rs.timestamp), rs.row_num) IN (
+    SELECT 
+      player_id, 
+      date_trunc('minute', timestamp), 
+      MAX(row_num) as max_row_num
+    FROM 
+      ranked_scores
+    WHERE 
+      EXTRACT('minute' FROM timestamp) % 3 = 0
+    GROUP BY 
+      player_id, date_trunc('minute', timestamp)
+  )
+ORDER BY 
+  rs.player_id)";
 
   psql_sptr postgres;
 
