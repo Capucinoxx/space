@@ -103,7 +103,7 @@ That's it ! You're ready to participate ! 🎉
 
 ### 📋 Prerequisites
 
-For the starter kit with python, you first have to install the project dependencies.
+For the starter kit with javascript, you first have to install the project dependencies.
 
 ```sh
 npm install
@@ -130,10 +130,10 @@ _⚠️ You can only connect one instance of your bot simultaneously in each gam
 
 ### 🛠️ How to modify my bot ?
 
-The only file you will modify in the starting code is the `./src/bot.py` file. You will find the `MyBot` class in this file, which represents the bot you will need to code. When you launch your bot, an instance of this class is created. On each tick, the `tick` function will be called, providing the current state of the map.
+The only file you will modify in the starting code is the `./src/bot.js` file. You will find the `MyBot` class in this file, which represents the bot you will need to code. When you launch your bot, an instance of this class is created. On each tick, the `tick` function will be called, providing the current state of the map.
 
 **⚙️ Bot modifications :**
-1. Open the ./src/bot.py file.
+1. Open the ./src/bot.js file.
 2. Find the MyBot class.
 3. Code your bot by implementing the game logic in the tick function.
 

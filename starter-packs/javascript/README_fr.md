@@ -104,7 +104,7 @@ C'est tout ! Vous êtes prêt.e à participer ! 🎉
 
 ### 📋 Prérequis
 
-Pour le kit de démarraqge avec python, vous devez dans un premier temps installer les dépendances du projet.
+Pour le kit de démarraqge avec javascript, vous devez dans un premier temps installer les dépendances du projet.
 
 ```sh
 npm install
@@ -131,10 +131,10 @@ _⚠️ Vous ne pouvez connecter qu'une seule instance de votre bot simultanéme
 
 ### 🛠️ Comment modifier mon bot ?
 
-Le seul fichier que vous devriez modifier dans le code de départ est le fichier `./src/bot.py`. Dans ce fichier se trouve la classe `MyBot`, qui représente le bot que vous devrez coder. Lorsque vous lancez votre bot, une instance de cette classe est créée. À chaque tick, la fonction `tick` sera appelée, fournissant l'état actuel de la carte.
+Le seul fichier que vous devriez modifier dans le code de départ est le fichier `./src/bot.js`. Dans ce fichier se trouve la classe `MyBot`, qui représente le bot que vous devrez coder. Lorsque vous lancez votre bot, une instance de cette classe est créée. À chaque tick, la fonction `tick` sera appelée, fournissant l'état actuel de la carte.
 
 **⚙️ Modifications du bot :**
-1. Ouvrez le fichier ./src/bot.py.
+1. Ouvrez le fichier ./src/bot.ps.
 2. Recherchez la classe MyBot.
 3. Codez votre bot en implémentant la logique de jeu dans la fonction tick.
 
