@@ -79,41 +79,48 @@ class GameState {
     const decoder = new TextDecoder('unicode-1-1-utf-8');
 
     const players = {};
+    const data_view = new DataView(data);
+
     while (offset < data.byteLength) {
-      const nameSize = new Uint32Array(data.slice(offset, offset + 4))[0];
+      const nameSize = data_view.getUint32(offset, true);
       offset += 4;
-
-      const name = decoder.decode(data.slice(offset, offset + nameSize));
+  
+      const nameBytes = data.slice(offset, offset + nameSize);
+      const name = new TextDecoder().decode(nameBytes);
       offset += nameSize;
-
+  
       offset += 24; // Skip 24 bytes for the player's color
-
-      const [posX, posY, tickAlive] = new Uint32Array(data.slice(offset, offset + 12));
+  
+      const posX = data_view.getUint32(offset, true);
+      const posY = data_view.getUint32(offset + 4, true);
+      const tickAlive = data_view.getUint32(offset + 8, true);
       offset += 12;
-
-      const teleportCooldown = new Uint8Array(data.slice(offset, offset + 1))[0];
+  
+      const teleportCooldown = data_view.getUint8(offset, true);
       offset += 1;
-
-      const trailLength = new Uint32Array(data.slice(offset, offset + 4))[0];
+  
+      const trailLength = data_view.getUint32(offset, true);
       offset += 4;
-
+  
       const trail = new Set();
       for (let i = 0; i < trailLength; i++) {
-        const [x, y] = new Uint32Array(data.slice(offset, offset + 8));
+        const x = data_view.getUint32(offset, true);
+        const y = data_view.getUint32(offset + 4, true);
         trail.add([x, y]);
         offset += 8;
       }
-
-      const regionLength = new Uint32Array(data.slice(offset, offset + 4))[0];
+  
+      const regionLength = data_view.getUint32(offset, true);
       offset += 4;
-
+  
       const region = new Set();
       for (let i = 0; i < regionLength; i++) {
-        const [x, y] = new Uint32Array(data.slice(offset, offset + 8));
+        const x = data_view.getUint32(offset, true);
+        const y = data_view.getUint32(offset + 4, true);
         region.add([x, y]);
         offset += 8;
       }
-
+  
       players[name] = new Player(name, [posX, posY], tickAlive, trail, region, teleportCooldown);
     }
 
