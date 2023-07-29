@@ -13,7 +13,7 @@ const render_player = (ctx: CanvasRenderingContext2D, cell_size: number, name: s
   const dark_color = hsl.adjust_luminosity(0.35).to_rgba(1);
   const light_color = hsl.to_rgba(1);
 
-  ctx.fillStyle = dark_color;
+  ctx.fillStyle = 'white';
   ctx.textAlign = 'center';
   ctx.font = 'bold 12px sans-serif';
 
