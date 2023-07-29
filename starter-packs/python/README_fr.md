@@ -107,7 +107,7 @@ C'est tout ! Vous êtes prêt.e à participer ! 🎉
 Pour le kit de démarraqge avec python, vous devez dans un premier temps installer les dépendances du projet.
 
 ```sh
-pip install -r .
+pip install -r requirements.txt
 ```
 
 ### Comment me connecter ?
