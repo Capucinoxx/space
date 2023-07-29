@@ -5,6 +5,7 @@ import { Canvas } from './canvas.js';
 import { render_player, render_trail } from './player.js';
 
 import { draw_teleport } from './teleport_animation.js';
+import { draw_death_icon } from './death_animation.js';
 
 interface BoardgameData {
   rows: number;
@@ -17,6 +18,7 @@ interface BoardgameData {
   regions: Array<Array<Position>>;
   regions_length: Array<number>;
   teleports_cooldown: Array<number>;
+  tick_alives: Array<number>;
 }
 
 class Deserializer {
@@ -52,7 +54,7 @@ class Deserializer {
     return str;
   }
 
-  private deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>, number] => {
+  private deserialize_player = (): [string, HSL, Position, Array<Position>, Array<Position>, number, number] => {
     const name_size = this.deserialize_int();
 
     const name = this.deserialize_string(name_size);
@@ -74,7 +76,7 @@ class Deserializer {
     for (let i = 0; i != region_length; i++)
       region[i] = {x: this.deserialize_int(), y: this.deserialize_int()};
 
-    return [name, new HSL(color_l, color_s, color_h), { x: px, y: py }, trail, region, teleport_cooldown];
+    return [name, new HSL(color_l, color_s, color_h), { x: px, y: py }, trail, region, teleport_cooldown, tick_alive];
   };
 
   public deserialize = (data: Uint8Array): BoardgameData => {
@@ -92,11 +94,12 @@ class Deserializer {
       regions: [],
       regions_length: [],
       teleports_cooldown: [],
+      tick_alives: [],
     };
 
     const length = data.length;
     while (this.offset < length) {      
-      const [name, color, pos, trail, region, tp_cooldown] = this.deserialize_player();
+      const [name, color, pos, trail, region, tp_cooldown, tick_alive] = this.deserialize_player();
       result.names.push(name.trim());
       result.colors.push(color);
       result.positions.push(pos);
@@ -104,6 +107,7 @@ class Deserializer {
       result.regions.push(region);
       result.regions_length.push(region.length);
       result.teleports_cooldown.push(tp_cooldown);
+      result.tick_alives.push(tick_alive);
     }
 
     return result;
@@ -154,11 +158,15 @@ class BoardGame {
       const info = this.player_position[name];
       const tp_cooldown = this.data!.teleports_cooldown[i];
       const current_pos = this.data!.positions[i];
+      const alive = this.data!.tick_alives[i];
 
       if (info !== undefined && info.tp_cooldown < tp_cooldown) {
         draw_teleport(ctx, 'orange', this.data!.positions[i], this.canvas.cell_size);
         draw_teleport(ctx, 'blue', this.player_position[name].last_pos, this.canvas.cell_size);
       }
+
+      if (info !== undefined && alive === 0)
+        draw_death_icon(ctx, this.data!.colors[i].adjust_luminosity(0.45).to_rgba(1), this.player_position[name].last_pos, this.canvas.cell_size);
 
       this.player_position[name] = { last_pos: this.data!.positions[i], tp_cooldown: this.data!.teleports_cooldown[i] };
     });
