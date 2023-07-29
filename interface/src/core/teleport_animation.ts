@@ -67,11 +67,14 @@ const orange_teleport = [
 const draw_teleport = (ctx: CanvasRenderingContext2D, color: 'orange' | 'blue', pos: Position, cell_width: number) => {
   let { x: px , y: py } = pos;
   px = px * cell_width;
-  py = py * cell_width - cell_width / 2;
+  py = py * cell_width;
 
 
   switch (color) {
     case 'blue':
+      px -= cell_width;
+      py -= cell_width;
+
       ctx.fillStyle = '#0093FF';
       blue_teleport.forEach((section) => {
         ctx.fillRect(px + section.pos.x, py + section.pos.y, section.width, section.height);
@@ -79,6 +82,8 @@ const draw_teleport = (ctx: CanvasRenderingContext2D, color: 'orange' | 'blue', 
       break;
 
     case 'orange':
+      py -= cell_width;
+
       ctx.fillStyle = '#FF6900';
       orange_teleport.forEach((section) => {
         ctx.fillRect(px + section.pos.x, py + section.pos.y, section.width, section.height);
@@ -88,4 +93,3 @@ const draw_teleport = (ctx: CanvasRenderingContext2D, color: 'orange' | 'blue', 
 };
 
 export { draw_teleport };
-
