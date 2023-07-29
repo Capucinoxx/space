@@ -59,7 +59,7 @@ To extend your territory, you must make the line you trace return to your own te
 
 ## Interaction with other players
 
-## How to kill or be killed ?
+### How to kill or be killed ?
 
 As long as your line is not closed by returning to your own territory, it remains vulnerable. If another player crosses your trail, you will be eliminated from the game and you lose a part of your territory. Similarly, your bot can kill other agents by passing on their trail 🚶‍♂️💨.
 
@@ -67,7 +67,7 @@ If you pass on your own unfinished trail, you will die 🕳️😵
 
 Plan your moves wisely, plot your path, and make sure you don't trick yourself by avoiding your own trails. 💥🎯
 
-## What happens when I die?
+### What happens when I die ?
 If you die, your agent will be teleported to a new destination and can start playing again as if nothing had happened. The territory that was acquired by the agent during his lifetime is now removed from him.
 
 If you have not yet taken your turn when another agent kills you, your action will not be taken into account ❌.
@@ -106,7 +106,7 @@ That's it ! You're ready to participate ! 🎉
 For the starter kit with python, you first have to install the project dependencies.
 
 ```sh
-pip install -r .
+pip install -r requirements.txt
 ```
 
 ### How do I log in ?
