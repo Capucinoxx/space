@@ -9,7 +9,7 @@ async def loop(secret: str, url: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Starts the bot")
-    parser.add_argument("-s", "--secret", help="The secret wich authenticates your bot", required=True)
+    parser.add_argument("-s", "--secret", help="The secret that authenticates your bot", required=True)
     parser.add_argument("-r", "--rank", action='store_true', help="If set, the bot will play ranked games")
     parser.add_argument("-u", "--url", help="The url of the server", default=DEFAULT_BASE_URL)
 

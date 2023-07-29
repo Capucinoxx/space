@@ -16,23 +16,25 @@ class MyBot:
         self.__name = "name_of_my_super_cool_bot"
         self.__first_turn = True
 
+
     def __random_action(self) -> Action:
         return random.choice(list(Direction))
 
-    """
-    (fr)
-    Cette méthode est appelée à chaque tic de jeu. Vous pouvez y définir le comportement de
-    votre bot. Elle doit retourner une instance de `Action` qui sera exécutée par le serveur.
 
-    (en)
-    This method is called every game tick. You can define the behavior of your bot. It must 
-    return an instance of `Action` which will be executed by the server.
-
-    Args:
-        state (GameState):  (fr) L'état du jeu.
-                            (en) The state of the game.
-    """
     def tick(self, state: GameState) -> Action:
+        """
+        (fr)
+        Cette méthode est appelée à chaque tick de jeu. Vous pouvez y définir le comportement de
+        votre bot. Elle doit retourner une instance de `Action` qui sera exécutée par le serveur.
+
+        (en)
+        This method is called every game tick. You can define the behavior of your bot. It must 
+        return an instance of `Action` which will be executed by the server.
+
+        Args:
+            state (GameState):  (fr) L'état du jeu.
+                                (en) The state of the game.
+        """
         if self.__first_turn:
             self.__first_turn = False
             return Action(Pattern([Direction.UP, Direction.RIGHT]))
